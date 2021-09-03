@@ -35,17 +35,16 @@ def slugify(value: str, allow_unicode=True): #used to sanitize string for filesy
     return re.sub(r'[-\s]+', '-', value).strip('-_')
 
 class channel():
-    def __init__(self, name: str, channel_id: str, plid: str, status: str):
+    def __init__(self, name: str, channel_id: str, status: str):
         self.name = name #alias for the channel. Eg. Okayu Ch.
         self.channel_id = channel_id #Channel ID. Eg
-        self.plid = plid
         self.status = status
     
     def save(self):
         if not os.path.isdir("channels"):
             os.makedirs("channels")
         with open(os.path.join("channels", slugify(self.name) + ".channel"), "w") as outfile:
-            outfile.write(self.name + "\n" + self.channel_id + "\n" + self.plid + "\n" + self.status)
+            outfile.write(self.name + "\n" + self.channel_id + "\n" + self.status)
 
     def getRSS(self): #returns channel's RSS feed as a list of entries
         return feedparser.parse(requests.get("https://www.youtube.com/feeds/videos.xml?channel_id=" + self.channel_id).text).entries
@@ -55,7 +54,7 @@ def load_channels():
     for data_file in os.listdir("channels"):
         with open(os.path.join("channels", data_file), "r") as file:
             lines = file.read().splitlines()
-            channels.append(channel(lines[0], lines[1], lines[2], lines[3]))
+            channels.append(channel(lines[0], lines[1], lines[2]))
     return channels
 
 def load_keywords():
