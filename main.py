@@ -58,10 +58,17 @@ def load_channels():
             channels.append(channel(lines[0], lines[1], lines[2], lines[3]))
     return channels
 
+def load_keywords():
+    keywords = list()
+    with open("keywords.txt", "r", encoding="UTF-8") as key_file:
+        for line in key_file.read().splitlines():
+            keywords.append(line)
+    return keywords
+
 def ASMRchive(channels: list, keywords: list):
     pass
 
 if __name__ == "__main__":
     channels = load_channels()
-    keywords = ["asmr", "binaural", "ku100", "3dio", "バイノーラル"] #relevant keywords to scan titles for
+    keywords = load_keywords()
     ASMRchive(channels, keywords)
