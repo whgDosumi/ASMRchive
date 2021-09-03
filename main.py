@@ -77,6 +77,7 @@ def get_video(url, ydl_opts):
             ydl.download((url,))
             return True
     except Exception as e:
+        log(url + " - " + str(e))
         return False
         
 
@@ -115,41 +116,57 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 "writeinfojson": True,
             }
             processes = []
-            for video in to_download:
-                if not os.path.exists(os.path.join(output_directory, slugify(chan.name), slugify(video[0]))):
-                    os.makedirs(os.path.join(output_directory, slugify(chan.name), slugify(video[0])))
-                ydl_opts['outtmpl'] = os.path.join(output_directory, slugify(chan.name), slugify(video[0]), '%(title)s.%(ext)s')
-                p = Process(target=get_video, args=(video[1], ydl_opts))
-                p.start()
-                processes.append(p)
-            TIMEOUT = 60
-            time_spent = 0
-            alive = True
-            while alive: #forgive my handling of these processes... (youtube throttles sometimes, this is to 'refresh' that throttling)
-                alive = False
-                for p in processes:
-                    if p.is_alive():
-                        alive = True
-                        break
-                if alive:
-                    time.sleep(5)
-                    time_spent = time_spent + 5
-                    if time_spent >= TIMEOUT:
-                        time_spent = 0
-                        for p in processes:
-                            if p.is_alive():
-                                p.terminate()
-                                p.join()
-                        processes = []
-                        for video in to_download:
-                            if not os.path.exists(os.path.join(output_directory, slugify(chan.name), slugify(video[0]))):
-                                os.makedirs(os.path.join(output_directory, slugify(chan.name), slugify(video[0])))
-                            ydl_opts['outtmpl'] = os.path.join(output_directory, slugify(chan.name), slugify(video[0]), '%(title)s.%(ext)s')
-                            p = Process(target=get_video, args=(video[1], ydl_opts))
-                            p.start()
-                            processes.append(p)
+            while len(to_download) >= 1:
+                queue = to_download[0:10]
+                for video in queue:
+                    if not os.path.exists(os.path.join(output_directory, slugify(chan.name), slugify(video[0]))):
+                        os.makedirs(os.path.join(output_directory, slugify(chan.name), slugify(video[0])))
+                    ydl_opts['outtmpl'] = os.path.join(output_directory, slugify(chan.name), slugify(video[0]), '%(title)s.%(ext)s')
+                    p = Process(target=get_video, args=(video[1], ydl_opts))
+                    p.start()
+                    processes.append(p)
+                TIMEOUT = 20
+                time_spent = 0
+                alive = True
+                while alive: #forgive my handling of these processes... (youtube throttles sometimes, this is to 'refresh' that throttling)
+                    alive = False
+                    total = 0
+                    for p in processes:
+                        if p.is_alive():
+                            alive = True
+                            total = total + 1
+                    if alive:
+                        time.sleep(.5)
+                        time_spent = time_spent + .5
+                        if time_spent >= TIMEOUT + (total * 5):
+                            time_spent = 0
+                            for p in processes:
+                                if p.is_alive():
+                                    p.terminate()
+                                    p.join()
+                            processes = []
+                            time.sleep(10)
+                            for video in queue:
+                                if not os.path.exists(os.path.join(output_directory, slugify(chan.name), slugify(video[0]))):
+                                    os.makedirs(os.path.join(output_directory, slugify(chan.name), slugify(video[0])))
+                                ydl_opts['outtmpl'] = os.path.join(output_directory, slugify(chan.name), slugify(video[0]), '%(title)s.%(ext)s')
+                                p = Process(target=get_video, args=(video[1], ydl_opts))
+                                p.start()
+                                processes.append(p)
+                for video in queue:
+                    if not os.path.exists(os.path.join(output_directory, slugify(chan.name), slugify(video[0]))):
+                        os.makedirs(os.path.join(output_directory, slugify(chan.name), slugify(video[0])))
+                    ydl_opts['outtmpl'] = os.path.join(output_directory, slugify(chan.name), slugify(video[0]), '%(title)s.%(ext)s')
+                    p = Process(target=get_video, args=(video[1], ydl_opts))
+                    p.start()
+                    processes.append(p)
+                    new = []
+                    for item in to_download:
+                        if not item in queue:
+                            new.append(item)
+                    to_download = new
             chan.status = "archived"
-            chan.save()
+            #chan.save()
         elif chan.status == "archived": #we want to check the RSS for new ASMR streams
             pass
         else: #reserved for un-statused channels. Not sure what this will be for.
@@ -158,8 +175,6 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
 if __name__ == "__main__":
     channels = load_channels()
     keywords = load_keywords()
-    for key in keywords:
-        print(key)
     #output_directory = "E:\Youtube"
     output_directory = "/mnt/thicc/youtube"
     ASMRchive(channels, keywords, output_directory)
