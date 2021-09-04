@@ -119,12 +119,15 @@ def get_video(url, ydl_opts):
         return False
 
 def get_video_info(url):
-    ydl_opts = {
-        'nocheckcertificate': True,
-        'ignoreerrors': True,
-    }
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl: #This one gets the playlists
-        meta = ydl.extract_info(url, download=False)
+    try:
+        ydl_opts = {
+            'nocheckcertificate': True,
+        }
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl: #This one gets the playlists
+            meta = ydl.extract_info(url, download=False)
+        return [True,meta]
+    except Exception as e:
+        return [False,e]
 
 def ASMRchive(channels: list, keywords: list, output_directory: str):
     for chan in channels:
@@ -137,8 +140,55 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                     for word in keywords:
                         if word.lower() in video["title"].lower():
                             to_download.append(video)
+            downloaders = []
             for video in to_download:
-                try:
+                meta = get_video_info(video["link"])
+                if meta[0]: #If the video returned proper metadata
+                    meta = meta[1]
+                    ydl_opts = {
+                        'nocheckcertificate': True,
+                        'writethumbnail': True,
+                        'format': "bestaudio/best",
+                        "writedescription": True,
+                        "writeinfojson": True,
+                        "outtmpl": os.path.join(output_directory, slugify(chan.name), slugify(meta["title"]), '%(title)s.%(ext)s')
+                    }
+                    downloaders.append(video_downloader(meta["webpage_url"], ydl_opts))
+                else:
+                    meta = meta[1]
+                    meta = str(meta).lower()
+                    if "live event" in meta:
+                        if "hours" in meta or "days" in meta:
+                            pass #we don't really need to take action on a video starting in > 1hr from now
+                        else:
+                            pass # spawn a recorder!!! This will be late-game for this program.
+            for downloader in downloaders:
+                downloader.start_download()
+            alive = True
+            finished = []
+            TIMEOUT = 25
+            time_spent = 0
+            while alive:
+                alive = False
+                count = 0
+                for downloader in downloaders:
+                    if downloader.alive():
+                        count = count + 1
+                        alive = True
+                    else:
+                        finished.append(downloader)
+                    time.sleep(.5)
+                    time_spent = time_spent + .5
+                    if time_spent >= TIMEOUT + (5 * count):
+                        time_spent = 0
+                        for downloader in downloaders:
+                            if downloader.alive():
+                                downloader.kill()
+                                time.sleep(2.5)
+                                downloader.start_download()
+            with open(os.path.join(output_directory, slugify(chan.name), "saved_urls.txt"), "a") as saved_doc:
+                for item in finished:
+                    saved_doc.write(item.url + "\n")
                     
         elif chan.status == "new": #we want to do a full archive of all videos
             saved = chan.get_saved_videos(output_directory)
