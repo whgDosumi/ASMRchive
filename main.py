@@ -49,7 +49,7 @@ class channel():
         return feedparser.parse(requests.get("https://www.youtube.com/feeds/videos.xml?channel_id=" + self.channel_id).text).entries
 
     def get_all_plist(self):
-        return "https://www.youtube.com/channel/" + self.channel_id
+        return "https://www.youtube.com/channel/" + self.channel_id + "/videos"
 
     def get_saved_videos(self, output_directory: str):
         saved_videos = []
@@ -234,7 +234,7 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                     d = video_downloader(video[1], ydl_opts)
                     d.start_download()
                     processes.append(d)
-                TIMEOUT = 15
+                TIMEOUT = 25
                 time_spent = 0
                 alive = True
                 finished = []
@@ -287,6 +287,8 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                         if item[1] in finished: #otherwise it's an error
                             downloaded.append(item)
                 to_download = new
+            if not os.path.exists(os.path.join(output_directory, slugify(chan.name))):
+                os.makedirs(os.path.join(output_directory, slugify(chan.name)))
             with open(os.path.join(output_directory, slugify(chan.name), "saved_urls.txt"), "a") as saved_doc:
                 for item in downloaded:
                     saved_doc.write(item[1] + "\n")
@@ -297,7 +299,7 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
 
 if __name__ == "__main__":
     testing_new = False
-    testing_rss = True
+    testing_rss = False
     channels = load_channels()
     if testing_new:
         for chan in channels:
