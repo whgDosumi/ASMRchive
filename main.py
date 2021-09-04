@@ -51,6 +51,43 @@ class channel():
     def get_all_plist(self):
         return "https://www.youtube.com/channel/" + self.channel_id
 
+    def get_saved_videos(self, output_directory: str):
+        saved_videos = []
+        if os.path.exists(os.path.join(output_directory, slugify(self.name), "saved_urls.txt")):
+            with open(os.path.join(output_directory, slugify(self.name), "saved_urls.txt"), "r") as saved_doc:
+                for video in saved_doc.read().splitlines():
+                    saved_videos.append(video)
+        return saved_videos
+
+class video_downloader():
+    def __init__(self, url, ydl_opts) -> None:
+        self.url = url
+        self.ydl_opts = ydl_opts
+        self.error = None
+        self.process = Process(target=self.downloader, args=(self,))
+        
+    def downloader(self, _) -> None:
+        try:
+            with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
+                ydl.download((self.url,))
+        except Exception as e:
+            self.error = e
+
+    def start_download(self) -> None:
+        self.process.start()
+    
+    def is_alive(self) -> bool:
+        return self.process.is_alive()
+    
+    def kill(self):
+        try:
+            self.process.terminate()
+            self.process.join()
+            return True
+        except:
+            return False
+
+
 def load_channels():
     channels = list()
     for data_file in os.listdir("channels"):
@@ -78,12 +115,8 @@ def get_video(url, ydl_opts):
 
 def ASMRchive(channels: list, keywords: list, output_directory: str):
     for chan in channels:
-        saved = []
         if chan.status == "new": #we want to do a full archive of all videos
-            if os.path.exists(os.path.join(output_directory, slugify(chan.name), "saved_urls.txt")):
-                with open(os.path.join(output_directory, slugify(chan.name), "saved_urls.txt"), "r") as saved_doc:
-                    saved = saved_doc.read().splitlines()
-            
+            saved = chan.get_saved_videos(output_directory)
             to_download = list()
             downloaded = list()
             ydl_opts = {
@@ -165,9 +198,16 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 for item in downloaded:
                     saved_doc.write(item[1] + "\n")
             chan.status = "archived"
-            #chan.save()
+            chan.save()
         elif chan.status == "archived": #we want to check the RSS for new ASMR streams
             rss = chan.get_rss()
+            saved = chan.get_saved_videos(output_directory)
+            to_download = []
+            for video in rss:
+                if not video["link"] in saved:
+                    for word in keywords:
+                        if word.lower() in video["title"].lower():
+                            to_download.append([video["title"], video["link"]])
         else: #reserved for un-statused channels. Not sure what this will be for. Need a 'recording' status later for recording channels
             pass
 
