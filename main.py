@@ -34,11 +34,18 @@ def slugify(value: str, allow_unicode=True): #used to sanitize string for filesy
     return re.sub(r'[-\s]+', '-', value).strip('-_')
 
 class channel():
-    def __init__(self, name: str, channel_id: str, status: str):
+    def __init__(self, name: str, channel_id: str, status: str, output_directory: str):
         self.name = name #alias for the channel. Eg. Okayu Ch.
         self.channel_id = channel_id #Channel ID. Eg
         self.status = status
+        self.path = os.path.join(output_directory, slugify(self.name))
     
+    def setup(self):
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+        with open(os.path.join(self.path, "name.txt"), "w") as name_file:
+            name_file.write(self.name)
+
     def save(self):
         if not os.path.isdir("channels"):
             os.makedirs("channels")
@@ -94,12 +101,12 @@ class video_downloader():
     def wait(self):
         self.process.join()
 
-def load_channels():
+def load_channels(output_directory: str):
     channels = list()
     for data_file in os.listdir("channels"):
         with open(os.path.join("channels", data_file), "r") as file:
             lines = file.read().splitlines()
-            channels.append(channel(lines[0], lines[1], lines[2]))
+            channels.append(channel(lines[0], lines[1], lines[2], output_directory))
     return channels
 
 def load_keywords():
@@ -130,6 +137,7 @@ def get_video_info(url):
         return [False,e]
 
 def ASMRchive(channels: list, keywords: list, output_directory: str):
+    long_downloaders = []
     for chan in channels:
         if chan.status == "archived": #we want to check the RSS for new ASMR streams
             rss = chan.get_rss()
@@ -153,7 +161,12 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                         "writeinfojson": True,
                         "outtmpl": os.path.join(output_directory, slugify(chan.name), slugify(meta["title"]), '%(title)s.%(ext)s')
                     }
-                    downloaders.append(video_downloader(meta["webpage_url"], ydl_opts))
+                    dl = video_downloader(meta["webpage_url"], ydl_opts)
+                    if "DASH audio" in meta["format"]:
+                        long_downloaders.append(dl)
+                        dl.start_download()
+                    else:
+                        downloaders.append(video_downloader(meta["webpage_url"], ydl_opts))
                 else:
                     meta = meta[1]
                     meta = str(meta).lower()
@@ -166,7 +179,7 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 downloader.start_download()
             alive = True
             finished = []
-            TIMEOUT = 25
+            TIMEOUT = 120
             time_spent = 0
             while alive:
                 alive = False
@@ -194,6 +207,7 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
             saved = chan.get_saved_videos(output_directory)
             to_download = list()
             downloaded = list()
+            chan.setup()
             ydl_opts = {
                 'nocheckcertificate': True,
                 'ignoreerrors': True,
@@ -298,9 +312,10 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
             pass
 
 if __name__ == "__main__":
+    output_directory = "/mnt/thicc/ASMRchive"
     testing_new = False
     testing_rss = False
-    channels = load_channels()
+    channels = load_channels(output_directory)
     if testing_new:
         for chan in channels:
             chan.status = "new"
@@ -308,5 +323,4 @@ if __name__ == "__main__":
         for chan in channels:
             chan.status = "archived"
     keywords = load_keywords()
-    output_directory = "/mnt/thicc/ASMRchive"
     ASMRchive(channels, keywords, output_directory)
