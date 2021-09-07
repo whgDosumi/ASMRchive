@@ -18,6 +18,30 @@ import feedparser
 import unicodedata
 import re
 import datetime
+import shutil
+
+def get_pfp(yt_url):
+    webpage = requests.get(yt_url).text
+    start = 0
+    good = False
+    while not good:
+        init_start = webpage.find("s176", start + 1)
+        start = init_start
+        end = webpage.find("\"", start)
+        start = webpage.rfind("\"", start-200, start) + 1
+        if start == end:
+            return False
+        url = webpage[start:end]
+        url = url.replace("s176", "s176")
+        try:
+            requests.get(url)
+            good = True
+            return url
+        except:
+            if init_start == -1:
+                return False
+                good = True
+            start = init_start + 1
 
 def log(message: str):
     with open("log.txt", "a", encoding="UTF-8") as logfile:
@@ -45,6 +69,12 @@ class channel():
             os.makedirs(self.path)
         with open(os.path.join(self.path, "name.txt"), "w") as name_file:
             name_file.write(self.name)
+        try:
+            with open(os.path.join(self.path, "pfp.png"), "wb") as image_file:
+                image_file.write(requests.get(get_pfp("https://www.youtube.com/channel/" + self.channel_id), stream=True).raw.data)
+        except Exception as e:
+            shutil.copyfile("default-pfp.png", os.path.join(self.path, "pfp.png"))
+        
 
     def save(self):
         if not os.path.isdir("channels"):
@@ -310,6 +340,8 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
             chan.save()
         else: #reserved for un-statused channels. Not sure what this will be for. Need a 'recording' status later for recording channels
             pass
+        for down in long_downloaders:
+            down.wait()
 
 if __name__ == "__main__":
     output_directory = "/mnt/thicc/ASMRchive"
