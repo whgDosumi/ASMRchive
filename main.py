@@ -1,15 +1,6 @@
-"""
-Plans:
-First: make it scan an entire channel and archive all of its ASMR videos using youtube_dl
-Then, after it does that, make it scan the RSS and see if there are any new ASMR videos to download periodically.
-
-Eventually, I want it to check for live ASMR and record them until a full archive can be obtained with the original method. That way, if
-it's removed, we can still keep the recording. 
-
-"""
-
 import time
 from multiprocessing import Process, Pool
+import multiprocessing
 import notify_run
 import youtube_dl
 import requests
@@ -19,10 +10,16 @@ import unicodedata
 import re
 import datetime
 import shutil
+import json
+
+
+def read_json(file_path):
+    with open(file_path, "r") as file:
+        return json.load(file)
 
 def get_pfp(yt_url):
     webpage = requests.get(yt_url).text
-    start = 0
+    start = webpage.find("\"avatar\":")
     good = False
     while not good:
         init_start = webpage.find("s176", start + 1)
@@ -97,39 +94,60 @@ class channel():
         return saved_videos
 
 class video_downloader():
-    def __init__(self, url, ydl_opts) -> None:
+    def __init__(self, url, ydl_opts, path, id, return_dict) -> None:
         self.url = url
         self.ydl_opts = ydl_opts
+        self.ydl_opts['progress_hooks'] = [self.my_hook,]
         self.error = None
-        self.process = Process(target=self.downloader, args=(self,))
+        self.return_dict = return_dict
+        self.id = id
+        self.process = Process(target=self.downloader, args=(self.id, self.return_dict))
+        self.path = path
+
         
-    def downloader(self, _) -> None:
+
+    def my_hook(self, d):
+        try:
+            if (d["speed"] <= 1000000) and (int(d["elapsed"]) >= 5) and (int(d["eta"]) >= 80): 
+                raise NameError('slow af')
+        except Exception as e:
+            if "slow af" in str(e):
+                raise e
+            pass
+
+    def downloader(self, id, return_dict):
         try:
             with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
                 ydl.download((self.url,))
+                data = read_json(os.path.join(self.path, "asmr.info.json"))
+                with open(os.path.join(self.path, "upload_date.txt"), "w") as upload_date_file:
+                    upload_date_file.write(data["upload_date"])
+                return_dict[id] = [self.id, "Finished"]
         except Exception as e:
-            self.error = e
+            if "slow af" in str(e):
+                return_dict[id] = [self.id, "Ignore"]
+            elif "403: Forbidden" in str(e):
+                return_dict[id] = [self.id, str(e)]
+            elif "unable to rename file" in str(e):
+                return_dict[id] = [self.id, str(e)]
+            else:
+                return_dict[id] = [self.id, str(e)]
+            exit()
 
-    def start_download(self) -> None:
+    def start_download(self):
         self.process.start()
     
     def alive(self) -> bool:
         return self.process.is_alive()
     
     def kill(self):
-        try:
+        if self.process.is_alive():
             self.process.terminate()
             self.process.join()
-            self.process = Process(target=self.downloader, args=(self,))
-            self.error = None
-            return True
-        except:
-            self.process = Process(target=self.downloader, args=(self,))
-            self.error = None
-            return False
 
     def wait(self):
-        self.process.join()
+        if self.process.is_alive():
+            self.process.join()
 
 def load_channels(output_directory: str):
     channels = list()
@@ -166,8 +184,85 @@ def get_video_info(url):
     except Exception as e:
         return [False,e]
 
+def get_vid(url):
+    return url[url.find("?v=") + 3:]
+
+def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1):
+    errored = {}
+    error_count = {}
+    function_output = {}
+    function_output["successes"] = []
+    function_output["failures"] = []
+    queue_manager = multiprocessing.Manager()
+    while len(to_download) >= 1:
+        queue = to_download[0:limit]
+        id = -1
+        return_dict = queue_manager.dict()
+        processes = []
+        for video in queue:
+            id = id + 1
+            path = os.path.join(channel_path, slugify(video[0]) + "-" + get_vid(video[1]))
+            if not os.path.exists(path):
+                os.makedirs(path)
+            else: #if it exists, and we need the video, we need to purge any 'bad data' here.
+                shutil.rmtree(path)
+                os.makedirs(path) #and then re-create the directory fresh and clean.
+            ydl_opts['outtmpl'] = os.path.join(path, 'asmr.%(ext)s')
+            d = video_downloader(video[1], ydl_opts, path, id, return_dict)
+            d.start_download()
+            with open(os.path.join(path, "title.txt"), "w", encoding="UTF-8") as title:
+                title.write(video[0]) #this may be replaced later (hopefully)
+            processes.append(d)
+        finished = []
+
+        for p in processes:
+            p.wait()
+
+        returns = return_dict.values()
+        index = -1
+        sorted = []
+        while len(sorted) < len(returns): #this sorts the returns for simplicity
+            index += 1
+            for i in returns:
+                if i[0] == index:
+                    sorted.append(i)
+                    break
+        returns = sorted
+        sorted = None
+        purge = {}
+        for p in processes:
+            status = returns[p.id][1]
+            if status == "Finished":
+                purge[p.url] = "success"
+            elif status == "Ignore":
+                pass #Doing nothing puts it in the next queue for re-download
+            elif p.url in errored:
+                error_count[p.url] += 1
+                if error_count[p.url] > max_retries:
+                    purge[p.url] = "failure"
+            else: #we got an error
+                errored[p.url] = status
+                if max_retries > 0:
+                    error_count[p.url] = 1
+                else:
+                    purge[p.url] = "failure"
+        purge_urls = [i for i in purge]
+        new = []
+        for d in to_download:
+            if not d[1] in purge_urls:
+                new.append(d)
+        to_download = new
+        for p in purge:
+            if purge[p] == "success":
+                function_output["successes"].append(p)
+            else:
+                function_output["failures"].append(p)
+                
+    queue_manager.shutdown()
+    return function_output
+
+
 def ASMRchive(channels: list, keywords: list, output_directory: str):
-    long_downloaders = []
     for chan in channels:
         if chan.status == "archived": #we want to check the RSS for new ASMR streams
             rss = chan.get_rss()
@@ -177,62 +272,24 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 if not video["link"] in saved:
                     for word in keywords:
                         if word.lower() in video["title"].lower():
-                            to_download.append(video)
-            downloaders = []
-            for video in to_download:
-                meta = get_video_info(video["link"])
-                if meta[0]: #If the video returned proper metadata
-                    meta = meta[1]
-                    ydl_opts = {
-                        'nocheckcertificate': True,
-                        'writethumbnail': True,
-                        'format': "bestaudio/best",
-                        "writedescription": True,
-                        "writeinfojson": True,
-                        "outtmpl": os.path.join(output_directory, slugify(chan.name), slugify(meta["title"]), '%(title)s.%(ext)s')
-                    }
-                    dl = video_downloader(meta["webpage_url"], ydl_opts)
-                    if "DASH audio" in meta["format"]:
-                        long_downloaders.append(dl)
-                        dl.start_download()
-                    else:
-                        downloaders.append(video_downloader(meta["webpage_url"], ydl_opts))
-                else:
-                    meta = meta[1]
-                    meta = str(meta).lower()
-                    if "live event" in meta:
-                        if "hours" in meta or "days" in meta:
-                            pass #we don't really need to take action on a video starting in > 1hr from now
-                        else:
-                            pass # spawn a recorder!!! This will be late-game for this program.
-            for downloader in downloaders:
-                downloader.start_download()
-            alive = True
-            finished = []
-            TIMEOUT = 120
-            time_spent = 0
-            while alive:
-                alive = False
-                count = 0
-                for downloader in downloaders:
-                    if downloader.alive():
-                        count = count + 1
-                        alive = True
-                    else:
-                        finished.append(downloader)
-                    time.sleep(.5)
-                    time_spent = time_spent + .5
-                    if time_spent >= TIMEOUT + (5 * count):
-                        time_spent = 0
-                        for downloader in downloaders:
-                            if downloader.alive():
-                                downloader.kill()
-                                time.sleep(2.5)
-                                downloader.start_download()
-            with open(os.path.join(output_directory, slugify(chan.name), "saved_urls.txt"), "a") as saved_doc:
-                for item in finished:
-                    saved_doc.write(item.url + "\n")
-                    
+                            to_download.append([video["title"], video["link"]])
+            ydl_opts = {
+                'nocheckcertificate': True,
+                'writethumbnail': True,
+                'format': "bestaudio/best",
+                "writedescription": True,
+                "writeinfojson": True,
+            }
+            if len(to_download) >=1:
+                download_results = download_batch(to_download, ydl_opts, os.path.join(output_directory, slugify(chan.name)), max_retries=3)
+                downloaded = []
+                for success in download_results["successes"]:
+                    downloaded.append(success)
+                if not os.path.exists(os.path.join(output_directory, slugify(chan.name))):
+                    os.makedirs(os.path.join(output_directory, slugify(chan.name)))
+                with open(os.path.join(output_directory, slugify(chan.name), "saved_urls.txt"), "a") as saved_doc:
+                    for item in downloaded:
+                        saved_doc.write(item + "\n")
         elif chan.status == "new": #we want to do a full archive of all videos
             saved = chan.get_saved_videos(output_directory)
             to_download = list()
@@ -268,91 +325,49 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 "writedescription": True,
                 "writeinfojson": True,
             }
-            processes = []
-            while len(to_download) >= 1:
-                queue = to_download[0:10]
-                for video in queue:
-                    if not os.path.exists(os.path.join(output_directory, slugify(chan.name), slugify(video[0]))):
-                        os.makedirs(os.path.join(output_directory, slugify(chan.name), slugify(video[0])))
-                    ydl_opts['outtmpl'] = os.path.join(output_directory, slugify(chan.name), slugify(video[0]), '%(title)s.%(ext)s')
-                    d = video_downloader(video[1], ydl_opts)
-                    d.start_download()
-                    processes.append(d)
-                TIMEOUT = 25
-                time_spent = 0
-                alive = True
-                finished = []
-                errored = []
-                while alive:
-                    alive = False
-                    total = 0
-                    for p in processes:
-                        if p.alive():
-                            alive = True
-                            total = total + 1
-                        else:
-                            if p.error == None:
-                                finished.append(p.url)
-                            else:
-                                p.kill()
-                                errored.append[p]
-                    if alive:
-                        time.sleep(.5)
-                        time_spent = time_spent + .5
-                        if time_spent >= TIMEOUT + (total * 5):
-                            time_spent = 0
-                            for p in processes:
-                                if p.alive():
-                                    p.kill()
-                            new = []
-                            for d in processes:
-                                if not d.url in finished:
-                                    new.append(d)
-                            processes = new
-                            time.sleep(5)
-                            for d in processes:
-                                d.start_download()
-                new = []
-
-                for d in errored:
-                    d.start_download()
-                for d in errored:
-                    d.wait()
-                for d in errored:
-                    if not d.error == None:
-                        log("ERROR on " + d.url + " - " + str(d.error))
-                    else:
-                        finished.append(d.url)
-
-                for item in to_download:
-                    if not item in queue:
-                        new.append(item)
-                    else:
-                        if item[1] in finished: #otherwise it's an error
-                            downloaded.append(item)
-                to_download = new
+            if len(to_download) >= 1:
+                download_results = download_batch(to_download, ydl_opts, os.path.join(output_directory, slugify(chan.name)), max_retries=3)
+                for success in download_results["successes"]:
+                    downloaded.append(success)
+                for failure in download_results["failures"]:
+                    log("Failure: " + str(failure))
             if not os.path.exists(os.path.join(output_directory, slugify(chan.name))):
                 os.makedirs(os.path.join(output_directory, slugify(chan.name)))
             with open(os.path.join(output_directory, slugify(chan.name), "saved_urls.txt"), "a") as saved_doc:
                 for item in downloaded:
-                    saved_doc.write(item[1] + "\n")
+                    saved_doc.write(item + "\n")
             chan.status = "archived"
             chan.save()
         else: #reserved for un-statused channels. Not sure what this will be for. Need a 'recording' status later for recording channels
             pass
-        for down in long_downloaders:
-            down.wait()
 
 if __name__ == "__main__":
     output_directory = "/mnt/thicc/ASMRchive"
     testing_new = False
     testing_rss = False
+    testing_channel_webserver = False
+    rewrite_dates = False
     channels = load_channels(output_directory)
+    if rewrite_dates:
+        for chan in channels:
+            for root, dirs, files in os.walk(chan.path):
+                for file in files:
+                    if ".json" in file:
+                        data = read_json(os.path.join(root, file))
+                        with open(os.path.join(root, "upload_date.txt"), "w") as upload_date_file:
+                            upload_date_file.write(data["upload_date"])
     if testing_new:
         for chan in channels:
             chan.status = "new"
     if testing_rss:
         for chan in channels:
             chan.status = "archived"
+    if testing_channel_webserver: #don't forget to just make the downloader do this!!!
+        for chan in channels:
+            shutil.copy("/var/www/html/channel_index.php", os.path.join(output_directory, slugify(chan.name), "index.php"))
+            for root, dirs, files in os.walk(os.path.join(output_directory, slugify(chan.name))):
+                for dir in dirs:
+                    shutil.copy("/var/www/html/player.php", os.path.join(root, dir, "player.php"))
+        exit()
     keywords = load_keywords()
     ASMRchive(channels, keywords, output_directory)
