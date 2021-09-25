@@ -11,11 +11,49 @@ import re
 import datetime
 import shutil
 import json
+import subprocess
 
 
 def read_json(file_path):
     with open(file_path, "r") as file:
         return json.load(file)
+
+def get_meta(url):
+    try:
+        ydl_opts = {
+            'nocheckcertificate': True,
+            'quiet': True,
+            'no_warnings': True,
+            'no_progress': True,
+        }
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            print("ytdl query getMeta")
+            meta = ydl.extract_info(url, download=False)
+        return meta
+    except Exception as e:
+        print("Exception in getMeta: " + str(e))
+        return ("Exception: " + str(e))
+
+def is_live(meta):
+    if "Exception" in meta:
+        return meta
+    try:
+        live = meta["is_live"]
+        if live == None:
+            return False
+        else:
+            return live
+    except Exception as e:
+        print("Exception at isLive: " + str(e))
+        return e
+
+def get_length(audio_path):
+    command = "ffmpeg -i " + audio_path + " 2>&1 | grep 'Duration' | cut -d ' ' -f 4 | sed s/,//"
+    time = str(subprocess.check_output(command, shell=True))
+    time = time[time.find("\'") + 1: time.find("\\")]
+    if "." in time:
+        time = time[:time.find(".")]
+    return time
 
 def get_pfp(yt_url):
     webpage = requests.get(yt_url).text
@@ -66,6 +104,7 @@ class channel():
             os.makedirs(self.path)
         with open(os.path.join(self.path, "name.txt"), "w") as name_file:
             name_file.write(self.name)
+        shutil.copy("/var/www/html/channel_index.php", os.path.join(self.path, "index.php"))
         try:
             with open(os.path.join(self.path, "pfp.png"), "wb") as image_file:
                 image_file.write(requests.get(get_pfp("https://www.youtube.com/channel/" + self.channel_id), stream=True).raw.data)
@@ -122,6 +161,12 @@ class video_downloader():
                 data = read_json(os.path.join(self.path, "asmr.info.json"))
                 with open(os.path.join(self.path, "upload_date.txt"), "w") as upload_date_file:
                     upload_date_file.write(data["upload_date"])
+                with open(os.path.join(self.path, "asmr.runtime"), "w") as runtime_file:
+                    if os.path.exists(os.path.join(self.path, "asmr.webm")):
+                        runtime_file.write(get_length("asmr.webm"))
+                    else:
+                        runtime_file.write(get_length("asmr.m4a"))
+                shutil.copy("/var/www/html/player.php", os.path.join(self.path, "player.php"))
                 return_dict[id] = [self.id, "Finished"]
         except Exception as e:
             if "slow af" in str(e):
@@ -261,7 +306,6 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1)
     queue_manager.shutdown()
     return function_output
 
-
 def ASMRchive(channels: list, keywords: list, output_directory: str):
     for chan in channels:
         if chan.status == "archived": #we want to check the RSS for new ASMR streams
@@ -272,7 +316,15 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 if not video["link"] in saved:
                     for word in keywords:
                         if word.lower() in video["title"].lower():
-                            to_download.append([video["title"], video["link"]])
+                            meta = get_meta(video["link"])
+                            if "Exception" in meta:
+                                print(chan.name)
+                                pass
+                            else:
+                                if not is_live(meta):
+                                    to_download.append([video["title"], video["link"]])
+                                else: #do we want to record live?
+                                    log(chan.name + " is live. Waiting for live to end to archive.")
             ydl_opts = {
                 'nocheckcertificate': True,
                 'writethumbnail': True,
@@ -362,12 +414,5 @@ if __name__ == "__main__":
     if testing_rss:
         for chan in channels:
             chan.status = "archived"
-    if testing_channel_webserver: #don't forget to just make the downloader do this!!!
-        for chan in channels:
-            shutil.copy("/var/www/html/channel_index.php", os.path.join(output_directory, slugify(chan.name), "index.php"))
-            for root, dirs, files in os.walk(os.path.join(output_directory, slugify(chan.name))):
-                for dir in dirs:
-                    shutil.copy("/var/www/html/player.php", os.path.join(root, dir, "player.php"))
-        exit()
     keywords = load_keywords()
     ASMRchive(channels, keywords, output_directory)
