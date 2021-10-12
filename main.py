@@ -12,7 +12,19 @@ import datetime
 import shutil
 import json
 import subprocess
+from subprocess import PIPE
 
+
+# adds item to front of list while maintaining len<limiter
+def limit_list_append(collection, itemToAdd, limiter):
+    newList = list()
+    newList.append(itemToAdd)
+    for item in collection:
+        if len(newList) < limiter:
+            newList.append(item)
+        else:
+            break
+    return newList
 
 def read_json(file_path):
     with open(file_path, "r") as file:
@@ -36,7 +48,7 @@ def get_meta(url):
 
 def is_live(meta):
     if "Exception" in meta:
-        return meta
+        return False
     try:
         live = meta["is_live"]
         if live == None:
@@ -45,10 +57,10 @@ def is_live(meta):
             return live
     except Exception as e:
         print("Exception at isLive: " + str(e))
-        return e
+        return False
 
 def get_length(audio_path):
-    command = "ffmpeg -i " + audio_path + " 2>&1 | grep 'Duration' | cut -d ' ' -f 4 | sed s/,//"
+    command = "ffmpeg -i '" + audio_path + "' 2>&1 | grep 'Duration' | cut -d ' ' -f 4 | sed s/,//"
     time = str(subprocess.check_output(command, shell=True))
     time = time[time.find("\'") + 1: time.find("\\")]
     if "." in time:
@@ -93,11 +105,12 @@ def slugify(value: str, allow_unicode=True): #used to sanitize string for filesy
     return re.sub(r'[-\s]+', '-', value).strip('-_')
 
 class channel():
-    def __init__(self, name: str, channel_id: str, status: str, output_directory: str):
-        self.name = name #alias for the channel. Eg. Okayu Ch.
-        self.channel_id = channel_id #Channel ID. Eg
+    def __init__(self, name: str, channel_id: str, status: str, output_directory: str, reqs=[]):
+        self.name = name
+        self.channel_id = channel_id
         self.status = status
         self.path = os.path.join(output_directory, slugify(self.name))
+        self.reqs = reqs
     
     def setup(self):
         if not os.path.exists(self.path):
@@ -133,7 +146,7 @@ class channel():
         return saved_videos
 
 class video_downloader():
-    def __init__(self, url, ydl_opts, path, id, return_dict) -> None:
+    def __init__(self, url, ydl_opts, path, id, return_dict, bypass_slowness) -> None:
         self.url = url
         self.ydl_opts = ydl_opts
         self.ydl_opts['progress_hooks'] = [self.my_hook,]
@@ -142,13 +155,15 @@ class video_downloader():
         self.id = id
         self.process = Process(target=self.downloader, args=(self.id, self.return_dict))
         self.path = path
+        self.bypass_slowness = bypass_slowness
 
         
 
     def my_hook(self, d):
         try:
             if (d["speed"] <= 1000000) and (int(d["elapsed"]) >= 5) and (int(d["eta"]) >= 80): 
-                raise NameError('slow af')
+                if not self.bypass_slowness:
+                    raise NameError('slow af')
         except Exception as e:
             if "slow af" in str(e):
                 raise e
@@ -161,14 +176,15 @@ class video_downloader():
                 data = read_json(os.path.join(self.path, "asmr.info.json"))
                 with open(os.path.join(self.path, "upload_date.txt"), "w") as upload_date_file:
                     upload_date_file.write(data["upload_date"])
-                with open(os.path.join(self.path, "asmr.runtime"), "w") as runtime_file:
+                with open(os.path.join(self.path, "runtime.txt"), "w") as runtime_file:
                     if os.path.exists(os.path.join(self.path, "asmr.webm")):
-                        runtime_file.write(get_length("asmr.webm"))
+                        runtime_file.write(get_length(os.path.join(self.path, "asmr.webm")))
                     else:
-                        runtime_file.write(get_length("asmr.m4a"))
+                        runtime_file.write(get_length(os.path.join(self.path, "asmr.m4a")))
                 shutil.copy("/var/www/html/player.php", os.path.join(self.path, "player.php"))
                 return_dict[id] = [self.id, "Finished"]
         except Exception as e:
+            cookie_exception_flags = ["inappropriate", "sign in", "age", "member"]
             if "slow af" in str(e):
                 return_dict[id] = [self.id, "Ignore"]
             elif "403: Forbidden" in str(e):
@@ -176,6 +192,10 @@ class video_downloader():
             elif "unable to rename file" in str(e):
                 return_dict[id] = [self.id, str(e)]
             else:
+                for flag in cookie_exception_flags:
+                    if flag in str(e).lower():
+                        return_dict[id] = [self.id, "Cookie Please"]
+                        exit()
                 return_dict[id] = [self.id, str(e)]
             exit()
 
@@ -199,7 +219,20 @@ def load_channels(output_directory: str):
     for data_file in os.listdir("channels"):
         with open(os.path.join("channels", data_file), "r") as file:
             lines = file.read().splitlines()
-            channels.append(channel(lines[0], lines[1], lines[2], output_directory))
+            if len(lines) > 3:
+                reqs = lines[3:len(lines)]
+                channels.append(channel(lines[0], lines[1], lines[2], output_directory, reqs=reqs))
+            else:
+                channels.append(channel(lines[0], lines[1], lines[2], output_directory))
+        if len(lines) > 3:
+            with open(os.path.join("channels", data_file), "w") as file:
+                index = 0
+                while index < 3:
+                    if not index == 2:
+                        file.write(lines[index] + "\n")
+                    else:
+                        file.write(lines[index])
+                    index += 1
     return channels
 
 def load_keywords():
@@ -232,6 +265,9 @@ def get_video_info(url):
 def get_vid(url):
     return url[url.find("?v=") + 3:]
 
+def get_my_folder():
+    return os.path.dirname(os.path.realpath(__file__))
+
 def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1):
     errored = {}
     error_count = {}
@@ -239,12 +275,31 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1)
     function_output["successes"] = []
     function_output["failures"] = []
     queue_manager = multiprocessing.Manager()
+    ydl_opts["cookiefile"] = None
+    cookies = None
+    cookie_queue = {} #key is url and value is list of tried cookies.
+    slow_queue = {}
     while len(to_download) >= 1:
         queue = to_download[0:limit]
         id = -1
         return_dict = queue_manager.dict()
         processes = []
+        bypass_slowness = False
         for video in queue:
+            if video[1] in cookie_queue:
+                for cookiefile in cookies:
+                    if not cookiefile in cookie_queue[video[1]]:
+                        cookie_queue[video[1]].append(cookiefile)
+                        ydl_opts["cookiefile"] = cookiefile
+                        break
+                if ydl_opts["cookiefile"] == None:
+                    print("Cookies attempted but failed. len: " + len(cookie_queue[video[1]]))
+                    purge[p.url] = "failure"
+
+            if video[1] in slow_queue:
+                if slow_queue[video[1]] > 5:
+                    print("BYPASS SLOWNESS IS TRUE")
+                    bypass_slowness = True
             id = id + 1
             path = os.path.join(channel_path, slugify(video[0]) + "-" + get_vid(video[1]))
             if not os.path.exists(path):
@@ -253,13 +308,12 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1)
                 shutil.rmtree(path)
                 os.makedirs(path) #and then re-create the directory fresh and clean.
             ydl_opts['outtmpl'] = os.path.join(path, 'asmr.%(ext)s')
-            d = video_downloader(video[1], ydl_opts, path, id, return_dict)
+            d = video_downloader(video[1], ydl_opts, path, id, return_dict, bypass_slowness)
             d.start_download()
             with open(os.path.join(path, "title.txt"), "w", encoding="UTF-8") as title:
                 title.write(video[0]) #this may be replaced later (hopefully)
             processes.append(d)
         finished = []
-
         for p in processes:
             p.wait()
 
@@ -280,7 +334,20 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1)
             if status == "Finished":
                 purge[p.url] = "success"
             elif status == "Ignore":
+                if video[1] in slow_queue:
+                    slow_queue[video[1]] += 1
+                else:
+                    slow_queue[video[1]] = 1
+                time.sleep(2)
                 pass #Doing nothing puts it in the next queue for re-download
+            elif status == "Cookie Please":
+                if cookies == None:
+                    cookies = []
+                    for file in os.listdir(os.path.join(get_my_folder(), "cookies")):
+                        if "cookie" in file.lower():
+                            cookies.append(os.path.join(get_my_folder(), "cookies", file))
+                if not p.url in cookie_queue:
+                    cookie_queue[p.url] = []
             elif p.url in errored:
                 error_count[p.url] += 1
                 if error_count[p.url] > max_retries:
@@ -306,25 +373,43 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1)
     queue_manager.shutdown()
     return function_output
 
+def run_shell(args_list):
+    succ = subprocess.Popen(args_list, shell=False, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
 def ASMRchive(channels: list, keywords: list, output_directory: str):
     for chan in channels:
         if chan.status == "archived": #we want to check the RSS for new ASMR streams
             rss = chan.get_rss()
             saved = chan.get_saved_videos(output_directory)
             to_download = []
+            for video in chan.reqs:
+                meta = get_meta(video)
+                if not "Exception" in meta and not is_live(meta):
+                    to_download.append([meta["title"], video])
+                if "Exception" in meta:
+                    if "live event" in meta:
+                        run_shell(["python", os.path.join(os.path.dirname(os.path.realpath(__file__)), "live.py"), video, "record", "\"" + chan.name + "\""])
+                elif is_live(meta):
+                    run_shell(["python", os.path.join(os.path.dirname(os.path.realpath(__file__)), "live.py"), video, "record", "\"" + chan.name + "\""])
             for video in rss:
                 if not video["link"] in saved:
                     for word in keywords:
                         if word.lower() in video["title"].lower():
                             meta = get_meta(video["link"])
                             if "Exception" in meta:
-                                print(chan.name)
-                                pass
+                                if "live event" in meta:
+                                    run_shell(["python", os.path.join(os.path.dirname(os.path.realpath(__file__)), "live.py"), video["link"], "record", "\"" + chan.name + "\""])
+                                    break
+                                else:
+                                    if not is_live(meta):
+                                        to_download.append([video["title"], video["link"]])
+                                        break
+                                    else:
+                                        run_shell(["python", os.path.join(os.path.dirname(os.path.realpath(__file__)), "live.py"), video["link"], "record", "\"" + chan.name + "\""])
+                                        break
                             else:
-                                if not is_live(meta):
-                                    to_download.append([video["title"], video["link"]])
-                                else: #do we want to record live?
-                                    log(chan.name + " is live. Waiting for live to end to archive.")
+                                to_download.append([video["title"], video["link"]])
+                                break
             ydl_opts = {
                 'nocheckcertificate': True,
                 'writethumbnail': True,
@@ -397,7 +482,6 @@ if __name__ == "__main__":
     output_directory = "/mnt/thicc/ASMRchive"
     testing_new = False
     testing_rss = False
-    testing_channel_webserver = False
     rewrite_dates = False
     channels = load_channels(output_directory)
     if rewrite_dates:
