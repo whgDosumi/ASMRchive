@@ -3,6 +3,7 @@ from multiprocessing import Process, Pool
 import multiprocessing
 import notify_run
 import youtube_dl
+import yt_dlp
 import requests
 import os
 import feedparser
@@ -14,6 +15,7 @@ import json
 import subprocess
 from subprocess import PIPE
 
+youtube_dl = yt_dlp
 
 # adds item to front of list while maintaining len<limiter
 def limit_list_append(collection, itemToAdd, limiter):
