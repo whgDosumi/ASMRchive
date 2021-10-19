@@ -2,7 +2,6 @@ import time
 from multiprocessing import Process, Pool
 import multiprocessing
 import notify_run
-import youtube_dl
 import yt_dlp
 import requests
 import os
@@ -14,8 +13,6 @@ import shutil
 import json
 import subprocess
 from subprocess import PIPE
-
-youtube_dl = yt_dlp
 
 # adds item to front of list while maintaining len<limiter
 def limit_list_append(collection, itemToAdd, limiter):
@@ -40,7 +37,7 @@ def get_meta(url):
             'no_warnings': True,
             'no_progress': True,
         }
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             print("ytdl query getMeta")
             meta = ydl.extract_info(url, download=False)
         return meta
@@ -174,7 +171,7 @@ class video_downloader():
 
     def downloader(self, id, return_dict):
         try:
-            with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
+            with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
                 ydl.download((self.url,))
                 data = read_json(os.path.join(self.path, "asmr.info.json"))
                 with open(os.path.join(self.path, "upload_date.txt"), "w") as upload_date_file:
@@ -247,7 +244,7 @@ def load_keywords():
 
 def get_video(url, ydl_opts):
     try:
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download((url,))
             return True
     except Exception as e:
@@ -259,7 +256,7 @@ def get_video_info(url):
         ydl_opts = {
             'nocheckcertificate': True,
         }
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl: #This one gets the playlists
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl: #This one gets the playlists
             meta = ydl.extract_info(url, download=False)
         return [True,meta]
     except Exception as e:
@@ -389,7 +386,7 @@ def get_meta_cookie(link, cookie_dir=(os.path.join(get_my_folder(), "cookies")))
                 'no_progress': True,
                 'cookiefile': os.path.join(cookie_dir, cookie_file)
             }
-            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 print("ytdl query getMeta w/ cookie.")
                 meta = ydl.extract_info(link, download=False)
             return meta
@@ -464,7 +461,7 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 'ignoreerrors': True,
                 'extract_flat': "in_playlist",
             }
-            with youtube_dl.YoutubeDL(ydl_opts) as ydl: #This one gets the playlists
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl: #This one gets the playlists
                 meta = ydl.extract_info(chan.get_all_plist(), download=False)
             ydl_opts = {
                 'nocheckcertificate': True,
@@ -473,7 +470,7 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
             }
             for item in meta["entries"]:
                 if item["title"] == "Uploads":
-                    with youtube_dl.YoutubeDL(ydl_opts) as ydl: #This one gets the videos from the 'uploads' playlist (all uploads hopefully.)
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl: #This one gets the videos from the 'uploads' playlist (all uploads hopefully.)
                         meta = ydl.extract_info(item["url"], download=False)
                         break
             for video in meta["entries"]:
