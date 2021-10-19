@@ -107,8 +107,6 @@ def slugify(value: str, allow_unicode=True): #used to sanitize string for filesy
     return re.sub(r'[-\s]+', '-', value).strip('-_')
 
 
-print(slugify("[ASMR] Let me take care of you~ [Ear Massage, Gentle Voice]"))
-input()
 class channel():
     def __init__(self, name: str, channel_id: str, status: str, output_directory: str, reqs=[]):
         self.name = name
