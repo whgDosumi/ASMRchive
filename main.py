@@ -106,6 +106,9 @@ def slugify(value: str, allow_unicode=True): #used to sanitize string for filesy
     value = re.sub(r'[^\w\s-]', '', value)
     return re.sub(r'[-\s]+', '-', value).strip('-_')
 
+
+print(slugify("[ASMR] Let me take care of you~ [Ear Massage, Gentle Voice]"))
+input()
 class channel():
     def __init__(self, name: str, channel_id: str, status: str, output_directory: str, reqs=[]):
         self.name = name
@@ -163,7 +166,7 @@ class video_downloader():
 
     def my_hook(self, d):
         try:
-            if (d["speed"] <= 1000000) and (int(d["elapsed"]) >= 5) and (int(d["eta"]) >= 80): 
+            if (d["speed"] <= 100000) and (int(d["elapsed"]) >= 5) and (int(d["eta"]) >= 80): 
                 if not self.bypass_slowness:
                     raise NameError('slow af')
         except Exception as e:
@@ -378,6 +381,24 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1)
 def run_shell(args_list):
     succ = subprocess.Popen(args_list, shell=False, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+def get_meta_cookie(link, cookie_dir=(os.path.join(get_my_folder(), "cookies"))):
+    for cookie_file in os.listdir(cookie_dir):
+        try:
+            ydl_opts = {
+                'nocheckcertificate': True,
+                'quiet': True,
+                'no_warnings': True,
+                'no_progress': True,
+                'cookiefile': os.path.join(cookie_dir, cookie_file)
+            }
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                print("ytdl query getMeta w/ cookie.")
+                meta = ydl.extract_info(link, download=False)
+            return meta
+        except Exception as e:
+            pass
+    return False
+
 def ASMRchive(channels: list, keywords: list, output_directory: str):
     for chan in channels:
         if chan.status == "archived": #we want to check the RSS for new ASMR streams
@@ -389,6 +410,12 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 if not "Exception" in meta and not is_live(meta):
                     to_download.append([meta["title"], video])
                 if "Exception" in meta:
+                    cookie_exception_flags = ["inappropriate", "sign in", "age", "member"]
+                    for flag in cookie_exception_flags:
+                        if flag in meta and not "live event" in meta:
+                            meta = get_meta_cookie(video)
+                            if meta != False:
+                                to_download.append([meta["title"], video])
                     if "live event" in meta:
                         run_shell(["python", os.path.join(os.path.dirname(os.path.realpath(__file__)), "live.py"), video, "record", "\"" + chan.name + "\""])
                 elif is_live(meta):

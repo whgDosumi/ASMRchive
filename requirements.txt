@@ -1,4 +1,4 @@
 notify_run
-youtube_dl
 requests
+yt_dlp
 feedparser
