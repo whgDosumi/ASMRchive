@@ -1,4 +1,4 @@
-from main import channel, video_downloader, is_live, load_channels, get_meta, limit_list_append, get_vid
+from main import Channel, video_downloader, is_live, load_channels, get_meta, limit_list_append, get_vid
 import time
 from multiprocessing import Process, Pool
 import threading
@@ -117,7 +117,6 @@ def record_live(video_url, stream_life=100):
         loops += 1
         if loops > stream_life:
             loops = 0
-            print("100 loops")
             stream_url = refresh_stream_url(video_url)
         links = get_links_from_manifest(get_manifest(stream_url))
         added = False
@@ -155,8 +154,6 @@ def check_urls(url_list):
             start_sequence = sequence_id
         if not sequence_id in segments:
             segments[sequence_id] = link
-        else:
-            print("Duplicate segment " + str(sequence_id))
         if sequence_id > end_sequence:
             end_sequence = sequence_id
     output = list()
@@ -188,9 +185,8 @@ def setup_recording(url, output_directory):
         os.makedirs(output_directory)
     meta = get_meta(url)
     while not is_live(meta) and "live event" in meta:
-        if "live event" in meta and not "a few moments" in meta:
+        if (("live event" in meta or "Premieres" in meta) and not "a few moments" in meta):
             wait_time = get_time_from_exception(meta)
-            print("Waiting " + str(wait_time - 30) + " seconds for live to start.")
             time.sleep(wait_time - 30)
         elif "live event" in meta and "a few moments" in meta:
             time.sleep(5)
@@ -211,7 +207,7 @@ def setup_recording(url, output_directory):
 
 
 def closing(recording_channel):
-    if not recording_channel == None:
+    if recording_channel != None:
         if "waiting" in recording_channel.status:
             recording_channel.status = "errored"
         if "recording" in recording_channel.status:
@@ -227,12 +223,12 @@ if __name__ == "__main__": #while we test the above funciton
     args = sys.argv
     url = args[1]
     method = args[2]
+    channels = load_channels(output_directory)
+    recording_channel = None
     try:
         channel_name = args[3]
     except:
         channel_name = None
-    channels = load_channels(output_directory)
-    recording_channel = None
     if not channel_name == None:
         for chan in channels:
             if chan.name == channel_name:
@@ -243,7 +239,7 @@ if __name__ == "__main__": #while we test the above funciton
         for chan in channels: 
             rss = chan.get_rss()
             for video in rss:
-                if video["link"] == url:
+                if url in video["link"]:
                     recording_channel = chan
                     breaking = True
                     break
@@ -260,10 +256,12 @@ if __name__ == "__main__": #while we test the above funciton
                 for link in links:
                     outfile.write(link + "\n")
             set_channel_status(recording_channel, "recorded")
-            print("Saved to " + os.path.join(output_directory, get_vid(url), "recording.manifest"))
         else:
-            set_channel_status("archived")
-            print("Video was not live...")
+            set_channel_status(recording_channel, "archived")
     if method == "save" or method == "both":
-        download_manifest(os.path.join(output_directory, get_vid(url)))
-        set_channel_status(recording_channel, "saved")
+        try:
+            download_manifest(os.path.join(output_directory, get_vid(url)))
+            set_channel_status(recording_channel, "saved")
+        except:
+            if recording_channel != None:
+                set_channel_status(recording_channel, "errored")

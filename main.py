@@ -12,7 +12,6 @@ import datetime
 import shutil
 import json
 import subprocess
-from subprocess import PIPE
 
 # adds item to front of list while maintaining len<limiter
 def limit_list_append(collection, itemToAdd, limiter):
@@ -104,13 +103,14 @@ def slugify(value: str, allow_unicode=True): #used to sanitize string for filesy
     return re.sub(r'[-\s]+', '-', value).strip('-_')
 
 
-class channel():
+class Channel():
     def __init__(self, name: str, channel_id: str, status: str, output_directory: str, reqs=[]):
         self.name = name
         self.channel_id = channel_id
         self.status = status
         self.path = os.path.join(output_directory, slugify(self.name))
         self.reqs = reqs
+        self.active_recordings = []
     
     def setup(self):
         if not os.path.exists(self.path):
@@ -136,6 +136,9 @@ class channel():
 
     def get_all_plist(self):
         return "https://www.youtube.com/channel/" + self.channel_id + "/videos"
+
+    def get_channel_url(self):
+        return "https://www.youtube.com/channel/" + self.channel_id
 
     def get_saved_videos(self, output_directory: str):
         saved_videos = []
@@ -221,9 +224,16 @@ def load_channels(output_directory: str):
             lines = file.read().splitlines()
             if len(lines) > 3:
                 reqs = lines[3:len(lines)]
-                channels.append(channel(lines[0], lines[1], lines[2], output_directory, reqs=reqs))
+                new = []
+                for i in reqs:
+                    if re.search(r"youtube\.com/watch", i): #if it's a standard youtube url
+                        new.append(i[-11:])
+                    elif re.match(r"^.{11}$", i): #if the string is 11 characters long
+                        new.append(i)
+                reqs = new
+                channels.append(Channel(lines[0], lines[1], lines[2], output_directory, reqs=reqs))
             else:
-                channels.append(channel(lines[0], lines[1], lines[2], output_directory))
+                channels.append(Channel(lines[0], lines[1], lines[2], output_directory))
         if len(lines) > 3:
             with open(os.path.join("channels", data_file), "w") as file:
                 index = 0
@@ -301,7 +311,7 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1)
                     print("BYPASS SLOWNESS IS TRUE")
                     bypass_slowness = True
             id = id + 1
-            path = os.path.join(channel_path, slugify(video[0]) + "-" + get_vid(video[1]))
+            path = os.path.join(channel_path, get_vid(video[1]))
             if not os.path.exists(path):
                 os.makedirs(path)
             else: #if it exists, and we need the video, we need to purge any 'bad data' here.
@@ -311,12 +321,18 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1)
             d = video_downloader(video[1], ydl_opts, path, id, return_dict, bypass_slowness)
             d.start_download()
             with open(os.path.join(path, "title.txt"), "w", encoding="UTF-8") as title:
-                title.write(video[0]) #this may be replaced later (hopefully)
+                title.write(video[0])
             processes.append(d)
         finished = []
         for p in processes:
             p.wait()
-
+        for p in processes:
+            for root, dirs, files in os.walk(p.path):
+                for dir in dirs:
+                    os.chmod(os.path.join(root, dir), 0o775)
+                for file in files:
+                    os.chmod(os.path.join(root, file), 0o664)
+            os.chmod(p.path, 0o775)
         returns = return_dict.values()
         index = -1
         sorted = []
@@ -374,7 +390,7 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1)
     return function_output
 
 def run_shell(args_list):
-    succ = subprocess.Popen(args_list, shell=False, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    subprocess.Popen(args_list, shell=False, stdin=None, stdout=None, stderr=None)
 
 def get_meta_cookie(link, cookie_dir=(os.path.join(get_my_folder(), "cookies"))):
     for cookie_file in os.listdir(cookie_dir):
@@ -499,6 +515,14 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                     saved_doc.write(item + "\n")
             chan.status = "archived"
             chan.save()
+        elif chan.status == "errored":
+            chan.status = "archived" #I mean, for now I guess this is fine.
+            chan.save()
+        elif chan.status == "recording":
+            pass #don't really need to do anything about it here. Leave it be.
+        elif chan.status == "recorded":
+            
+            pass #TODO - try to pull video the normal way. If we can't get the video to download properly within say 3 hours of the stream ending, download the recording and use that.
         else: #reserved for un-statused channels. Not sure what this will be for. Need a 'recording' status later for recording channels
             pass
 
