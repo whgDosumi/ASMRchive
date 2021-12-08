@@ -296,32 +296,33 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1)
         processes = []
         bypass_slowness = False
         for video in queue:
-            if video[1] in cookie_queue:
-                for cookiefile in cookies:
-                    if not cookiefile in cookie_queue[video[1]]:
-                        cookie_queue[video[1]].append(cookiefile)
-                        ydl_opts["cookiefile"] = cookiefile
-                        break
-                if ydl_opts["cookiefile"] == None:
-                    print("Cookies attempted but failed. len: " + len(cookie_queue[video[1]]))
-                    purge[p.url] = "failure"
-            if video[1] in slow_queue:
-                if slow_queue[video[1]] > 5:
-                    print("BYPASS SLOWNESS IS TRUE")
-                    bypass_slowness = True
-            id = id + 1
-            path = os.path.join(channel_path, get_vid(video[1]))
-            if not os.path.exists(path):
-                os.makedirs(path)
-            else: #if it exists, and we need the video, we need to purge any 'bad data' here.
-                shutil.rmtree(path)
-                os.makedirs(path) #and then re-create the directory fresh and clean.
-            ydl_opts['outtmpl'] = os.path.join(path, 'asmr.%(ext)s')
-            d = video_downloader(video[1], ydl_opts, path, id, return_dict, bypass_slowness)
-            d.start_download()
-            with open(os.path.join(path, "title.txt"), "w", encoding="UTF-8") as title:
-                title.write(video[0])
-            processes.append(d)
+            if not is_live(get_meta(video[1])):
+                if video[1] in cookie_queue:
+                    for cookiefile in cookies:
+                        if not cookiefile in cookie_queue[video[1]]:
+                            cookie_queue[video[1]].append(cookiefile)
+                            ydl_opts["cookiefile"] = cookiefile
+                            break
+                    if ydl_opts["cookiefile"] == None:
+                        print("Cookies attempted but failed. len: " + len(cookie_queue[video[1]]))
+                        purge[p.url] = "failure"
+                if video[1] in slow_queue:
+                    if slow_queue[video[1]] > 5:
+                        print("BYPASS SLOWNESS IS TRUE")
+                        bypass_slowness = True
+                id = id + 1
+                path = os.path.join(channel_path, get_vid(video[1]))
+                if not os.path.exists(path):
+                    os.makedirs(path)
+                else: #if it exists, and we need the video, we need to purge any 'bad data' here.
+                    shutil.rmtree(path)
+                    os.makedirs(path) #and then re-create the directory fresh and clean.
+                ydl_opts['outtmpl'] = os.path.join(path, 'asmr.%(ext)s')
+                d = video_downloader(video[1], ydl_opts, path, id, return_dict, bypass_slowness)
+                d.start_download()
+                with open(os.path.join(path, "title.txt"), "w", encoding="UTF-8") as title:
+                    title.write(video[0])
+                processes.append(d)
         finished = []
         for p in processes:
             p.wait()
