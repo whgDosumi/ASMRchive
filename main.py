@@ -305,7 +305,6 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1)
                 if ydl_opts["cookiefile"] == None:
                     print("Cookies attempted but failed. len: " + len(cookie_queue[video[1]]))
                     purge[p.url] = "failure"
-
             if video[1] in slow_queue:
                 if slow_queue[video[1]] > 5:
                     print("BYPASS SLOWNESS IS TRUE")
@@ -354,7 +353,6 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1)
                     slow_queue[video[1]] += 1
                 else:
                     slow_queue[video[1]] = 1
-                time.sleep(2)
                 pass #Doing nothing puts it in the next queue for re-download
             elif status == "Cookie Please":
                 if cookies == None:
@@ -536,7 +534,7 @@ if __name__ == "__main__":
         for chan in channels:
             for root, dirs, files in os.walk(chan.path):
                 for file in files:
-                    if ".json" in file:
+                    if "asmr.info.json" in file:
                         data = read_json(os.path.join(root, file))
                         with open(os.path.join(root, "upload_date.txt"), "w") as upload_date_file:
                             upload_date_file.write(data["upload_date"])
