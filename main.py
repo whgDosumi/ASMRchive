@@ -13,6 +13,10 @@ import shutil
 import json
 import subprocess
 
+
+def get_my_folder():
+    return os.path.dirname(os.path.realpath(__file__))
+
 # adds item to front of list while maintaining len<limiter
 def limit_list_append(collection, itemToAdd, limiter):
     newList = list()
@@ -219,8 +223,9 @@ class video_downloader():
 
 def load_channels(output_directory: str):
     channels = list()
-    for data_file in os.listdir("channels"):
-        with open(os.path.join("channels", data_file), "r") as file:
+    channel_dict = os.path.join(get_my_folder(), "channels")
+    for data_file in os.listdir(channel_dict):
+        with open(os.path.join(channel_dict, data_file), "r") as file:
             lines = file.read().splitlines()
             if len(lines) > 3:
                 reqs = lines[3:len(lines)]
@@ -235,7 +240,7 @@ def load_channels(output_directory: str):
             else:
                 channels.append(Channel(lines[0], lines[1], lines[2], output_directory))
         if len(lines) > 3:
-            with open(os.path.join("channels", data_file), "w") as file:
+            with open(os.path.join(channel_dict, data_file), "w") as file:
                 index = 0
                 while index < 3:
                     if not index == 2:
@@ -247,7 +252,7 @@ def load_channels(output_directory: str):
 
 def load_keywords():
     keywords = list()
-    with open("keywords.txt", "r", encoding="UTF-8") as key_file:
+    with open(os.path.join(get_my_folder(), "keywords.txt"), "r", encoding="UTF-8") as key_file:
         for line in key_file.read().splitlines():
             keywords.append(line)
     return keywords
@@ -274,9 +279,6 @@ def get_video_info(url):
 
 def get_vid(url):
     return url[url.find("?v=") + 3:]
-
-def get_my_folder():
-    return os.path.dirname(os.path.realpath(__file__))
 
 def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1):
     errored = {}
