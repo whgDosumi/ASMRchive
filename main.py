@@ -110,10 +110,17 @@ def slugify(value: str, allow_unicode=True): #used to sanitize string for filesy
 class Channel():
     def __init__(self, name: str, channel_id: str, status: str, output_directory: str, reqs=[]):
         self.name = name
+        self.carried_reqs = []
         self.channel_id = channel_id
         self.status = status
         self.path = os.path.join(output_directory, slugify(self.name))
-        self.reqs = reqs
+        self.reqs = []
+        new = []
+        for video in reqs:
+            if is_live(get_meta(video)):
+                self.carried_reqs.append(video)
+            else:
+                self.reqs.append(video)
         self.active_recordings = []
     
     def setup(self):
@@ -132,8 +139,11 @@ class Channel():
     def save(self):
         if not os.path.isdir("channels"):
             os.makedirs("channels")
+        append = ""
+        for video in self.carried_reqs:
+            append = append + "\n" + video
         with open(os.path.join("channels", slugify(self.name) + ".channel"), "w") as outfile:
-            outfile.write(self.name + "\n" + self.channel_id + "\n" + self.status)
+            outfile.write(self.name + "\n" + self.channel_id + "\n" + self.status + append)
 
     def get_rss(self): #returns channel's RSS feed as a list of entries
         return feedparser.parse(requests.get("https://www.youtube.com/feeds/videos.xml?channel_id=" + self.channel_id).text).entries
@@ -236,18 +246,11 @@ def load_channels(output_directory: str):
                     elif re.match(r"^.{11}$", i): #if the string is 11 characters long
                         new.append(i)
                 reqs = new
-                channels.append(Channel(lines[0], lines[1], lines[2], output_directory, reqs=reqs))
+                chan = Channel(lines[0], lines[1], lines[2], output_directory, reqs=reqs)
+                channels.append(chan)
+                chan.save()
             else:
                 channels.append(Channel(lines[0], lines[1], lines[2], output_directory))
-        if len(lines) > 3:
-            with open(os.path.join(channel_dict, data_file), "w") as file:
-                index = 0
-                while index < 3:
-                    if not index == 2:
-                        file.write(lines[index] + "\n")
-                    else:
-                        file.write(lines[index])
-                    index += 1
     return channels
 
 def load_keywords():
