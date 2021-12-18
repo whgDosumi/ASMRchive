@@ -13,7 +13,6 @@ import shutil
 import json
 import subprocess
 
-
 def get_my_folder():
     return os.path.dirname(os.path.realpath(__file__))
 
@@ -106,6 +105,37 @@ def slugify(value: str, allow_unicode=True): #used to sanitize string for filesy
     value = re.sub(r'[^\w\s-]', '', value)
     return re.sub(r'[-\s]+', '-', value).strip('-_')
 
+class History_Entry(): #Want to start keeping record of added videos in history page.
+    def __init__(self, path, title):
+        channel_path = path[:path.rfind("/")]
+        self.channel_path = "ASMR" + channel_path[channel_path.rfind("/"):]
+        self.title = title
+        self.added_string = datetime.datetime.now().strftime("%m/%d/%Y")
+        self.link = self.channel_path + path[path.rfind("/"):] + "/player.php"
+        self.json_string = json.dumps([self.added_string, self.title, self.channel_path, self.link])
+    
+    def save(self, path_to_history_file):
+        current_history = ""
+        if os.path.exists(path_to_history_file):
+            with open(path_to_history_file, "r") as read_file:
+                current_history = read_file.read()
+        with open(path_to_history_file, "w") as write_file:
+            write_file.write(self.json_string + "\n" + current_history)
+
+class History_Entry_Channel():
+    def __init__(self, path, channel_name):
+        self.channel_path = "ASMR" + path[path.rfind("/"):]
+        self.channel_name = channel_name
+        self.added_string = datetime.datetime.now().strftime("%m/%d/%Y")
+        self.json_string = json.dumps([self.added_string, self.channel_name, self.channel_path, self.channel_path + "/index.php"])
+    
+    def save(self, path_to_history_file):
+        current_history = ""
+        if os.path.exists(path_to_history_file):
+            with open(path_to_history_file, "r") as read_file:
+                current_history = read_file.read()
+        with open(path_to_history_file, "w") as write_file:
+            write_file.write(self.json_string + "\n" + current_history)
 
 class Channel():
     def __init__(self, name: str, channel_id: str, status: str, output_directory: str, reqs=[]):
@@ -115,7 +145,6 @@ class Channel():
         self.status = status
         self.path = os.path.join(output_directory, slugify(self.name))
         self.reqs = []
-        new = []
         for video in reqs:
             if is_live(get_meta(video)):
                 self.carried_reqs.append(video)
@@ -174,8 +203,6 @@ class video_downloader():
         self.path = path
         self.bypass_slowness = bypass_slowness
 
-        
-
     def my_hook(self, d):
         try:
             if (d["speed"] <= 100000) and (int(d["elapsed"]) >= 5) and (int(d["eta"]) >= 80): 
@@ -199,7 +226,8 @@ class video_downloader():
                     else:
                         runtime_file.write(get_length(os.path.join(self.path, "asmr.m4a")))
                 shutil.copy("/var/www/html/player.php", os.path.join(self.path, "player.php"))
-                return_dict[id] = [self.id, "Finished"]
+                history_entry = History_Entry(self.path, data["title"])
+                return_dict[id] = [self.id, "Finished", history_entry]
         except Exception as e:
             cookie_exception_flags = ["inappropriate", "sign in", "age", "member"]
             if "slow af" in str(e):
@@ -283,7 +311,25 @@ def get_video_info(url):
 def get_vid(url):
     return url[url.find("?v=") + 3:]
 
-def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1):
+
+
+#The download_batch function is used to download many videos at the same time
+
+#to_download is a list, the first element is the desired title and the second is the url
+#[string title, string url] basically
+
+#ydl_opts is the settings passed to yt_dlp, check out their documentation on this:
+#https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/YoutubeDL.py#L189-L487
+
+#channel_path is the real path to the channel directory, basically where we're saving the files
+
+#Optional limit is how many will download at the same time.
+
+#Optional max_retries is how many times it will try again in the event of an error. 
+
+#Optional save_history determines whether it saves the history objects for each video. True by default
+
+def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1, save_history=True):
     errored = {}
     error_count = {}
     function_output = {}
@@ -354,6 +400,8 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1)
             status = returns[p.id][1]
             if status == "Finished":
                 purge[p.url] = "success"
+                if save_history:
+                    returns[p.id][2].save(history_path) #saves history to history json. 
             elif status == "Ignore":
                 if video[1] in slow_queue:
                     slow_queue[video[1]] += 1
@@ -388,8 +436,7 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1)
             if purge[p] == "success":
                 function_output["successes"].append(p)
             else:
-                function_output["failures"].append(p)
-                
+                function_output["failures"].append(p)                
     queue_manager.shutdown()
     return function_output
 
@@ -506,8 +553,9 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 "writedescription": True,
                 "writeinfojson": True,
             }
+            History_Entry_Channel(os.path.join(output_directory, slugify(chan.name)), chan.name).save(history_path)
             if len(to_download) >= 1:
-                download_results = download_batch(to_download, ydl_opts, os.path.join(output_directory, slugify(chan.name)), max_retries=3)
+                download_results = download_batch(to_download, ydl_opts, os.path.join(output_directory, slugify(chan.name)), max_retries=3, save_history=False)
                 for success in download_results["successes"]:
                     downloaded.append(success)
                 for failure in download_results["failures"]:
@@ -530,8 +578,12 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
         else: #reserved for un-statused channels. Not sure what this will be for. Need a 'recording' status later for recording channels
             pass
 
+
+
 if __name__ == "__main__":
     output_directory = "/mnt/thicc/ASMRchive"
+    global history_path
+    history_path = os.path.join(output_directory, "history.json")
     testing_new = False
     testing_rss = False
     rewrite_dates = False
