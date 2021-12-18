@@ -166,14 +166,14 @@ class Channel():
         
 
     def save(self):
-        if not os.path.isdir("channels"):
-            os.makedirs("channels")
+        if not os.path.isdir(os.path.join(get_my_folder(), "channels")):
+            os.makedirs(os.path.join(get_my_folder(), "channels"))
         append = ""
         for video in self.carried_reqs:
             append = append + "\n" + video
-        with open(os.path.join("channels", slugify(self.name) + ".channel"), "w") as outfile:
+        with open(os.path.join(get_my_folder(), "channels", slugify(self.name) + ".channel"), "w") as outfile:
             outfile.write(self.name + "\n" + self.channel_id + "\n" + self.status + append)
-
+            
     def get_rss(self): #returns channel's RSS feed as a list of entries
         return feedparser.parse(requests.get("https://www.youtube.com/feeds/videos.xml?channel_id=" + self.channel_id).text).entries
 
