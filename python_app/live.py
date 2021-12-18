@@ -1,4 +1,4 @@
-from main import Channel, video_downloader, is_live, load_channels, get_meta, limit_list_append, get_vid
+from main import Channel, video_downloader, is_live, load_channels, get_meta, limit_list_append, get_vid, get_my_folder
 import time
 from multiprocessing import Process, Pool
 import threading
@@ -219,7 +219,7 @@ def set_channel_status(chan, status):
         chan.save()
 
 if __name__ == "__main__": #while we test the above funciton
-    output_directory = "./Recordings/"
+    output_directory = os.path.join(get_my_folder(), "recordings")
     args = sys.argv
     url = args[1]
     method = args[2]
