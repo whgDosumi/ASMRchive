@@ -1,0 +1,196 @@
+* {
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    background-color: darkslategrey;
+}
+
+#backimage {
+    display: block;
+    height: 75px;
+    width: 75px;
+    position: fixed;
+}
+
+#backbutton {
+    width: 75px;
+    height: 75px;
+    background-color: darkseagreen;
+    position: fixed;
+    top: 0;
+    left: 0;
+    border-bottom-right-radius: 15px;
+}
+
+.thumb {
+    width: 200px;
+    border-radius: 10px;
+}
+
+/*
+.thumb:hover{
+    color: #424242; 
+  -webkit-transition: all .3s ease-in;
+  -moz-transition: all .3s ease-in;
+  -ms-transition: all .3s ease-in;
+  -o-transition: all .3s ease-in;
+  transition: all .3s ease-in;
+  opacity: 1;
+  border-radius: 0;
+  transform: scale(2);
+  -ms-transform: scale(3); 
+  -webkit-transform: scale(3);
+
+}
+*/
+h1 {
+    font-size: 50px;
+    padding: 0;
+    margin: 0;
+}
+
+#main {
+    width: 100%;
+    height: 100%;
+    text-align: center;
+}
+
+.channel {
+    font-size: 50px;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.title {
+    overflow: hidden;
+    max-width: 350px;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+    display: inline-block;
+    text-align: center;
+    line-height: 1em; /* a */
+    max-height: 4em; /* a x number of line to show (ex : 2 line)  */
+    font-size: 21px;
+}
+
+.titlecard {
+    display: inline-block;
+    clear:both;
+    background-color:darkseagreen;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 15px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.count {
+    font-size: 75px;
+    padding-right: 5px;
+    text-align: center;
+    border-left: 2px solid black;
+}
+
+.cardtext {
+    display: block;
+    float: left;
+    margin-top: 55px;
+    margin-left: 10px;
+}
+
+.pfp {
+    height: 150px;
+    width: 150px;
+    border-radius: 50%;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    display:block;
+    float: left;
+}
+
+.playbutton {
+    width: 100px;
+}
+
+.date {
+    border-left: 2px solid black;
+    text-align: center;
+}
+
+.top_logo {
+    width: 400px;
+    height: auto;
+    display: inline-block;
+}
+
+thead {
+    font-size: 40px;
+    background-color:paleturquoise;
+}
+
+td:nth-child(2) { 
+    max-width: 450px;
+}
+
+thead th {
+    padding: 5px;
+    border-left: 2px solid black;
+}
+
+thead th:first-child {
+    border-top-left-radius: 13px;
+}
+
+thead th:last-child {
+    border-left: 2px solid black;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 13px;
+}
+
+table {
+    max-width: 990px;
+    margin: 0 auto;
+    margin-top: 5px;
+    border: 2px solid black;
+    border-radius: 15px;
+    border-spacing: 0;
+    background-color:darkseagreen;
+}
+
+td:first-child {
+    border-left: none;
+}
+
+th:first-child {
+    border-left: none;
+}
+
+th, td, tr {
+  margin: 0;
+  border-bottom: 2px solid black;
+  padding-top: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-left: 2px solid black;
+}
+
+tbody > tr {
+    cursor: pointer;
+}
+
+table tr:last-child td{
+    border-bottom: 0px;
+}
+/*
+tbody tr {
+    cursor: pointer;
+}
+*/
+
+tbody {
+    font-size: larger;
+    text-align: left;
+}
+

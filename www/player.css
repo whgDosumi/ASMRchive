@@ -1,0 +1,227 @@
+* {
+	touch-action: manipulation;
+}
+
+body {
+	background-color: darkslategrey;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+#comments {
+	max-width: 900px;
+	height: auto;
+	position: relative;
+	border-radius: 15px;
+	background-color: darkseagreen;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	padding-bottom: 10px;
+	padding-top: 20px;
+	margin-top: 10px;
+}
+
+#description_title {
+	margin-left: 20px;
+	background-color: lightyellow;
+	display: inline-block;
+	font-size: 30px;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+	position: relative;
+	top: 30px;
+	margin-top: 0px;
+}
+
+#post_button {
+	float: right;
+	width: 25%;
+	height: 45px;
+	font-size: xx-large;
+	display: block;
+}
+
+#name_box {
+	font-size: xx-large;
+	width: 50%;
+}
+
+#message_box {
+	font-size: x-large;
+	width: 99%;
+	margin-left: auto;
+	margin-right: auto;
+	display: block;
+	height: 150px;
+}
+
+#backimage {
+    display: block;
+    height: 75px;
+    width: 75px;
+	position:fixed;
+	z-index: 100;
+}
+
+#comment_form {
+	margin: 10px;
+	background-color: rgb(109, 168, 109);
+	padding: 10px;
+	border-radius: 10px;
+	font-size: xx-large;
+}
+
+.comment {
+	margin-left: 20px;
+	margin-right: 20px;
+	background-color: rgb(109, 168, 109);
+	border-radius: 10px;
+	padding: 0;
+	padding-top: 5px;
+}
+
+.comment_name {
+	margin: 0;
+	padding-top: 0;
+	padding-left: 5px;
+	padding-bottom: 0;
+	display: inline-block;
+	font-size: 30px;
+	font-style: italic;
+	color:darkslategray;
+}
+
+.comment_text {
+	font-size: 40px;
+	margin: 15px;
+	margin-top: 5px;
+	padding-bottom: 20px;
+	overflow-wrap: break-word;
+}
+
+.delete_button {
+	display: block;
+	float: right;
+	margin-right: 5px;
+	font-size: 25px;
+}
+
+#comment_timestamp {
+	font-size: 25px;
+	margin-bottom: 0;
+	display: inline-block;
+	cursor: pointer;
+	text-decoration: underline;
+	color:blue;
+}
+
+#backbutton {
+    width: 75px;
+    height: 75px;
+    background-color: darkseagreen;
+    top: 0;
+    left: 0;
+    border-bottom-right-radius: 15px;
+	cursor: pointer;
+	position: fixed;
+	z-index: 100;
+}
+
+.controls {
+	max-width: 900px;
+	margin-top: 5px;
+	text-align: center;
+	vertical-align: middle;
+	user-select: none;
+	touch-action: manipulation;
+	margin-top: 20px;
+}
+
+.separator {
+	width: 30px;
+	height: 20px;
+	display: inline-block;
+}
+
+.button {
+	width: 15%;
+	font-size: 30px;
+	display: inline-block;
+	border-radius: 10px;
+	background-color: azure;
+	text-align: center;
+	position: relative;
+}
+
+.playbutton {
+	width: 150px;
+	height: 150px;
+	display: block;
+	border-radius: 50%;
+	margin: 5px auto;
+	background-color: azure;
+	position: relative;
+}
+
+#play {
+	width: 50%;
+	height: 50%;
+	margin-top: 38px;
+}
+
+.top_logo {
+    width: 400px;
+    height: auto;
+	display: inline-block;
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+}
+
+.description {
+	display: block;
+	text-align: left;
+	height: 580px;
+	overflow: scroll;
+	font-size: 20px;
+	margin-left: 20px;
+	margin-right: 20px;
+	margin-top: 10px;
+	padding: 10px;
+	border-radius: 15px;
+	background-color: rgb(109, 168, 109);
+}
+
+#player {
+	max-width: 900px;
+	height: auto;
+	position: relative;
+	border-radius: 15px;
+	background-color: darkseagreen;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	padding-bottom: 10px;
+}
+
+#thumbnail {
+	width: 100%;
+	border-top-left-radius: 15px;
+	border-top-right-radius: 15px;
+}
+
+.title {
+	font-size: 40px;
+	font-weight: bold;
+	text-align: center;
+	color: lightyellow;
+	margin: 0;
+	margin-top: 10px;
+}
+
+audio {
+	display: inline-block;
+	width: 90%;
+	margin-left: 5%;
+	margin-right: 5%;
+}
