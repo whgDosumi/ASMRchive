@@ -2,4 +2,3 @@ notify_run
 requests
 yt_dlp
 feedparser
-atexit
