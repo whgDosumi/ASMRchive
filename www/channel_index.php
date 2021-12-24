@@ -112,9 +112,9 @@ $me = new Channel($alias, $name);
 </head>
 
 <body>
-    <a href="/ASMRchive.php"><div id="backbutton"><img id="backimage" src="/images/back.png"></div></a>
+    <a href="/index.php"><div id="backbutton"><img id="backimage" src="/images/back.png"></div></a>
     <div id="main">
-        <a href="/ASMRchive.php">
+        <a href="/index.php">
             <img src="/images/ASMRchive.png" alt="logo" class="top_logo">
         </a>
         <br>

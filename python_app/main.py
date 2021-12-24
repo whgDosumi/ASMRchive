@@ -581,7 +581,7 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
 
 
 if __name__ == "__main__":
-    output_directory = "/mnt/thicc/ASMRchive"
+    output_directory = "/var/ASMRchive"
     global history_path
     history_path = os.path.join(output_directory, "history.json")
     testing_new = False
