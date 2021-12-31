@@ -13,6 +13,8 @@ import shutil
 import json
 import subprocess
 
+meta_dict = {}
+
 def get_my_folder():
     return os.path.dirname(os.path.realpath(__file__))
 
@@ -32,6 +34,9 @@ def read_json(file_path):
         return json.load(file)
 
 def get_meta(url):
+    global meta_dict
+    if url in meta_dict:
+        return meta_dict[url]
     try:
         ydl_opts = {
             'nocheckcertificate': True,
@@ -42,6 +47,7 @@ def get_meta(url):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             print("ytdl query getMeta")
             meta = ydl.extract_info(url, download=False)
+            meta_dict[url] = meta
         return meta
     except Exception as e:
         print("Exception in getMeta: " + str(e))
