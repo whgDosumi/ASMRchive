@@ -66,8 +66,6 @@ thead th:first-child {
 }
 
 thead th:last-child {
-    border-left: 2px solid black;
-    border-top-left-radius: 0px;
     border-top-right-radius: 13px;
 }
 
@@ -93,29 +91,94 @@ table tr:last-child td{
     border-bottom: 0px;
 }
 
-tbody tr {
-    cursor: pointer;
-}
-
 
 tbody {
     font-size: larger;
     text-align: left;
 }
 
-#adminimage {
+#backimage {
     display: block;
     height: 75px;
     width: 75px;
     position: fixed;
 }
 
-#adminbutton {
+#backbutton {
     width: 75px;
     height: 75px;
     background-color: darkseagreen;
     position: fixed;
     top: 0;
-    right: 0;
+    left: 0;
     border-bottom-right-radius: 15px;
+}
+
+#post_button {
+	float: right;
+	width: 25%;
+	height: 45px;
+	font-size: xx-large;
+	display: block;
+}
+
+.upload_table_cell{
+    font-size: 50px;
+    vertical-align: middle;
+    text-align: left;
+    padding-left: 15px;
+}
+
+.upload_table_error_cell{
+    font-size: 15px;
+    vertical-align: middle;
+    text-align: left;
+    padding-left: 15px;
+    word-wrap: break-all;
+}
+
+#upload_channel {
+	font-size: 30px;
+	width: 50%;
+    min-width: 15ch;
+    max-width: 30ch;
+    margin-left: 0px;
+    margin-right: 10px;
+    position: relative;
+    bottom: 6px;
+}
+
+#upload_file {
+	font-size: 15px;
+    margin-left: 0px;
+    position: relative;
+    bottom: 10px;
+}
+
+#upload_button {
+	height: 100%;
+	font-size: 30px;
+    display: block;
+    padding: 5px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 0px;
+}
+
+#upload_thumbnail {
+	font-size: 15px;
+    margin-left: 0px;
+    position: relative;
+    bottom: 10px;
+}
+
+#upload_title {
+	font-size: 60px;
+	padding: 500px;
+    min-width: 15ch;
+    max-width: 30ch;
+    margin-left: 0px;
+    margin-right: 10px;
+    position: relative;
+    bottom: 6px;
 }

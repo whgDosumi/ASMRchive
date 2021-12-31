@@ -46,4 +46,5 @@ RUN python /var/asmr_python/main.py
 # Set up crontab to run the python app every 15 minutes.
 RUN (echo "*/15 * * * * /usr/bin/python /var/asmr_python/main.py >> \"/var/asmr_python/log/\$(date +\%Y-\%m-\%d)-asmr.log\" 2>&1") | crontab -
 
+COPY php.ini /etc/php.ini
 CMD /var/startup.sh
