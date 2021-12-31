@@ -26,14 +26,14 @@ RUN chmod 770 /var/startup.sh
 RUN mkdir -p /run/php-fpm/
 
 # Copy over python app.
-ADD python_app /var/asmr_python
+ADD python_app /var/python_app
 # Setup log folder.
-RUN mkdir /var/asmr_python/log
+RUN mkdir /var/python_app/log
 # Give webserver link to channels directory.
-RUN ln -s /var/asmr_python/channels /var/www/html/channels
+RUN ln -s /var/python_app/channels /var/www/html/channels
 
 # pip in the requirements.
-RUN python -m pip install -r /var/asmr_python/requirements.txt
+RUN python -m pip install -r /var/python_app/requirements.txt
 
 # Set perms on the media directory.
 RUN chmod -R 777 /var/ASMRchive
@@ -42,9 +42,8 @@ RUN groupadd asmr_enjoyer
 RUN usermod -aG asmr_enjoyer apache
 RUN chgrp -R asmr_enjoyer /var/ASMRchive
 
-RUN python /var/asmr_python/main.py
 # Set up crontab to run the python app every 15 minutes.
-RUN (echo "*/15 * * * * /usr/bin/python /var/asmr_python/main.py >> \"/var/asmr_python/log/\$(date +\%Y-\%m-\%d)-asmr.log\" 2>&1") | crontab -
+RUN (echo "*/15 * * * * /usr/bin/python /var/python_app/main.py >> \"/var/python_app/log/\$(date +\%Y-\%m-\%d)-asmr.log\" 2>&1") | crontab -
 
 COPY php.ini /etc/php.ini
 CMD /var/startup.sh
