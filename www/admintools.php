@@ -101,6 +101,7 @@
         // leaving room here for other POST functions
         if (isset($_POST['send']) and isset($_FILES['upload_file']) and isset($_POST['upload_channel'])) {
             $uploadOk = 1;
+            $thumbnailOk = 0;
             $asmrFileType = strtolower(pathinfo(basename($_FILES["upload_file"]["name"]),PATHINFO_EXTENSION));
             error_log("error code: " . $_FILES["upload_file"]["error"]);
             // naive file type check
@@ -124,6 +125,17 @@
                 $error_message .= "Filename too large (> 225)\n";
                 $uploadOk = 0;
             }
+            // thumbnail check
+            if (isset($_FILES['upload_thumbnail'])) {
+                $thumbnailOk = 1;
+                if (mb_strlen($_FILES["upload_thumbnail"]["name"]) > 225) {
+                    $error_message .= "Thumbnail name too large (> 225)\n";
+                    $thumbnailOk = 0;
+                }
+                else {
+                    $thubmnailFileType = strtolower(pathinfo(basename($_FILES["upload_thumbnail"]["name"]),PATHINFO_EXTENSION));
+                }
+            }
             if ($uploadOk == 0) {
                 echo "<script type='text/javascript'>alert('Destruction');</script>";
             } else {
@@ -134,6 +146,12 @@
                 if (!is_dir($asmrDirectory)) {
                     mkdir($asmrDirectory);
                     if (move_uploaded_file($_FILES["upload_file"]["tmp_name"], $asmrFile)) {
+                        // copy thumbnail if applicable
+                        if ($thumbnailOk) {
+                            move_uploaded_file($_FILES["upload_thumbnail"]["tmp_name"], $asmrDirectory . "asmr." . $thubmnailFileType);
+                        }
+
+                        // copy of player.php
                         copy('/var/www/html/player.php', $asmrDirectory . "player.php");
 
                         // Use filename as title for now
@@ -144,7 +162,7 @@
                         file_put_contents($asmrDirectory . 'runtime.txt', $asmrDuration);
 
                         if (!empty($_POST['upload_date'])) {
-                            file_put_contents($asmrDirectory . 'upload_date.txt', $_POST['upload_date']);
+                            file_put_contents($asmrDirectory . 'upload_date.txt', str_replace('-', '', $_POST['upload_date']));
                         }
 
                         // sneakily update the channel's count if everything succeeded
@@ -189,7 +207,7 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td class="upload_table_cell"> Channel </td>
+                        <td class="upload_table_cell"> Channel<span style="color:red;">*</span> </td>
                         <td class="upload_table_cell">
                             <select name="upload_channel" id="upload_channel" required>
                                 <option value=""></option>
@@ -202,7 +220,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <td class="upload_table_cell"> Audio File </td>
+                        <td class="upload_table_cell"> Audio File<span style="color:red;">*</span> </td>
                         <td class="upload_table_cell">
                             <input type="file" name="upload_file" id="upload_file" required>
                         </td>
@@ -211,6 +229,12 @@
                         <td class="upload_table_cell"> Upload Date </td>
                         <td class="upload_table_cell">
                             <input type="date" name="upload_date" id="upload_date">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="upload_table_cell"> Thumbnail </td>
+                        <td class="upload_table_cell">
+                            <input type="file" name="upload_thumbnail" id="upload_thumbnail">
                         </td>
                     </tr>
                     <tr>

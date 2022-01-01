@@ -164,3 +164,10 @@ tbody {
     margin-bottom: 10px;
     margin-left: 0px;
 }
+
+#upload_thumbnail {
+	font-size: 15px;
+    margin-left: 0px;
+    position: relative;
+    bottom: 10px;
+}
