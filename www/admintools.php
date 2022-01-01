@@ -171,11 +171,26 @@
                 // Create random new directory
                 $targetChannel = $chans[$_POST["upload_channel"]];
                 $asmrDirectory = $targetChannel->path . generateRandomString() . "/";
+                $asmrFile =  $asmrDirectory . "asmr." . $asmrFileType;
                 if (!is_dir($asmrDirectory)) {
                     mkdir($asmrDirectory);
-                    if (move_uploaded_file($_FILES["upload_file"]["tmp_name"], $asmrDirectory . "asmr." . $asmrFileType)) {
+                    if (move_uploaded_file($_FILES["upload_file"]["tmp_name"], $asmrFile)) {
+                        copy('/var/www/html/player.php', $asmrDirectory . "player.php");
+
+                        // Use filename as title for now
+                        file_put_contents($asmrDirectory . 'title.txt', $_FILES["upload_file"]["name"]);
+                        
+                        // Get duration from ffmpeg
+                        $asmrDuration = system("ffmpeg -i '" . $asmrFile . "' 2>&1 | grep -Eo '[[:digit:]]{2}:[[:digit:]]{2}:[[:digit:]]{2}'");
+                        file_put_contents($asmrDirectory . 'runtime.txt', $asmrDuration);
+
+                        if (!empty($_POST['upload_date'])) {
+                            file_put_contents($asmrDirectory . 'upload_date.txt', $_POST['upload_date']);
+                        }
+
                         // sneakily update the channel's count if everything succeeded
                         $targetChannel->count++;
+
                     } else {
                         $error_message = "Error in move_uploaded_file()";
                         echo "<script type='text/javascript'>alert('Destruction');</script>";
@@ -231,6 +246,12 @@
                         <td class="upload_table_cell"> Audio File </td>
                         <td class="upload_table_cell">
                             <input type="file" name="upload_file" id="upload_file" required>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="upload_table_cell"> Upload Date </td>
+                        <td class="upload_table_cell">
+                            <input type="date" name="upload_date" id="upload_date">
                         </td>
                     </tr>
                     <tr>
