@@ -76,47 +76,6 @@
             <td class="count">' . $this->count . '</td></tr>';
         }
     }
-    class Comment {
-        public $path;
-        public $text;
-        public $user_name;
-        public $date;
-        public $display_text;
-        public function __construct($path) {
-            $this->path = $path;
-            $arr = json_decode(file_get_contents($path), true);
-            $this->text = $arr["text"];
-            $this->display_text = replace_timestamps($this->text);
-            $this->user_name = $arr["user_name"];
-            $this->date = $arr["date"];
-        }
-    
-        public function save() {
-            $arr = array("user_name"=>$this->user_name, "text"=>$this->text, "date"=>$this->date);
-            file_put_contents($this->path,json_encode($arr));
-        }
-    
-        public function delete() {
-            if (!is_dir("comments_bak")) {
-                mkdir("comments_bak");
-            }
-            rename($this->path, "comments_bak/" . slugify($this->date) . ".json");
-        }
-    
-        public function display_comment() {
-            echo '
-            <div class="comment">
-                <form action="' . htmlspecialchars($_SERVER["PHP_SELF"]) . '" method="post">
-                    <input type="submit" value="Delete" class="delete_button" onclick="return confirm(\'Are you sure you want to delete comment by ' . $this->user_name . '?\');">
-                    <p class="comment_name">' . $this->user_name . '<span style="font-size: 15px;">&nbsp;&nbsp;at&nbsp;' . $this->date . '</span></p>
-                    <p class="comment_text">' . nl2br($this->display_text) . '</p>
-                    <input type="hidden" name="timestamp" class="timestamp">
-                    <input type="hidden" name="delete" value=' . $this->path . '>
-                </form>
-            </div>';
-        }
-    
-    }
     $channel_folders = scandir("ASMR/");
     $channels = array();
     
