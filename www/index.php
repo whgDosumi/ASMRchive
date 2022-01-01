@@ -95,8 +95,9 @@
         array_push($chans, new Channel($name, $chan));
     }
     ?>
+    <a href="/admintools.php"><div id="adminbutton"><img id="adminimage" src="/images/Ayame.png"></div></a>
     <div id="main">
-        <a href="/ASMRchive.php">
+        <a href="/index.php">
             <img src="images/ASMRchive.png" alt="logo" class="top_logo">
         </a>
         <table>
