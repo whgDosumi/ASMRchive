@@ -5,7 +5,7 @@ Python app that watches channels on youtube and selectively downloads the audio 
 ```
 python -m pip install -r python_app/requirements.txt
 python python_app/setup.py
-python add_channels.py # add some channels (Do some small easy ones to prevent a shitload of downloads like Shion or Kanata)
+python python_app/add_channels.py # add some channels (Do some small easy ones to prevent a shitload of downloads like Shion or Kanata)
 docker build -t asmrchive .
 ```
 
@@ -27,6 +27,6 @@ docker run -d \
 - Symbolic link does not work correctly as specified in Dockerfile
   - Run `ln -s /var/ASMRchive /var/www/html/ASMR` in the container (`docker exec -it asmrchive sh`)
 - Archive contents are created as root but the web server's user is apache.
-  - `chmod o+r -R /var/ASMRchive/archive`
+  - `chmod o+w -R /var/ASMRchive`
 - PHP is ugly
   
