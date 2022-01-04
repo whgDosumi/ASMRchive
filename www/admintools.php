@@ -154,8 +154,17 @@
                         // copy of player.php
                         copy('/var/www/html/player.php', $asmrDirectory . "player.php");
 
-                        // Use filename as title for now
-                        file_put_contents($asmrDirectory . 'title.txt', $_FILES["upload_file"]["name"]);
+                        // Use provided title, else filename for asmr title
+                        if (isset($_POST['upload_title'])) {
+                            file_put_contents($asmrDirectory . 'title.txt', $_POST['upload_title']);
+                        } else {
+                            file_put_contents($asmrDirectory . 'title.txt', $_FILES["upload_file"]["name"]);
+                        }
+                        
+                        // use provided description if it exists
+                        if (isset($_POST['upload_description'])) {
+                            file_put_contents($asmrDirectory . 'asmr.description', $_POST['upload_description']);
+                        }
                         
                         // Get duration from ffmpeg
                         $asmrDuration = system("ffmpeg -i '" . $asmrFile . "' 2>&1 | grep -Eo '[[:digit:]]{2}:[[:digit:]]{2}:[[:digit:]]{2}'");
@@ -223,6 +232,18 @@
                         <td class="upload_table_cell"> Audio File<span style="color:red;">*</span> </td>
                         <td class="upload_table_cell">
                             <input type="file" name="upload_file" id="upload_file" required>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="upload_table_cell"> Title </td>
+                        <td class="upload_table_cell">
+                            <input type="text" name="upload_title" id="upload_title">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="upload_table_cell"> Description </td>
+                        <td class="upload_table_cell">
+                            <input type="text" name="upload_description">
                         </td>
                     </tr>
                     <tr>

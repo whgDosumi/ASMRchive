@@ -171,3 +171,14 @@ tbody {
     position: relative;
     bottom: 10px;
 }
+
+#upload_title {
+	font-size: 60px;
+	padding: 500px;
+    min-width: 15ch;
+    max-width: 30ch;
+    margin-left: 0px;
+    margin-right: 10px;
+    position: relative;
+    bottom: 6px;
+}
