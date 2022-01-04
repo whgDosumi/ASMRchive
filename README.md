@@ -27,6 +27,6 @@ docker run -d \
 - Symbolic link does not work correctly as specified in Dockerfile
   - Run `ln -s /var/ASMRchive /var/www/html/ASMR` in the container (`docker exec -it asmrchive sh`)
 - Archive contents are created as root but the web server's user is apache.
-  - `chmod o+r -R /var/ASMRchive/archive`
+  - `chmod o+w -R /var/ASMRchive`
 - PHP is ugly
   
