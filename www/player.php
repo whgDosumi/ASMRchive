@@ -102,7 +102,14 @@ class New_Comment extends Comment {
 
 $start_timestamp = 0;
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST['user_name']) and isset($_POST['text']) ){
+    if (isset($_POST['delete'])) {
+        foreach($comment_list as $comment) {
+            if ($comment->path == $_POST['delete']) {
+                $comment->delete();
+            }
+        }
+    }
+    else if (isset($_POST['user_name']) and isset($_POST['text']) ){
         $user_name = test_input($_POST["user_name"]);
         $text = test_input($_POST["text"]);
         
@@ -135,18 +142,6 @@ function load_comments() {
         }
     }
     return($comment_list);
-}
-$comment_list = load_comments();
-
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST['delete'])) {
-        foreach($comment_list as $comment) {
-            if ($comment->path == $_POST['delete']) {
-                $comment->delete();
-            }
-        }
-    }
 }
 $comment_list = load_comments();
 
