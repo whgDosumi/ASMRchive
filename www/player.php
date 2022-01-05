@@ -98,6 +98,19 @@ class New_Comment extends Comment {
     }
 }
 
+function load_comments() {
+    $comment_list = array();
+    if (is_dir("comments")) {
+        $scan = scandir("comments");
+        foreach($scan as $file) {
+            if ($file != "." and $file != ".."){
+                $comment_list[$file] = new Comment("comments/" . $file);
+            }
+        }
+    }
+    return($comment_list);
+}
+$comment_list = load_comments();
 
 
 $start_timestamp = 0;
@@ -130,20 +143,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $start_timestamp = $_POST['timestamp'];
     }
 }
-
-function load_comments() {
-    $comment_list = array();
-    if (is_dir("comments")) {
-        $scan = scandir("comments");
-        foreach($scan as $file) {
-            if ($file != "." and $file != ".."){
-                $comment_list[$file] = new Comment("comments/" . $file);
-            }
-        }
-    }
-    return($comment_list);
-}
-$comment_list = load_comments();
 
 #sorts the comments by date entered.
 function cmp($a, $b) {
