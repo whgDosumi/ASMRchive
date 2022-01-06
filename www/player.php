@@ -182,6 +182,8 @@ class Video
             $this->asmr_file = $path . "/asmr.webm";
         } elseif (is_file($path . '/asmr.aac')) {
             $this->asmr_file = $path . "/asmr.aac";
+        } elseif (is_file($path . "/asmr.mp3")) {
+            $this->asmr_file = $path . "/asmr.mp3";
         } else {
             $this->asmr_file = $path . "/asmr.m4a";
         }
