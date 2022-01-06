@@ -143,7 +143,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $start_timestamp = $_POST['timestamp'];
     }
 }
-
+$comment_list = load_comments();
 #sorts the comments by date entered.
 function cmp($a, $b) {
     return strcmp($a->date, $b->date);
