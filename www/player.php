@@ -143,7 +143,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $start_timestamp = $_POST['timestamp'];
     }
 }
-
+$comment_list = load_comments();
 #sorts the comments by date entered.
 function cmp($a, $b) {
     return strcmp($a->date, $b->date);
@@ -168,6 +168,8 @@ class Video
             $this->thumbnail = $path . '/asmr.webp';
         } elseif (is_file($path . '/asmr.jpg')) {
             $this->thumbnail = $path . '/asmr.jpg';
+        } elseif (is_file($path . '/asmr.jpeg')) {
+            $this->thumbnail = $path . '/asmr.jpeg';
         } else {
             $this->thumbnail = '/images/default_thumbnail.png';
         }
@@ -182,6 +184,8 @@ class Video
             $this->asmr_file = $path . "/asmr.webm";
         } elseif (is_file($path . '/asmr.aac')) {
             $this->asmr_file = $path . "/asmr.aac";
+        } elseif (is_file($path . "/asmr.mp3")) {
+            $this->asmr_file = $path . "/asmr.mp3";
         } else {
             $this->asmr_file = $path . "/asmr.m4a";
         }
