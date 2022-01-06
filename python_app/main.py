@@ -447,7 +447,8 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
     return function_output
 
 def run_shell(args_list):
-    subprocess.Popen(args_list, shell=False, stdin=None, stdout=None, stderr=None)
+    pass
+    #subprocess.Popen(args_list, shell=False, stdin=None, stdout=None, stderr=None)
 
 def get_meta_cookie(link, cookie_dir=(os.path.join(get_my_folder(), "cookies"))):
     for cookie_file in os.listdir(cookie_dir):
