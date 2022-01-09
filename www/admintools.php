@@ -171,7 +171,7 @@
                     <tr>
                         <td class="upload_table_cell"> Description </td>
                         <td class="upload_table_cell">
-                            <input type="text" name="upload_description">
+                            <textarea type="text" name="upload_description"></textarea>
                         </td>
                     </tr>
                     <tr>

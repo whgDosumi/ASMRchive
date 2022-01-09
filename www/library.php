@@ -156,7 +156,7 @@
             } else {
                 $this->thumbnail = '/images/default_thumbnail.png';
             }
-            $this->description = file_get_contents("./asmr.description");
+            $this->description = nl2br(file_get_contents("./asmr.description"));
             $doc = fopen($path . '/title.txt', 'r');
             $this->title = fread($doc, filesize($path . '/title.txt'));
             $this->comment_count = 0;
