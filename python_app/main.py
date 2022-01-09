@@ -45,7 +45,7 @@ def get_meta(url):
             'no_progress': True,
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            print("ytdl query getMeta")
+            print("ytdl query getMeta " + url)
             meta = ydl.extract_info(url, download=False)
             meta_dict[url] = meta
         return meta
@@ -436,7 +436,8 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
         new = []
         for d in to_download:
             if not d[1] in purge_urls:
-                new.append(d)
+                if not is_live(get_meta(d[1])):
+                    new.append(d)
         to_download = new
         for p in purge:
             if purge[p] == "success":
