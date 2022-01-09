@@ -139,6 +139,7 @@
         public $asmr_file;
         public $asmr_runtime;
         public $comment_count;
+        public $description;
         # $path is the path to the directory of the video
         public function __construct($path) {
             $this->path = $path;
@@ -151,7 +152,7 @@
             } else {
                 $this->thumbnail = '/images/default_thumbnail.png';
             }
-
+            $this->description = file_get_contents("./asmr.description");
             $doc = fopen($path . '/title.txt', 'r');
             $this->title = fread($doc, filesize($path . '/title.txt'));
             $this->comment_count = 0;
