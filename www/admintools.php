@@ -9,9 +9,8 @@
 
 <body>
     <?php
-
     include "/var/www/html/library.php";
-
+    
     $channel_folders = scandir("ASMR/");
     $channels = array();
     
@@ -149,7 +148,7 @@
                                 <option value=""></option>
                                 <?php
                                 foreach($chans as $item){
-                                    echo "<option value='$item->name'>$item->alias</option>";
+                                    echo "<option value='$item->dir_name'>$item->alias</option>";
                                 }
                                 ?>
                             </select>
