@@ -466,7 +466,7 @@ def get_meta_cookie(link, cookie_dir=(os.path.join(get_my_folder(), "cookies")))
             return meta
         except Exception as e:
             pass
-    return False
+    return "Exception: No cookies in cookie directory"
 
 def ASMRchive(channels: list, keywords: list, output_directory: str):
     for chan in channels:
@@ -483,9 +483,11 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                     for flag in cookie_exception_flags:
                         if flag in meta and not "live event" in meta:
                             meta = get_meta_cookie(video)
-                            if meta != False:
+                            if not "Exception" in meta:
                                 to_download.append([meta["title"], video])
-                    if "live event" in meta:
+                    if "Exception: No cookies" in meta:
+                        continue # Might want to inform the user that their request failed here. 
+                    if "live event" in meta: # A live event, we want to start the recorder. 
                         run_shell(["python", os.path.join(os.path.dirname(os.path.realpath(__file__)), "live.py"), video, "record", "\"" + chan.name + "\""])
                 elif is_live(meta):
                     run_shell(["python", os.path.join(os.path.dirname(os.path.realpath(__file__)), "live.py"), video, "record", "\"" + chan.name + "\""])
