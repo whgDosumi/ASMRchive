@@ -4,54 +4,19 @@ header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
 header("Pragma: no-cache"); // HTTP 1.0.
 header("Expires: 0"); // Proxies.
 
-function replace_timestamps($text) {
-    $regex = "/(?:([0-5]?[0-9]):)?([0-5]?[0-9]):([0-5][0-9])/";
-    preg_match_all($regex, $text, $matches);
-    $replacements = [];
-    foreach($matches[0] as $match) {
-        $times = explode(':',$match);
-        if (count($times) === 2) {
-            $seconds = ((int)$times[0] * 60) + $times[1];
-        }
-        if (count($times) === 3) {
-            $seconds = ((int)$times[0] * 3600) + ((int)$times[1] * 60) + ((int)$times[2]);
-        }
-        $replacements[$match] = '<span style="cursor: pointer;text-decoration: underline;color:blue;" onclick="set_time(' . strval($seconds) . ')">' . $match . '</span>';
-    }
-    foreach($matches[0] as $match) {
-        $text = str_replace($match, $replacements[$match], $text);
-    }
-    return($text);
-}
-function slugify($text, string $divider = '-')
-{
-  $text = preg_replace('~[^\pL\d]+~u', $divider, $text);
-  $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
-  $text = preg_replace('~[^-\w]+~', '', $text);
-  $text = trim($text, $divider);
-  $text = preg_replace('~-+~', $divider, $text);
-  $text = strtolower($text);
-  if (empty($text)) {
-    return 'n-a';
-  }
-  return $text;
-}
+include "/var/www/html/library.php";
 
-
-
-function test_input($data) {
-  $data = trim($data);
-  $data = stripslashes($data);
-  $data = htmlspecialchars($data);
-  return $data;
-}
-
+# Comment object class
 class Comment {
     public $path;
     public $text;
     public $user_name;
     public $date;
     public $display_text;
+
+    # For constructing a comment that isn't already saved to disk,
+    # see below class New_Comment
+    # $path is path to comment file.
     public function __construct($path) {
         $this->path = $path;
         $arr = json_decode(file_get_contents($path), true);
@@ -85,9 +50,10 @@ class Comment {
             </form>
         </div>';
     }
-
 }
 
+# Extension of above comment class that is used when a new one is created
+# Used for defining a comment without having it already saved to disk
 class New_Comment extends Comment {
     public function __construct($path, $user_name, $text) { #in case we want to define a new one without a file
         $this->text = $text;
@@ -98,6 +64,8 @@ class New_Comment extends Comment {
     }
 }
 
+# function reads all comments in comments dir,
+# spawns new comment objects, and returns list of them. 
 function load_comments() {
     $comment_list = array();
     if (is_dir("comments")) {
@@ -150,57 +118,6 @@ function cmp($a, $b) {
 }
 usort($comment_list, "cmp");
 
-
-
-class Video
-{
-    public $thumbnail;
-    public $path;
-    public $title;
-    public $upload_date;
-    public $pretty_date;
-    public $asmr_file;
-    public $description;
-    public function __construct($path)
-    {
-        $this->path = $path;
-        if (is_file($path . '/asmr.webp')) {
-            $this->thumbnail = $path . '/asmr.webp';
-        } elseif (is_file($path . '/asmr.jpg')) {
-            $this->thumbnail = $path . '/asmr.jpg';
-        } elseif (is_file($path . '/asmr.jpeg')) {
-            $this->thumbnail = $path . '/asmr.jpeg';
-        } else {
-            $this->thumbnail = '/images/default_thumbnail.png';
-        }
-
-        $doc = fopen($path . '/title.txt', 'r');
-        $this->title = fread($doc, filesize($path . '/title.txt'));
-
-        $doc = fopen($path . '/upload_date.txt', 'r');
-        $this->upload_date = fread($doc, filesize($path . '/upload_date.txt'));
-        $this->pretty_date = date('m-d-Y', strtotime($this->upload_date));
-        if (is_file($path . "/asmr.webm")) {
-            $this->asmr_file = $path . "/asmr.webm";
-        } elseif (is_file($path . '/asmr.aac')) {
-            $this->asmr_file = $path . "/asmr.aac";
-        } elseif (is_file($path . "/asmr.mp3")) {
-            $this->asmr_file = $path . "/asmr.mp3";
-        } else {
-            $this->asmr_file = $path . "/asmr.m4a";
-        }
-        $this->description = file_get_contents("./asmr.description");
-
-    }
-    public function display_row()
-    {
-        echo '<tr><td><a href="' . $this->thumbnail . '"><img class="thumb" src=' . $this->thumbnail . '></a></td>
-        <td><p class="title">' . $this->title . '</td>
-        <td class="date"><p>' . $this->pretty_date . '</td>
-        <td><a href="' . $this->path . '/player.php"><img src="/images/playbutton.png" class="playbutton"></a></td>
-        </tr>';
-    }
-}
 $me = new Video(".")
 ?>
 
