@@ -9,73 +9,8 @@
 
 <body>
     <?php
-    function string_contains($string, $contains) {
-        if (strpos($string, $contains) === false) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-    class Channel
-    {
-        public $alias;
-        public $name;
-        public $path;
-        public $link;
-        public $count;
-        public $status;
-
-        public function __construct($alias, $name)
-        {
-            $this->alias = $alias;
-            $this->name = $name;
-            $this->path = "ASMR/" . $name . "/";
-            $this->link = $this->path . "index.php";
-            $temp = scandir($this->path);
-            $count = 0;
-            foreach ($temp as $vid) {
-                if ($vid != ".") {
-                    if ($vid != "..") {
-                        if (is_dir($this->path . $vid)) {
-                            $count = $count + 1;
-                        }
-                    }
-                }
-            }
-            $this->count = $count;
-            $temp = file_get_contents('channels/' . $this->name . ".channel");
-            if (string_contains($temp, "archived")){
-                $this->status = "Archived";
-            } elseif (string_contains($temp, "recording")) {
-                $this->status = "Recording";
-            } elseif (string_contains($temp, "new")) {
-                $this->status = "New";
-            } elseif (string_contains($temp, "recorded")) {
-                $this->status = "Recorded";
-            } elseif (string_contains($temp, "waiting")) {
-                $this->status = "Waiting";
-            } elseif (string_contains($temp, "errored")) {
-                $this->status = "Errored!";
-            } elseif (string_contains($temp, "saved")) {
-                $this->status = "Saved";
-            } else {
-                $this->status = "Unknown";
-            }
-        }
-
-        public function display_row()
-        {
-            if ($this->count == 0) {
-                echo '<tr style="cursor: not-allowed;"';
-            } else {
-                echo '<tr onclick="window.location=' . "'" . $this->path . "index.php'" . '"';
-            }
-            echo '><td><img class="pfp" src=' . $this->path . 'pfp.png></td>
-            <td class="channel">' . $this->alias . '</td>
-            <td class="status">' . $this->status . '</td>
-            <td class="count">' . $this->count . '</td></tr>';
-        }
-    }
+    include "/var/www/html/library.php";
+    
     $channel_folders = scandir("ASMR/");
     $channels = array();
     
@@ -193,15 +128,6 @@
         }
     }
 
-    function generateRandomString($length = 20) {
-        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $charactersLength = strlen($characters);
-        $randomString = '';
-        for ($i = 0; $i < $length; $i++) {
-            $randomString .= $characters[rand(0, $charactersLength - 1)];
-        }
-        return $randomString;
-    }
 
     ?>
     <a href="/index.php"><div id="backbutton"><img id="backimage" src="/images/back.png"></div></a>
@@ -222,7 +148,7 @@
                                 <option value=""></option>
                                 <?php
                                 foreach($chans as $item){
-                                    echo "<option value='$item->name'>$item->alias</option>";
+                                    echo "<option value='$item->dir_name'>$item->alias</option>";
                                 }
                                 ?>
                             </select>
