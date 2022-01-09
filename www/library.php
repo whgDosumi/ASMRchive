@@ -31,6 +31,17 @@
         return $text;
     }
 
+    #Generates a random string of length $length (defaults 20)
+    function generateRandomString($length = 20) {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
+        return $randomString;
+    }
+
     # Function player.php uses to replace timestamps in its comments with links. 
     function replace_timestamps($text) {
         $regex = "/(?:([0-5]?[0-9]):)?([0-5]?[0-9]):([0-5][0-9])/";
