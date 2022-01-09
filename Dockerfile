@@ -7,11 +7,19 @@ RUN dnf install -y https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-rele
 RUN dnf update -y && dnf -y install \
     httpd php.x86_64 cronie python ffmpeg findutils
 
-# Expose httpd.
-EXPOSE 80
+# Set up crontab to run the python app every 15 minutes.
+RUN (echo "*/15 * * * * /usr/bin/python /var/python_app/main.py >> \"/var/python_app/log/\$(date +\%Y-\%m-\%d)-asmr.log\" 2>&1") | crontab -
 
-# Copy over webserver.
-ADD www /var/www/html
+# install python requirements early for image layer optimization
+COPY python_app/requirements.txt /var/python_requirements.txt
+RUN python -m pip install -r /var/python_requirements.txt
+RUN rm /var/python_requirements.txt
+
+# Add php config (required for uploads)
+COPY php.ini /etc/php.ini
+
+# This is required to make php work.
+RUN mkdir -p /run/php-fpm/
 
 # mkdir for ASMRchive directory.
 RUN mkdir /var/ASMRchive
@@ -19,31 +27,20 @@ RUN mkdir /var/ASMRchive
 RUN ln -s /var/ASMRchive /var/www/html/ASMR
 
 # Copy over startup.sh and make it executable.
-ADD startup.sh /var/startup.sh
+COPY startup.sh /var/startup.sh
 RUN chmod 770 /var/startup.sh
 
-# This is required to make php work.
-RUN mkdir -p /run/php-fpm/
+# Copy over webserver.
+ADD www /var/www/html
 
 # Copy over python app.
-ADD python_app /var/python_app
+COPY python_app /var/python_app
 # Setup log folder.
 RUN mkdir /var/python_app/log
 # Give webserver link to channels directory.
 RUN ln -s /var/python_app/channels /var/www/html/channels
 
-# pip in the requirements.
-RUN python -m pip install -r /var/python_app/requirements.txt
+# Expose httpd.
+EXPOSE 80
 
-# Set perms on the media directory.
-RUN chmod -R 777 /var/ASMRchive
-RUN chmod g+s /var/ASMRchive
-RUN groupadd asmr_enjoyer
-RUN usermod -aG asmr_enjoyer apache
-RUN chgrp -R asmr_enjoyer /var/ASMRchive
-
-# Set up crontab to run the python app every 15 minutes.
-RUN (echo "*/15 * * * * /usr/bin/python /var/python_app/main.py >> \"/var/python_app/log/\$(date +\%Y-\%m-\%d)-asmr.log\" 2>&1") | crontab -
-
-COPY php.ini /etc/php.ini
 CMD /var/startup.sh
