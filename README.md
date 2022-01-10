@@ -24,9 +24,9 @@ docker run -d \
 `-p 4444:80` specifies the port. In this example, ASMRchive is hosted on `127.0.0.1:4444`.
 
 ## Known Issues and Workarounds
-- Symbolic link does not work correctly as specified in Dockerfile
-  - Run `ln -s /var/ASMRchive /var/www/html/ASMR` in the container (`docker exec -it asmrchive sh`)
-- Archive contents are created as root but the web server's user is apache.
-  - `chmod o+w -R /var/ASMRchive`
-- PHP is ugly
+- Archive has incorrect file permissions. Can result in issues leaving comments and adding new ASMR with admintools
+  - Run the following commands on the host. Sudo is not necessary if you own all of the files. 
+  - `find <asmr path> -type d | xargs sudo chmod ugo=rwx
+  - `find <asmr path> -type f | xargs sudo chmod ugo=rw
+
   
