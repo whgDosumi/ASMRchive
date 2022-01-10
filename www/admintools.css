@@ -127,10 +127,11 @@ tbody {
     vertical-align: middle;
     text-align: left;
     padding-left: 15px;
+    padding-right: 0;
 }
 
 .upload_table_error_cell{
-    font-size: 15px;
+    font-size: 30px;
     vertical-align: middle;
     text-align: left;
     padding-left: 15px;
@@ -139,19 +140,19 @@ tbody {
 
 #upload_channel {
 	font-size: 30px;
-	width: 50%;
-    min-width: 15ch;
-    max-width: 30ch;
     margin-left: 0px;
-    margin-right: 10px;
     position: relative;
     bottom: 6px;
 }
 
 #upload_file {
-	font-size: 15px;
+	font-size: 30px;
     margin-left: 0px;
+    margin-right: 0;
+    padding-right: 0;
+    width: 375px;
     position: relative;
+    margin-right: 25px;
     bottom: 10px;
 }
 
@@ -166,18 +167,31 @@ tbody {
 }
 
 #upload_thumbnail {
-	font-size: 15px;
+	font-size: 30px;
     margin-left: 0px;
     position: relative;
+    margin-right: 0;
+    padding-right: 0;
+    display: inline-block;
+    width: 375px;
+    bottom: 10px;
+}
+
+#upload_date {
+    font-size: 30px;
+    margin-left: 0px;
+    display: inline-block;
+    position: relative;
+    margin-right: 0;
+    padding-right: 0;
     bottom: 10px;
 }
 
 #upload_title {
-	font-size: 15px;
-    min-width: 15ch;
+	font-size: 30px;
     max-width: 30ch;
+    display: inline-block;
     margin-left: 0px;
-    margin-right: 10px;
     position: relative;
     bottom: 10px;
 }
