@@ -178,6 +178,8 @@
                 $this->asmr_file = $path . "/asmr.aac";
             } elseif (is_file($path . '/asmr.mp3')) {
                 $this->asmr_file = $path . "/asmr.mp3";
+            } elseif (is_file($path . '/asmr.opus')) {
+                $this->asmr_file = $path . "/asmr.opus";
             } else {
                 $this->asmr_file = $path . "/asmr.m4a";
             }
