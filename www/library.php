@@ -1,4 +1,8 @@
 <?php
+    # Resets umask to default
+    # Security feature
+    umask();
+
     # Checks if $string contains $contains, returns boolean
     function string_contains($string, $contains) {
         if (strpos($string, $contains) === false) {

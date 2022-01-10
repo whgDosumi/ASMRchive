@@ -78,6 +78,7 @@
                 $targetChannel = $chans[$_POST["upload_channel"]];
                 $asmrDirectory = $targetChannel->path . generateRandomString() . "/";
                 $asmrFile =  $asmrDirectory . "asmr." . $asmrFileType;
+                umask(0); # spicy
                 if (!is_dir($asmrDirectory)) {
                     mkdir($asmrDirectory);
                     if (move_uploaded_file($_FILES["upload_file"]["tmp_name"], $asmrFile)) {
@@ -123,6 +124,7 @@
                     echo "<script type='text/javascript'>alert('rand() disaster');</script>";
                 }
             }
+            umask();
         } else {
             exit();
         }

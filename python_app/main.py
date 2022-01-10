@@ -386,10 +386,10 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
         for p in processes:
             for root, dirs, files in os.walk(p.path):
                 for dir in dirs:
-                    os.chmod(os.path.join(root, dir), 0o775)
+                    os.chmod(os.path.join(root, dir), 0o777)
                 for file in files:
-                    os.chmod(os.path.join(root, file), 0o664)
-            os.chmod(p.path, 0o775)
+                    os.chmod(os.path.join(root, file), 0o666)
+            os.chmod(p.path, 0o777)
         returns = return_dict.values()
         index = -1
         sorted = []

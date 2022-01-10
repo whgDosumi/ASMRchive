@@ -93,7 +93,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     else if (isset($_POST['user_name']) and isset($_POST['text']) ){
         $user_name = test_input($_POST["user_name"]);
         $text = test_input($_POST["text"]);
-        
+        umask(0);
         if (!is_dir("comments")) {
             mkdir("comments");
         }
@@ -106,6 +106,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         $new_comment = new New_Comment($path, $user_name, $text);
         $new_comment->save();
+        umask();
     }
     if (isset($_POST['timestamp'])) {
         $start_timestamp = $_POST['timestamp'];
