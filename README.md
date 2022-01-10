@@ -25,7 +25,7 @@ docker run -d \
 
 ## Known Issues and Workarounds
 - Archive has incorrect file permissions. Can result in issues leaving comments and adding new ASMR with admintools
-  - `find <asmr path> -type d | xargs chmod ugo=rwx`
-  - `find <asmr path> -type f | xargs chmod ugo=rw`
+  - `find <asmr path> -type d | xargs -d "\n" chmod ugo=rwx`
+  - `find <asmr path> -type f | xargs -d "\n" chmod ugo=rw`
 
   
