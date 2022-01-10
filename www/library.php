@@ -59,11 +59,16 @@
             if (count($times) === 3) {
                 $seconds = ((int)$times[0] * 3600) + ((int)$times[1] * 60) + ((int)$times[2]);
             }
-            $replacements[$match] = '<span style="cursor: pointer;text-decoration: underline;color:blue;" onclick="set_time(' . strval($seconds) . ')">' . $match . '</span>';
+            $temp_match = str_replace(":", "<colonhere>", $match);
+
+            $replace_string = '<span style="cursor: pointer;text-decoration: underline;color:blue;" onclick="set_time(' . strval($seconds) . ')">' . $temp_match . '</span>';
+
+            $pos = strpos($text, $match);
+            if ($pos !== false) {
+                $text = substr_replace($text, $replace_string, $pos, strlen($match));
+            }
         }
-        foreach($matches[0] as $match) {
-            $text = str_replace($match, $replacements[$match], $text);
-        }
+        $text = str_replace("<colonhere>", ":", $text);
         return($text);
     }
 
