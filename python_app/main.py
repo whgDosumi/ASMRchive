@@ -15,6 +15,40 @@ import subprocess
 
 meta_dict = {}
 
+#Used to convert webm files to mp3s
+def convert_library(asmr_directory, threads=4):
+    bad_formats = ["webm", "opus", "m4a", "mp3", "aac"]
+    convert_to = "flac"
+
+    def convert(root, file, convert_to):
+        ff_input = os.path.join(root, file)
+        ff_output = os.path.join(root, "asmr." + str(convert_to))
+        command = ("ffmpeg -y -i " + ff_input + " " + ff_output)
+        os.system(command)
+
+
+    processes = []
+    converted_dirs = []
+    activity_log = []
+    for root, dirs, files in os.walk(asmr_directory):
+        for dir in dirs:
+            while len(processes) >= threads:
+                new = []
+                for p in processes:
+                    p.join(timeout=1)
+                    if p.is_alive():
+                        new.append(p)
+                processes = new
+            dir_path = os.path.join(root, dir)
+            ldir = os.listdir(dir_path)
+            for format in bad_formats:
+                if ("asmr." + format in ldir) and not (dir_path in converted_dirs):
+                    converted_dirs.append(dir_path)
+                    activity_log.append([dir_path,format,convert_to])
+                    p = Process(target=convert, args=(dir_path, "asmr." + format, convert_to))
+                    p.start()
+                    processes.append(p)
+
 def get_my_folder():
     return os.path.dirname(os.path.realpath(__file__))
 
@@ -161,6 +195,7 @@ class Channel():
     def setup(self):
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+            os.chmod(self.path, 0o777)
         with open(os.path.join(self.path, "name.txt"), "w") as name_file:
             name_file.write(self.name)
         shutil.copy("/var/www/html/channel_index.php", os.path.join(self.path, "index.php"))
@@ -445,6 +480,7 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
             else:
                 function_output["failures"].append(p)                
     queue_manager.shutdown()
+    convert_library(output_directory)
     return function_output
 
 def run_shell(args_list):
@@ -472,6 +508,8 @@ def get_meta_cookie(link, cookie_dir=(os.path.join(get_my_folder(), "cookies")))
 def ASMRchive(channels: list, keywords: list, output_directory: str):
     for chan in channels:
         if chan.status == "archived": #we want to check the RSS for new ASMR streams
+            chan.status = "downloading"
+            chan.save()
             rss = chan.get_rss()
             saved = chan.get_saved_videos(output_directory)
             to_download = []
@@ -528,7 +566,11 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 with open(os.path.join(output_directory, slugify(chan.name), "saved_urls.txt"), "a") as saved_doc:
                     for item in downloaded:
                         saved_doc.write(item + "\n")
+            chan.status = "archived"
+            chan.save()
         elif chan.status == "new": #we want to do a full archive of all videos
+            chan.status = "downloading"
+            chan.save()
             saved = chan.get_saved_videos(output_directory)
             to_download = list()
             downloaded = list()
@@ -572,6 +614,7 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                     log("Failure: " + str(failure))
             if not os.path.exists(os.path.join(output_directory, slugify(chan.name))):
                 os.makedirs(os.path.join(output_directory, slugify(chan.name)))
+                os.chmod(os.path.join(output_directory, slugify(chan.name))) #0o777
             with open(os.path.join(output_directory, slugify(chan.name), "saved_urls.txt"), "a") as saved_doc:
                 for item in downloaded:
                     saved_doc.write(item + "\n")

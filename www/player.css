@@ -7,6 +7,53 @@ body {
 	font-family: Arial, Helvetica, sans-serif;
 }
 
+.divider {
+	height: 50px;
+}
+
+#repeatbutton {
+	position: absolute;
+	right: 20px;
+	top: 1252px;
+	padding: 10px;
+	width: 45px;
+	z-index: 8;
+	background-color: azure;
+	border-radius: 10px;
+}
+
+#seektime {
+	position: absolute;
+	right: 100px;
+	font-size: xx-large;
+	top: 1220px;
+	background-color: azure;
+	padding: 10px;
+	padding-left: 605px;
+	width: 170px;
+	z-index: 1;
+	border-radius: 10px;
+}
+
+#seekslider {
+	display: inline-block;
+	position:absolute;
+	left: 25px;
+	top: 1255px;
+	width: 200px;
+	z-index: 2;
+	background-color: #FFF;
+	transform: scale(3); /* Or however big you want it */
+  	transform-origin: 0 0;
+}
+
+#asmr {
+	display:block;
+	padding-bottom: 100px;
+	padding-top: 50px;
+	transform: scale(1.1);
+}
+
 #comments {
 	max-width: 900px;
 	height: auto;
@@ -147,6 +194,7 @@ body {
 	width: 15%;
 	font-size: 30px;
 	display: inline-block;
+	position: absolute;
 	border-radius: 10px;
 	background-color: azure;
 	text-align: center;
