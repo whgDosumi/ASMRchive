@@ -17,8 +17,8 @@ meta_dict = {}
 
 #Used to convert webm files to mp3s
 def convert_library(asmr_directory, threads=4):
-    bad_formats = ["webm", "opus", "m4a", "mp3", "aac"]
-    convert_to = "flac"
+    bad_formats = ["webm", "opus", "m4a", "flac", "aac"]
+    convert_to = "mp3"
 
     def convert(root, file, convert_to):
         ff_input = os.path.join(root, file)

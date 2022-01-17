@@ -176,10 +176,10 @@
             $doc = fopen($path . '/upload_date.txt', 'r');
             $this->upload_date = fread($doc, filesize($path . '/upload_date.txt'));
             $this->pretty_date = date('m-d-Y', strtotime($this->upload_date));
-            if (is_file($path . '/asmr.flac')) {
-                $this->asmr_file = $path . "/asmr.flac";
-            } elseif (is_file($path . '/asmr.mp3')) {
+            if (is_file($path . '/asmr.mp3')) {
                 $this->asmr_file = $path . "/asmr.mp3";
+            } elseif (is_file($path . '/asmr.flac')) {
+                $this->asmr_file = $path . "/asmr.flac";
             } elseif (is_file($path . '/asmr.opus')) {
                 $this->asmr_file = $path . "/asmr.opus";
             } elseif (is_file($path . '/asmr.m4a')) {
