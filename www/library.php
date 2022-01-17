@@ -3,6 +3,10 @@
     # Security feature
     umask();
 
+    header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
+    header("Pragma: no-cache"); // HTTP 1.0.
+    header("Expires: 0"); // Proxies.
+
     # Checks if $string contains $contains, returns boolean
     function string_contains($string, $contains) {
         if (strpos($string, $contains) === false) {
@@ -172,16 +176,16 @@
             $doc = fopen($path . '/upload_date.txt', 'r');
             $this->upload_date = fread($doc, filesize($path . '/upload_date.txt'));
             $this->pretty_date = date('m-d-Y', strtotime($this->upload_date));
-            if (is_file($path . "/asmr.webm")) {
-                $this->asmr_file = $path . "/asmr.webm";
-            } elseif (is_file($path . '/asmr.aac')) {
-                $this->asmr_file = $path . "/asmr.aac";
+            if (is_file($path . '/asmr.flac')) {
+                $this->asmr_file = $path . "/asmr.flac";
             } elseif (is_file($path . '/asmr.mp3')) {
                 $this->asmr_file = $path . "/asmr.mp3";
             } elseif (is_file($path . '/asmr.opus')) {
                 $this->asmr_file = $path . "/asmr.opus";
-            } else {
+            } elseif (is_file($path . '/asmr.m4a')) {
                 $this->asmr_file = $path . "/asmr.m4a";
+            } else {
+                $this->asmr_file = $path . "/asmr.webm"; # unsupported but here to cover non-converted files.
             }
             $this->asmr_runtime = file_get_contents($path . "/runtime.txt");
         }

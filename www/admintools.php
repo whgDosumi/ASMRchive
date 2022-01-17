@@ -40,8 +40,8 @@
             $asmrFileType = strtolower(pathinfo(basename($_FILES["upload_file"]["name"]),PATHINFO_EXTENSION));
             error_log("error code: " . $_FILES["upload_file"]["error"]);
             // naive file type check
-            if($asmrFileType != "m4a" && $asmrFileType != "webm" && $asmrFileType != "mp3" && $asmrFileType != "opus") {
-                $error_message .= "Only m4a, webm, mp3 or opus audio files allowed\n";
+            if($asmrFileType != "m4a" && $asmrFileType != "aac" && $asmrFileType != "mp3" && $asmrFileType != "opus") {
+                $error_message .= "Only m4a, aac, mp3 or opus audio files allowed\n";
                 $uploadOk = 0;
             }
             // File size check
