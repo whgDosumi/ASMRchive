@@ -42,7 +42,7 @@ def convert_library(asmr_directory, threads=4):
             dir_path = os.path.join(root, dir)
             ldir = os.listdir(dir_path)
             for format in bad_formats:
-                if ("asmr." + format in ldir) and not (dir_path in converted_dirs):
+                if ("asmr." + format in ldir) and not (dir_path in converted_dirs) and not (("asmr." + convert_to) in ldir):
                     converted_dirs.append(dir_path)
                     activity_log.append([dir_path,format,convert_to])
                     p = Process(target=convert, args=(dir_path, "asmr." + format, convert_to))
