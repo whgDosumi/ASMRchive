@@ -145,9 +145,11 @@ $me = new Video(".")
         <p class="description"><?php echo $me->description;?></p>
         <div class="controls">
             <audio id="asmr" controls autoplay onplay="play_update()" onpause="pause_update()">
-                <source src="<?php echo $me->asmr_file; ?>" type="audio/mpeg">
-                <source src="<?php echo $me->asmr_file; ?>" type="audio/ogg">
-                <source src="<?php echo $me->asmr_file; ?>" type="audio/wav">
+                <?php
+                    foreach(array_reverse($me->asmr_formats) as &$value) {
+                        echo "<source src=\"" . $value . "\">";
+                    }
+                ?>
                 <p>Your browser does not support the audio tag.</p>
             </audio>
             <div class="button" onclick="skipBack(60)">
