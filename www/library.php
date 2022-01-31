@@ -150,6 +150,7 @@
         public $upload_date;
         public $pretty_date;
         public $asmr_file;
+        public $asmr_formats = array();
         public $asmr_runtime;
         public $comment_count;
         public $description;
@@ -185,8 +186,25 @@
             } elseif (is_file($path . '/asmr.m4a')) {
                 $this->asmr_file = $path . "/asmr.m4a";
             } else {
-                $this->asmr_file = $path . "/asmr.webm"; # unsupported but here to cover non-converted files.
+                $this->asmr_file = $path . "/asmr.webm";
             }
+            # Gather formats so we can selectively choose.
+            if (is_file($path . '/asmr.mp3')) {
+                array_push($this->asmr_formats, ($path . "/asmr.mp3"));
+            }
+            if (is_file($path . '/asmr.flac')) {
+                array_push($this->asmr_formats, ($path . "/asmr.flac"));
+            }
+            if (is_file($path . '/asmr.opus')) {
+                array_push($this->asmr_formats, ($path . "/asmr.opus"));
+            }
+            if (is_file($path . '/asmr.m4a')) {
+                array_push($this->asmr_formats, ($path . "/asmr.m4a"));
+            } 
+            if (is_file($path . '/asmr.webm')) {
+                array_push($this->asmr_formats, ($path . "/asmr.webm"));
+            }
+
             $this->asmr_runtime = file_get_contents($path . "/runtime.txt");
         }
         # Used to display this video as a row in channel_index
