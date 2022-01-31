@@ -8,12 +8,14 @@ import os
 import feedparser
 import unicodedata
 import re
+import sys
 import datetime
 import shutil
 import json
 import subprocess
 
 meta_dict = {}
+asmr_downloaded = False
 
 #Used to convert webm files to mp3s
 def convert_library(asmr_directory, threads=4):
@@ -35,7 +37,7 @@ def convert_library(asmr_directory, threads=4):
             while len(processes) >= threads:
                 new = []
                 for p in processes:
-                    p.join(timeout=1)
+                    p.join(timeout=.1)
                     if p.is_alive():
                         new.append(p)
                 processes = new
@@ -480,7 +482,9 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
             else:
                 function_output["failures"].append(p)                
     queue_manager.shutdown()
-    convert_library(output_directory)
+    if len(function_output["successes"]) >= 1:
+        global asmr_downloaded
+        asmr_downloaded = True
     return function_output
 
 def run_shell(args_list):
@@ -635,6 +639,7 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
 
 if __name__ == "__main__":
     output_directory = "/var/ASMRchive"
+    args = sys.argv
     global history_path
     history_path = os.path.join(output_directory, "history.json")
     testing_new = False
@@ -657,3 +662,6 @@ if __name__ == "__main__":
             chan.status = "archived"
     keywords = load_keywords()
     ASMRchive(channels, keywords, output_directory)
+    if asmr_downloaded:
+        if not "bypass_convert" in args:
+            convert_library(output_directory)
