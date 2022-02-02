@@ -39,9 +39,22 @@
             $thumbnailOk = 0;
             $asmrFileType = strtolower(pathinfo(basename($_FILES["upload_file"]["name"]),PATHINFO_EXTENSION));
             error_log("error code: " . $_FILES["upload_file"]["error"]);
+            global $SUPPORTED_FORMATS;
             // naive file type check
-            if($asmrFileType != "m4a" && $asmrFileType != "aac" && $asmrFileType != "mp3" && $asmrFileType != "opus") {
-                $error_message .= "Only m4a, aac, mp3 or opus audio files allowed\n";
+            if ( ! in_array(("." . $asmrFileType), $SUPPORTED_FORMATS)) {
+                $first = True;
+                $error_message .= "Only ";
+                foreach ($SUPPORTED_FORMATS as &$format) {
+                    if ($first) {
+                        $first = False;
+                        $error_message .= $format;
+                    } elseif ($format === end($SUPPORTED_FORMATS)) {
+                        $error_message .= " or " . $format;
+                    } else {
+                        $error_message .= ", " . $format;
+                    }
+                }
+                $error_message .= " audio files allowed\n";
                 $uploadOk = 0;
             }
             // File size check

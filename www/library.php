@@ -3,6 +3,11 @@
     # Security feature
     umask();
 
+    # These are the supported audio formats
+    # Check with Dominic before updating these, to ensure the conversion will work.
+    # The order is the order of preference the client will use if all are present.
+    $SUPPORTED_FORMATS = array(".webm", ".flac", ".m4a", ".opus", ".mp3");
+
     header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
     header("Pragma: no-cache"); // HTTP 1.0.
     header("Expires: 0"); // Proxies.
@@ -156,6 +161,7 @@
         public $description;
         # $path is the path to the directory of the video
         public function __construct($path) {
+            global $SUPPORTED_FORMATS;
             $this->path = $path;
             if (is_file($path . '/asmr.webp')) {
                 $this->thumbnail = $path . '/asmr.webp';
@@ -177,32 +183,12 @@
             $doc = fopen($path . '/upload_date.txt', 'r');
             $this->upload_date = fread($doc, filesize($path . '/upload_date.txt'));
             $this->pretty_date = date('m-d-Y', strtotime($this->upload_date));
-            if (is_file($path . '/asmr.mp3')) {
-                $this->asmr_file = $path . "/asmr.mp3";
-            } elseif (is_file($path . '/asmr.flac')) {
-                $this->asmr_file = $path . "/asmr.flac";
-            } elseif (is_file($path . '/asmr.opus')) {
-                $this->asmr_file = $path . "/asmr.opus";
-            } elseif (is_file($path . '/asmr.m4a')) {
-                $this->asmr_file = $path . "/asmr.m4a";
-            } else {
-                $this->asmr_file = $path . "/asmr.webm";
-            }
-            # Gather formats so we can selectively choose.
-            if (is_file($path . '/asmr.mp3')) {
-                array_push($this->asmr_formats, ($path . "/asmr.mp3"));
-            }
-            if (is_file($path . '/asmr.flac')) {
-                array_push($this->asmr_formats, ($path . "/asmr.flac"));
-            }
-            if (is_file($path . '/asmr.opus')) {
-                array_push($this->asmr_formats, ($path . "/asmr.opus"));
-            }
-            if (is_file($path . '/asmr.m4a')) {
-                array_push($this->asmr_formats, ($path . "/asmr.m4a"));
-            } 
-            if (is_file($path . '/asmr.webm')) {
-                array_push($this->asmr_formats, ($path . "/asmr.webm"));
+
+            # Gathers available formats
+            foreach($SUPPORTED_FORMATS as $format) {
+                if (is_file($path . "/asmr" . $format)){
+                    array_push($this->asmr_formats, ($path . "/asmr" . $format));
+                }
             }
 
             $this->asmr_runtime = file_get_contents($path . "/runtime.txt");
