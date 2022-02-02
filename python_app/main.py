@@ -49,6 +49,8 @@ def convert_library(asmr_directory, threads=4):
                     p = Process(target=convert, args=(dir_path, "asmr." + format, convert_to))
                     p.start()
                     processes.append(p)
+    for p in processes:
+        p.join()
 
 def get_my_folder():
     return os.path.dirname(os.path.realpath(__file__))
