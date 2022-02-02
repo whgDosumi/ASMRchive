@@ -146,7 +146,7 @@ $me = new Video(".")
         <div class="controls">
             <audio id="asmr" controls autoplay onplay="play_update()" onpause="pause_update()">
                 <?php
-                    foreach(array_reverse($me->asmr_formats) as &$value) {
+                    foreach($me->asmr_formats as &$value) {
                         echo "<source src=\"" . $value . "\">";
                     }
                 ?>
@@ -200,6 +200,29 @@ $me = new Video(".")
         </div>
     </div>
     <script>
+        function iOS() { 
+            return [
+                'iPad Simulator',
+                'iPhone Simulator',
+                'iPod Simulator',
+                'iPad',
+                'iPhone',
+                'iPod'
+            ].includes(navigator.platform)
+            || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+        }
+        function url_exists(url)
+        {
+            var http = new XMLHttpRequest();
+            http.open('HEAD', url, false);
+            http.send();
+            return http.status!=404;
+        }
+        if (!url_exists("asmr.mp3")) {
+            if (iOS()) {
+                alert("Conversion not complete, if this doesn't work wait 15 minutes and try again.")
+            }
+        }
         var audio = document.getElementById("asmr");
         audio.currentTime = <?php echo $start_timestamp; ?>;
         button = document.getElementById("play");
