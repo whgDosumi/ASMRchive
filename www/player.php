@@ -175,6 +175,7 @@ $me = new Video(".")
             <div class="playbutton" onclick="play_pause()">
                 <img id="play" src="/images/pause.png">
             </div>
+            <p id="prev_tstp"></p>
         </div>
     </div>
     <div id="comments">
@@ -200,6 +201,29 @@ $me = new Video(".")
         </div>
     </div>
     <script>
+        // source: https://www.w3schools.com/js/js_cookies.asp
+        function set_cookie(cname, cvalue, exdays) {
+            const d = new Date();
+            d.setTime(d.getTime() + (exdays*24*60*60*1000));
+            let expires = "expires="+ d.toUTCString();
+            document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+        }
+        function get_cookie(cname) {
+            let name = cname + "=";
+            let decodedCookie = decodeURIComponent(document.cookie);
+            let ca = decodedCookie.split(';');
+            for(let i = 0; i <ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+                }
+                if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+                }
+            }
+            return "";
+        }
+
         function iOS() { 
             return [
                 'iPad Simulator',
@@ -227,9 +251,7 @@ $me = new Video(".")
         audio.currentTime = <?php echo $start_timestamp; ?>;
         button = document.getElementById("play");
 
-        function set_time(seconds) {
-            audio.currentTime = seconds;
-        }
+        
         function update_timestamp() {
             var timestamps = document.getElementsByClassName("timestamp");
             for (element of timestamps) {
@@ -280,6 +302,13 @@ $me = new Video(".")
             window.location = loc;
         }
 
+        function set_time(seconds) {
+            audio.currentTime = seconds;
+            if (audio.paused) {
+                play_pause();
+            }
+        }
+
         function seconds_to_hms(seconds) {
             var date = new Date(null);
             date.setSeconds(seconds);
@@ -301,8 +330,29 @@ $me = new Video(".")
             document.getElementById("message_box").value = document.getElementById("message_box").value + timestamp;
         }
 
+        let prev_tstp = get_cookie(window.location.pathname + "-prev_tstp");
+        if (prev_tstp != "") {
+            let doctstp = document.getElementById("prev_tstp");
+            doctstp.innerHTML = "<span>Previous Time: " + seconds_to_hms(prev_tstp) + "</span>";
+            doctstp.addEventListener("click", go_to_cookie);
+        }
+
+        function go_to_cookie() {
+            set_time(parseInt(prev_tstp));
+        }
+        
         update_button();
         
+        function update_cookie() {
+            ts = String(audio.currentTime);
+            // prevent short sends from overwriting your last spot
+            if (audio.currentTime > 10) { 
+                set_cookie(String(window.location.pathname) + "-prev_tstp", ts, 14);
+            }
+        }
+
+        setInterval(update_cookie, 1000);
+
         setInterval(update_timestamp, 10);
         if ( window.history.replaceState ) {
             window.history.replaceState( null, null, window.location.href );
