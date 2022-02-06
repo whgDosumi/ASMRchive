@@ -35,6 +35,21 @@ body {
 	border-radius: 10px;
 }
 
+
+#prev_tstp {
+	text-align: left;
+	margin: 0;
+	font-size: xx-large;
+	z-index: 100;
+}
+
+#prev_tstp span {
+	background-color: azure;
+	padding: 10px;
+	margin: 0;
+	border-bottom-left-radius: 15px;
+	border-top-right-radius: 15px;
+}
 #seekslider {
 	display: inline-block;
 	position:absolute;
