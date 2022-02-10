@@ -176,6 +176,7 @@ $me = new Video(".")
                 <img id="play" src="/images/pause.png">
             </div>
             <p id="prev_tstp"></p>
+            <img src="/images/boost.png" id="boostbutton"></img>
         </div>
     </div>
     <div id="comments">
@@ -201,6 +202,22 @@ $me = new Video(".")
         </div>
     </div>
     <script>
+        function amplifyMedia(mediaElem, multiplier) {
+        var context = new (window.AudioContext || window.webkitAudioContext),
+            result = {
+                context: context,
+                source: context.createMediaElementSource(mediaElem),
+                gain: context.createGain(),
+                media: mediaElem,
+                amplify: function(multiplier) { result.gain.gain.value = multiplier; },
+                getAmpLevel: function() { return result.gain.gain.value; }
+            };
+        result.source.connect(result.gain);
+        result.gain.connect(context.destination);
+        result.amplify(multiplier);
+        return result;
+        }
+
         // source: https://www.w3schools.com/js/js_cookies.asp
         function set_cookie(cname, cvalue, exdays) {
             const d = new Date();
@@ -333,8 +350,8 @@ $me = new Video(".")
         let prev_tstp = get_cookie(window.location.pathname + "-prev_tstp");
         if (prev_tstp != "") {
             let doctstp = document.getElementById("prev_tstp");
-            doctstp.innerHTML = "<span>Previous Time: " + seconds_to_hms(prev_tstp) + "</span>";
-            doctstp.addEventListener("click", go_to_cookie);
+            doctstp.innerHTML = "<span id=\"doctstpspan\">Previous Time: " + seconds_to_hms(prev_tstp) + "</span>";
+            document.getElementById("doctstpspan").addEventListener("click", go_to_cookie);
         }
 
         function go_to_cookie() {
@@ -352,6 +369,25 @@ $me = new Video(".")
         }
 
         var cookie_int = setInterval(update_cookie, 1000);
+
+
+        boostbutton = document.getElementById("boostbutton");
+        button_state = false;
+        result = false;
+        boostbutton.addEventListener("click", function() {
+            if (result == false) {
+                result = amplifyMedia(audio, 1);
+            }
+            if (button_state) {
+                result.amplify(1);
+                button_state = false;
+                boostbutton.style["background-color"] = "azure";
+            } else {
+                result.amplify(3);
+                button_state = true;
+                boostbutton.style["background-color"] = "rgb(109, 168, 109)";
+            }
+        })
 
         audio.addEventListener("ended", function() {
             clearInterval(cookie_int);
