@@ -370,6 +370,7 @@ $me = new Video(".")
 
         var cookie_int = setInterval(update_cookie, 1000);
 
+
         boostbutton = document.getElementById("boostbutton");
         button_state = false;
         result = false;
