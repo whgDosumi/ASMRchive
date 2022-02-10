@@ -351,7 +351,12 @@ $me = new Video(".")
             }
         }
 
-        setInterval(update_cookie, 1000);
+        var cookie_int = setInterval(update_cookie, 1000);
+
+        audio.addEventListener("ended", function() {
+            clearInterval(cookie_int);
+            set_cookie(String(window.location.pathname) + "-prev_tstp", "", 0);
+        })
 
         setInterval(update_timestamp, 10);
         if ( window.history.replaceState ) {
