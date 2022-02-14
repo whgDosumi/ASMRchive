@@ -169,6 +169,8 @@
                 $this->thumbnail = $path . '/asmr.jpg';
             } elseif (is_file($path . '/asmr.jpeg')) {
                 $this->thumbnail = $path . '/asmr.jpeg';
+            } elseif (is_file($path . '/asmr.png')) {
+                $this->thumbnail = $path . '/asmr.png';
             } else {
                 $this->thumbnail = '/images/default_thumbnail.png';
             }
