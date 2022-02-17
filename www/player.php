@@ -339,7 +339,7 @@ $me = new Video(".")
             loc = loc.slice(0,i);
             var i = loc.lastIndexOf("/");
             loc = loc.slice(0,i);
-            loc = loc + "/index.php";
+            loc = loc + "/channel.php";
             window.location = loc;
         }
 
