@@ -98,7 +98,7 @@
             $this->alias = $alias;
             $this->dir_name = $dir_name;
             $this->path = "ASMR/" . $dir_name . "/";
-            $this->link = $this->path . "index.php";
+            $this->link = $this->path . "channel.php";
             $temp = scandir($this->path);
             $count = 0;
             foreach ($temp as $vid) {
@@ -136,7 +136,7 @@
             if ($this->count == 0) {
                 echo '<tr style="cursor: not-allowed;"';
             } else {
-                echo '<tr onclick="window.location=' . "'" . $this->path . "index.php'" . '"';
+                echo '<tr onclick="window.location=' . "'" . $this->path . "channel.php'" . '"';
             }
             echo '><td><img class="pfp" src=' . $this->path . 'pfp.png></td>
             <td class="channel">' . $this->alias . '</td>
