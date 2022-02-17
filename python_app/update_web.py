@@ -26,7 +26,7 @@ for chan in channels:
     path = os.path.join(chan.path, "index.php")
     if os.path.exists(path):
         count += 1
-        shutil.move(path, os.path.join(root, "channel.php"))
+        shutil.move(path, os.path.join(chan.path, "channel.php"))
 print("Renamed " + str(count) + " channel index files with old naming convention.")
 
 count = 0
