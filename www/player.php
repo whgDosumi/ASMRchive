@@ -179,6 +179,7 @@ $me = new Video(".")
                 <img id="play" src="/images/pause.png">
             </div>
             <p id="prev_tstp"></p>
+            <img src="/images/dimmer.png" id="dimbutton"></img>
             <img src="/images/boost.png" id="boostbutton"></img>
         </div>
     </div>
@@ -225,6 +226,7 @@ $me = new Video(".")
         function hidedim() {
             dimmer = document.getElementById("dimscreen");
             dimmer.style = "";
+            document.body.style.background = "darkslategrey";
         }
 
         function showdim() {
@@ -232,10 +234,12 @@ $me = new Video(".")
             dimmer.style.width = "100%";
             dimmer.style.height = "100%";
             dimmer.style.backgroundColor = "black";
+            document.body.style.background = "black";
             dimmer.style.position = "fixed";
             dimmer.style.margin = "0";
             dimmer.style.padding = "0";
             dimmer.style.display = "block";
+            dimmer.style.transform = "scale(2)";
         }
 
         // source: https://www.w3schools.com/js/js_cookies.asp
@@ -395,6 +399,13 @@ $me = new Video(".")
         button_state = false;
         result = false;
         var noSleep = new NoSleep();
+
+        dimbutton = document.getElementById("dimbutton");
+
+        dimbutton.addEventListener("click", function() {
+            showdim();
+        });
+
         boostbutton.addEventListener("click", function() {
             if (result == false) {
                 result = amplifyMedia(audio, 1);
@@ -410,7 +421,7 @@ $me = new Video(".")
                 button_state = true;
                 boostbutton.style["background-color"] = "rgb(109, 168, 109)";
             }
-        })
+        });
 
         audio.addEventListener("ended", function() {
             clearInterval(cookie_int);
