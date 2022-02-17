@@ -138,6 +138,9 @@ $me = new Video(".")
 </head>
 
 <body>
+    <div id="dimscreen" onclick="hidedim()">
+    
+    </div>
     <a onclick="go_to_parent();"><div id="backbutton"><img id="backimage" src="/images/back.png"></div></a>
     <div id="player">
         <img src="<?php echo $me->thumbnail ?>" id="thumbnail">
@@ -201,6 +204,7 @@ $me = new Video(".")
             </form>
         </div>
     </div>
+    <script src="/NoSleep.js"></script>
     <script>
         function amplifyMedia(mediaElem, multiplier) {
         var context = new (window.AudioContext || window.webkitAudioContext),
@@ -216,6 +220,22 @@ $me = new Video(".")
         result.gain.connect(context.destination);
         result.amplify(multiplier);
         return result;
+        }
+
+        function hidedim() {
+            dimmer = document.getElementById("dimscreen");
+            dimmer.style = "";
+        }
+
+        function showdim() {
+            dimmer = document.getElementById("dimscreen");
+            dimmer.style.width = "100%";
+            dimmer.style.height = "100%";
+            dimmer.style.backgroundColor = "black";
+            dimmer.style.position = "fixed";
+            dimmer.style.margin = "0";
+            dimmer.style.padding = "0";
+            dimmer.style.display = "block";
         }
 
         // source: https://www.w3schools.com/js/js_cookies.asp
@@ -374,6 +394,7 @@ $me = new Video(".")
         boostbutton = document.getElementById("boostbutton");
         button_state = false;
         result = false;
+        var noSleep = new NoSleep();
         boostbutton.addEventListener("click", function() {
             if (result == false) {
                 result = amplifyMedia(audio, 1);
@@ -382,7 +403,9 @@ $me = new Video(".")
                 result.amplify(1);
                 button_state = false;
                 boostbutton.style["background-color"] = "azure";
+                noSleep.disable();
             } else {
+                noSleep.enable();
                 result.amplify(3);
                 button_state = true;
                 boostbutton.style["background-color"] = "rgb(109, 168, 109)";
