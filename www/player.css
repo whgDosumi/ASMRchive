@@ -50,6 +50,19 @@ body {
 	border-top-right-radius: 15px;
 }
 
+#loopbutton {
+	background-color: azure;
+	width: 60px;
+	margin: 0;
+	display: block;
+	position: absolute;
+	right: 160px;
+	bottom: 0px;
+	padding: 5px;
+	border-top-right-radius: 15px;
+	border-top-left-radius: 15px;
+}
+
 #dimbutton {
 	background-color: azure;
 	width: 60px;

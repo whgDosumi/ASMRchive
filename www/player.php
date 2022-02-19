@@ -7,7 +7,8 @@ header("Expires: 0"); // Proxies.
 include "/var/www/html/library.php";
 
 # Comment object class
-class Comment {
+class Comment
+{
     public $path;
     public $text;
     public $user_name;
@@ -17,7 +18,8 @@ class Comment {
     # For constructing a comment that isn't already saved to disk,
     # see below class New_Comment
     # $path is path to comment file.
-    public function __construct($path) {
+    public function __construct($path)
+    {
         $this->path = $path;
         $arr = json_decode(file_get_contents($path), true);
         $this->text = $arr["text"];
@@ -26,19 +28,22 @@ class Comment {
         $this->date = $arr["date"];
     }
 
-    public function save() {
-        $arr = array("user_name"=>$this->user_name, "text"=>$this->text, "date"=>$this->date);
-        file_put_contents($this->path,json_encode($arr));
+    public function save()
+    {
+        $arr = array("user_name" => $this->user_name, "text" => $this->text, "date" => $this->date);
+        file_put_contents($this->path, json_encode($arr));
     }
 
-    public function delete() {
+    public function delete()
+    {
         if (!is_dir("comments_bak")) {
             mkdir("comments_bak");
         }
         rename($this->path, "comments_bak/" . slugify($this->date) . ".json");
     }
 
-    public function display_comment() {
+    public function display_comment()
+    {
         echo '
         <div class="comment">
             <form action="' . htmlspecialchars($_SERVER["PHP_SELF"]) . '" method="post">
@@ -54,8 +59,10 @@ class Comment {
 
 # Extension of above comment class that is used when a new one is created
 # Used for defining a comment without having it already saved to disk
-class New_Comment extends Comment {
-    public function __construct($path, $user_name, $text) { #in case we want to define a new one without a file
+class New_Comment extends Comment
+{
+    public function __construct($path, $user_name, $text)
+    { #in case we want to define a new one without a file
         $this->text = $text;
         $this->user_name = $user_name;
         $this->path = $path;
@@ -66,17 +73,18 @@ class New_Comment extends Comment {
 
 # function reads all comments in comments dir,
 # spawns new comment objects, and returns list of them. 
-function load_comments() {
+function load_comments()
+{
     $comment_list = array();
     if (is_dir("comments")) {
         $scan = scandir("comments");
-        foreach($scan as $file) {
-            if ($file != "." and $file != ".."){
+        foreach ($scan as $file) {
+            if ($file != "." and $file != "..") {
                 $comment_list[$file] = new Comment("comments/" . $file);
             }
         }
     }
-    return($comment_list);
+    return ($comment_list);
 }
 $comment_list = load_comments();
 
@@ -84,13 +92,12 @@ $comment_list = load_comments();
 $start_timestamp = 0;
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['delete'])) {
-        foreach($comment_list as $comment) {
+        foreach ($comment_list as $comment) {
             if ($comment->path == $_POST['delete']) {
                 $comment->delete();
             }
         }
-    }
-    else if (isset($_POST['user_name']) and isset($_POST['text']) ){
+    } else if (isset($_POST['user_name']) and isset($_POST['text'])) {
         $user_name = test_input($_POST["user_name"]);
         $text = test_input($_POST["text"]);
         umask(0);
@@ -114,7 +121,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 $comment_list = load_comments();
 #sorts the comments by date entered.
-function cmp($a, $b) {
+function cmp($a, $b)
+{
     return strcmp($a->date, $b->date);
 }
 usort($comment_list, "cmp");
@@ -128,9 +136,9 @@ $me = new Video(".")
 <html>
 
 <head>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-    <meta http-equiv="Pragma" content="no-cache"/>
-    <meta http-equiv="Expires" content="0"/>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <meta name="viewport" content="width=1000">
     <title>ASMRchive - Player</title>
     <link rel="stylesheet" href="/player.css">
@@ -139,19 +147,21 @@ $me = new Video(".")
 
 <body>
     <div id="dimscreen" onclick="hidedim()">
-    
+
     </div>
-    <a onclick="go_to_parent();"><div id="backbutton"><img id="backimage" src="/images/back.png"></div></a>
+    <a onclick="go_to_parent();">
+        <div id="backbutton"><img id="backimage" src="/images/back.png"></div>
+    </a>
     <div id="player">
         <img src="<?php echo $me->thumbnail ?>" id="thumbnail">
         <p class="title"><?php echo $me->title; ?></p>
-        <p class="description"><?php echo $me->description;?></p>
+        <p class="description"><?php echo $me->description; ?></p>
         <div class="controls">
             <audio id="asmr" controls autoplay onplay="play_update()" onpause="pause_update()">
                 <?php
-                    foreach($me->asmr_formats as &$value) {
-                        echo "<source src=\"" . $value . "\">";
-                    }
+                foreach ($me->asmr_formats as &$value) {
+                    echo "<source src=\"" . $value . "\">";
+                }
                 ?>
                 <p>Your browser does not support the audio tag.</p>
             </audio>
@@ -179,19 +189,20 @@ $me = new Video(".")
                 <img id="play" src="/images/pause.png">
             </div>
             <p id="prev_tstp"></p>
+            <img src="/images/loopbutton.png" id="loopbutton"></img>
             <img src="/images/dimmer.png" id="dimbutton"></img>
             <img src="/images/boost.png" id="boostbutton"></img>
         </div>
     </div>
     <div id="comments">
         <?php
-            foreach(array_reverse($comment_list) as $comment) {
-                $comment->display_comment();
-            }
+        foreach (array_reverse($comment_list) as $comment) {
+            $comment->display_comment();
+        }
         ?>
         <div id="comment_form">
             <h4 style="padding: 0;margin:0;">New Comment:</h4>
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="post" id="comment_form">
+            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" id="comment_form">
                 Name:<br> <input id="name_box" type="text" name="user_name" maxlength="40" required><input type="submit" value="Post" id="post_button"><br>
                 Message: <br><textarea id="message_box" type="text" name="text" required></textarea>
                 <p onclick="append_timestamp()" id="comment_timestamp">Current time: 00:00</p>
@@ -208,19 +219,23 @@ $me = new Video(".")
     <script src="/NoSleep.js"></script>
     <script>
         function amplifyMedia(mediaElem, multiplier) {
-        var context = new (window.AudioContext || window.webkitAudioContext),
-            result = {
-                context: context,
-                source: context.createMediaElementSource(mediaElem),
-                gain: context.createGain(),
-                media: mediaElem,
-                amplify: function(multiplier) { result.gain.gain.value = multiplier; },
-                getAmpLevel: function() { return result.gain.gain.value; }
-            };
-        result.source.connect(result.gain);
-        result.gain.connect(context.destination);
-        result.amplify(multiplier);
-        return result;
+            var context = new(window.AudioContext || window.webkitAudioContext),
+                result = {
+                    context: context,
+                    source: context.createMediaElementSource(mediaElem),
+                    gain: context.createGain(),
+                    media: mediaElem,
+                    amplify: function(multiplier) {
+                        result.gain.gain.value = multiplier;
+                    },
+                    getAmpLevel: function() {
+                        return result.gain.gain.value;
+                    }
+                };
+            result.source.connect(result.gain);
+            result.gain.connect(context.destination);
+            result.amplify(multiplier);
+            return result;
         }
 
         function hidedim() {
@@ -245,43 +260,44 @@ $me = new Video(".")
         // source: https://www.w3schools.com/js/js_cookies.asp
         function set_cookie(cname, cvalue, exdays) {
             const d = new Date();
-            d.setTime(d.getTime() + (exdays*24*60*60*1000));
-            let expires = "expires="+ d.toUTCString();
+            d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+            let expires = "expires=" + d.toUTCString();
             document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
         }
+
         function get_cookie(cname) {
             let name = cname + "=";
             let decodedCookie = decodeURIComponent(document.cookie);
             let ca = decodedCookie.split(';');
-            for(let i = 0; i <ca.length; i++) {
+            for (let i = 0; i < ca.length; i++) {
                 let c = ca[i];
                 while (c.charAt(0) == ' ') {
-                c = c.substring(1);
+                    c = c.substring(1);
                 }
                 if (c.indexOf(name) == 0) {
-                return c.substring(name.length, c.length);
+                    return c.substring(name.length, c.length);
                 }
             }
             return "";
         }
 
-        function iOS() { 
+        function iOS() {
             return [
-                'iPad Simulator',
-                'iPhone Simulator',
-                'iPod Simulator',
-                'iPad',
-                'iPhone',
-                'iPod'
-            ].includes(navigator.platform)
-            || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+                    'iPad Simulator',
+                    'iPhone Simulator',
+                    'iPod Simulator',
+                    'iPad',
+                    'iPhone',
+                    'iPod'
+                ].includes(navigator.platform) ||
+                (navigator.userAgent.includes("Mac") && "ontouchend" in document)
         }
-        function url_exists(url)
-        {
+
+        function url_exists(url) {
             var http = new XMLHttpRequest();
             http.open('HEAD', url, false);
             http.send();
-            return http.status!=404;
+            return http.status != 404;
         }
         if (!url_exists("asmr.mp3")) {
             if (iOS()) {
@@ -292,31 +308,37 @@ $me = new Video(".")
         audio.currentTime = <?php echo $start_timestamp; ?>;
         button = document.getElementById("play");
 
-        
+
         function update_timestamp() {
             var timestamps = document.getElementsByClassName("timestamp");
             for (element of timestamps) {
                 element.value = document.getElementById("asmr").currentTime;
             }
         }
+
         function pause_update() {
             document.getElementById("play").src = "/images/play.png";
             console.log("paused");
         }
+
         function play_update() {
             document.getElementById("play").src = "/images/pause.png";
             console.log("play");
         }
+
         function skipForward(time) {
             audio.currentTime += time;
         }
+
         function skipBack(time) {
             audio.currentTime -= time;
         }
+
         function play_audio() {
             document.getElementById("play").src = "/images/pause.png";
             document.getElementById("asmr").play();
         }
+
         function update_button() {
             if (audio.paused) {
                 button.src = "/images/play.png";
@@ -324,6 +346,7 @@ $me = new Video(".")
                 button.src = "/images/pause.png";
             }
         }
+
         function play_pause() {
             if (audio.paused) {
                 button.src = "/images/pause.png";
@@ -333,12 +356,13 @@ $me = new Video(".")
                 audio.pause();
             }
         }
+
         function go_to_parent() {
             var loc = window.location.href;
             var i = loc.lastIndexOf("/");
-            loc = loc.slice(0,i);
+            loc = loc.slice(0, i);
             var i = loc.lastIndexOf("/");
-            loc = loc.slice(0,i);
+            loc = loc.slice(0, i);
             loc = loc + "/channel.php";
             window.location = loc;
         }
@@ -381,13 +405,13 @@ $me = new Video(".")
         function go_to_cookie() {
             set_time(parseInt(prev_tstp));
         }
-        
+
         update_button();
-        
+
         function update_cookie() {
             ts = String(audio.currentTime);
             // prevent short sends from overwriting your last spot
-            if (audio.currentTime > 10) { 
+            if (audio.currentTime > 10) {
                 set_cookie(String(window.location.pathname) + "-prev_tstp", ts, 14);
             }
         }
@@ -401,6 +425,17 @@ $me = new Video(".")
         var noSleep = new NoSleep();
 
         dimbutton = document.getElementById("dimbutton");
+
+        loopbutton = document.getElementById("loopbutton");
+        loopbutton.addEventListener("click", function() {
+            if (audio.loop) {
+                audio.loop = false;
+                loopbutton.style["background-color"] = "azure";
+            } else {
+                audio.loop = true;
+                loopbutton.style["background-color"] = "rgb(109, 168, 109)";
+            }
+        })
 
         dimbutton.addEventListener("click", function() {
             showdim();
@@ -429,8 +464,8 @@ $me = new Video(".")
         })
 
         setInterval(update_timestamp, 10);
-        if ( window.history.replaceState ) {
-            window.history.replaceState( null, null, window.location.href );
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
         }
     </script>
 </body>
