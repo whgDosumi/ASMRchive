@@ -190,8 +190,8 @@ $me = new Video(".")
             </div>
             <p id="prev_tstp"></p>
             <img src="/images/loopbutton.png" id="loopbutton"></img>
-            <img src="/images/dimmer.png" id="dimbutton"></img>
             <img src="/images/boost.png" id="boostbutton"></img>
+            <img src="/images/dimmer.png" id="dimbutton"></img>
         </div>
     </div>
     <div id="comments">
