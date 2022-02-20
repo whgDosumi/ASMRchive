@@ -50,13 +50,13 @@ body {
 	border-top-right-radius: 15px;
 }
 
-#dimbutton {
+#loopbutton {
 	background-color: azure;
-	width: 60px;
+	width: 80px;
 	margin: 0;
 	display: block;
 	position: absolute;
-	right: 80px;
+	right: 200px;
 	bottom: 0px;
 	padding: 5px;
 	border-top-right-radius: 15px;
@@ -65,8 +65,21 @@ body {
 
 #boostbutton {
 	background-color: azure;
-	width: 60px;
-	height: 60px;
+	width: 80px;
+	height: 80px;
+	margin: 0;
+	display: block;
+	position: absolute;
+	right: 100px;
+	bottom: 0px;
+	padding: 5px;
+	border-top-right-radius: 15px;
+	border-top-left-radius: 15px;
+}
+
+#dimbutton {
+	background-color: azure;
+	width: 80px;
 	margin: 0;
 	display: block;
 	position: absolute;
