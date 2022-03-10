@@ -201,7 +201,7 @@ class Channel():
             os.chmod(self.path, 0o777)
         with open(os.path.join(self.path, "name.txt"), "w") as name_file:
             name_file.write(self.name)
-        shutil.copy("/var/www/html/channel_index.php", os.path.join(self.path, "index.php"))
+        shutil.copy("/var/www/html/channel_index.php", os.path.join(self.path, "channel.php"))
         try:
             with open(os.path.join(self.path, "pfp.png"), "wb") as image_file:
                 image_file.write(requests.get(get_pfp("https://www.youtube.com/channel/" + self.channel_id), stream=True).raw.data)
