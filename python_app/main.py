@@ -1,7 +1,5 @@
-import time
 from multiprocessing import Process, Pool
 import multiprocessing
-import notify_run
 import yt_dlp
 import requests
 import os
@@ -15,6 +13,7 @@ import json
 import subprocess
 
 meta_dict = {}
+
 
 #Used to convert webm files to mp3s
 def convert_library(asmr_directory, threads=4):
@@ -103,13 +102,29 @@ def is_live(meta):
         print("Exception at isLive: " + str(e))
         return False
 
+def get_sec(time_str):
+    h = 0
+    m = 0
+    s = 0
+    count = 0
+    for i in time_str:
+        if i == ":":
+            count = count + 1
+    if count == 1:
+        m, s = time_str.split(':')
+    elif count == 2:
+        h, m, s = time_str.split(":")
+    else:
+        return 0
+    return int(h) * 3600 + int(m) * 60 + int(s)
+
 def get_length(audio_path):
     command = "ffmpeg -i '" + audio_path + "' 2>&1 | grep 'Duration' | cut -d ' ' -f 4 | sed s/,//"
     time = str(subprocess.check_output(command, shell=True))
     time = time[time.find("\'") + 1: time.find("\\")]
     if "." in time:
         time = time[:time.find(".")]
-    return time
+    return time, get_sec(time)
 
 def get_pfp(yt_url):
     webpage = requests.get(yt_url).text
@@ -266,12 +281,21 @@ class video_downloader():
                     upload_date_file.write(data["upload_date"])
                 with open(os.path.join(self.path, "runtime.txt"), "w") as runtime_file:
                     if os.path.exists(os.path.join(self.path, "asmr.webm")):
-                        runtime_file.write(get_length(os.path.join(self.path, "asmr.webm")))
+                        length, seconds = get_length(os.path.join(self.path, "asmr.webm"))
+                        runtime_file.write(length)
                     else:
-                        runtime_file.write(get_length(os.path.join(self.path, "asmr.m4a")))
+                        length, seconds = get_length(os.path.join(self.path, "asmr.m4a"))
+                        runtime_file.write(length)
                 shutil.copy("/var/www/html/player.php", os.path.join(self.path, "player.php"))
-                history_entry = History_Entry(self.path, data["title"])
-                return_dict[id] = [self.id, "Finished", history_entry]
+                meta = get_meta(self.url)
+                yt_duration = meta["duration"]
+                # Check that the duration roughly matches the duration of the youtube video
+                variance = 3 # seconds of acceptable difference
+                if (seconds - yt_duration) > variance or (yt_duration - seconds) > variance:
+                    return_dict[id] = [self.id, "Length Discrepancy"]
+                else:
+                    history_entry = History_Entry(self.path, data["title"])
+                    return_dict[id] = [self.id, "Finished", history_entry]
         except Exception as e:
             cookie_exception_flags = ["inappropriate", "sign in", "age", "member"]
             if "slow af" in str(e):
@@ -399,7 +423,7 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
                             ydl_opts["cookiefile"] = cookiefile
                             break
                     if ydl_opts["cookiefile"] == None:
-                        print("Cookies attempted but failed. len: " + len(cookie_queue[video[1]]))
+                        print("Cookies attempted but failed. len: " + str(len(cookie_queue[video[1]])))
                         purge[p.url] = "failure"
                 if video[1] in slow_queue:
                     if slow_queue[video[1]] > 5:
