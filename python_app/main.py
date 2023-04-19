@@ -237,7 +237,7 @@ class Channel():
         return feedparser.parse(requests.get("https://www.youtube.com/feeds/videos.xml?channel_id=" + self.channel_id).text).entries
 
     def get_all_plist(self):
-        return "https://www.youtube.com/channel/" + self.channel_id
+        return "https://www.youtube.com/channel/" + self.channel_id + "/videos"
 
     def get_channel_url(self):
         return "https://www.youtube.com/channel/" + self.channel_id
@@ -613,16 +613,17 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 'ignoreerrors': True,
                 'extract_flat': True,
             }
-
             for item in meta["entries"]:
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl: #This one gets the videos from the 'uploads' playlist (all uploads hopefully.)
-                    meta = ydl.extract_info(item["webpage_url"], download=False)
-                for video in meta["entries"]:
-                    for word in keywords:
-                        if not ("https://www.youtube.com/watch?v=" + video["id"]) in to_download and not ("https://www.youtube.com/watch?v=" + video["id"]) in saved:
-                            if word.lower() in video["title"].lower():
-                                to_download.append([video["title"] ,"https://www.youtube.com/watch?v=" + video["id"]])
-                                break
+                if item["title"] == "Uploads":
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl: #This one gets the videos from the 'uploads' playlist (all uploads hopefully.)
+                        meta = ydl.extract_info(item["url"], download=False)
+                        break
+            for video in meta["entries"]:
+                for word in keywords:
+                    if not ("https://www.youtube.com/watch?v=" + video["id"]) in to_download and not ("https://www.youtube.com/watch?v=" + video["id"]) in saved:
+                        if word.lower() in video["title"].lower():
+                            to_download.append([video["title"] ,"https://www.youtube.com/watch?v=" + video["id"]])
+                            break
             ydl_opts = {
                 'nocheckcertificate': True,
                 'writethumbnail': True,
@@ -651,9 +652,12 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
         elif chan.status == "recording":
             pass #don't really need to do anything about it here. Leave it be.
         elif chan.status == "recorded":
+            
             pass #TODO - try to pull video the normal way. If we can't get the video to download properly within say 3 hours of the stream ending, download the recording and use that.
         else: #reserved for un-statused channels. Not sure what this will be for. Need a 'recording' status later for recording channels
             pass
+
+
 
 if __name__ == "__main__":
     output_directory = "/var/ASMRchive"
