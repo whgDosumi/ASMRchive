@@ -209,6 +209,7 @@ class Channel():
             else:
                 self.reqs.append(video)
         self.active_recordings = []
+        self.url = f"https://www.youtube.com/channel/{self.channel_id}"
     
     def setup(self):
         if not os.path.exists(self.path):
@@ -235,12 +236,6 @@ class Channel():
             
     def get_rss(self): #returns channel's RSS feed as a list of entries
         return feedparser.parse(requests.get("https://www.youtube.com/feeds/videos.xml?channel_id=" + self.channel_id).text).entries
-
-    def get_all_plist(self):
-        return "https://www.youtube.com/channel/" + self.channel_id + "/videos"
-
-    def get_channel_url(self):
-        return "https://www.youtube.com/channel/" + self.channel_id
 
     def get_saved_videos(self, output_directory: str):
         saved_videos = []
@@ -607,23 +602,27 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 'extract_flat': "in_playlist",
             }
             with yt_dlp.YoutubeDL(ydl_opts) as ydl: #This one gets the playlists
-                meta = ydl.extract_info(chan.get_all_plist(), download=False)
+                meta = ydl.extract_info(chan.url, download=False)
             ydl_opts = {
                 'nocheckcertificate': True,
                 'ignoreerrors': True,
                 'extract_flat': True,
             }
-            for item in meta["entries"]:
-                if item["title"] == "Uploads":
-                    with yt_dlp.YoutubeDL(ydl_opts) as ydl: #This one gets the videos from the 'uploads' playlist (all uploads hopefully.)
-                        meta = ydl.extract_info(item["url"], download=False)
-                        break
-            for video in meta["entries"]:
-                for word in keywords:
-                    if not ("https://www.youtube.com/watch?v=" + video["id"]) in to_download and not ("https://www.youtube.com/watch?v=" + video["id"]) in saved:
-                        if word.lower() in video["title"].lower():
-                            to_download.append([video["title"] ,"https://www.youtube.com/watch?v=" + video["id"]])
-                            break
+            def search_channel(metadata): # Recursively checks through a channels videos for ASMR and queues them for download
+                to_download = []
+                if metadata["_type"] == "playlist":
+                    for entry in metadata["entries"]:
+                        data = (search_channel(entry))
+                        for item in data:
+                            to_download.append(item)
+                else:
+                    for word in keywords:
+                        if not ("https://www.youtube.com/watch?v=" + metadata["id"]) in to_download and not ("https://www.youtube.com/watch?v=" + metadata["id"]) in saved:
+                            if word.lower() in metadata["title"].lower():
+                                to_download.append([metadata["title"] ,"https://www.youtube.com/watch?v=" + metadata["id"]])
+                                break
+                return to_download
+            to_download = search_channel(meta)
             ydl_opts = {
                 'nocheckcertificate': True,
                 'writethumbnail': True,
@@ -654,7 +653,7 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
         elif chan.status == "recorded":
             
             pass #TODO - try to pull video the normal way. If we can't get the video to download properly within say 3 hours of the stream ending, download the recording and use that.
-        else: #reserved for un-statused channels. Not sure what this will be for. Need a 'recording' status later for recording channels
+        else: #reserved for un-statused channels. Not sure what this will be for.
             pass
 
 
