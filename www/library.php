@@ -126,6 +126,8 @@
                 $this->status = "Errored!";
             } elseif (string_contains($temp, "saved")) {
                 $this->status = "Saved";
+            } elseif (string_contains($temp, "downloading")){
+                $this->status = "Downloading";
             } else {
                 $this->status = "Unknown";
             }
