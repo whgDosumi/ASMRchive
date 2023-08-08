@@ -128,6 +128,8 @@
                 $this->status = "Saved";
             } elseif (string_contains($temp, "downloading")){
                 $this->status = "Downloading";
+            } elseif (string_contains($temp, "inactive")){
+                $this->status = "Inactive";
             } else {
                 $this->status = "Unknown";
             }
