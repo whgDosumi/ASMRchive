@@ -226,12 +226,12 @@ class Channel():
         
 
     def save(self):
-        if not os.path.isdir(os.path.join(get_my_folder(), "channels")):
-            os.makedirs(os.path.join(get_my_folder(), "channels"))
+        if not os.path.isdir(os.path.join("/var/ASMRchive/.appdata", "channels")):
+            os.makedirs(os.path.join("/var/ASMRchive/.appdata", "channels"))
         append = ""
         for video in self.carried_reqs:
             append = append + "\n" + video
-        with open(os.path.join(get_my_folder(), "channels", slugify(self.name) + ".channel"), "w") as outfile:
+        with open(os.path.join("/var/ASMRchive/.appdata", "channels", slugify(self.name) + ".channel"), "w") as outfile:
             outfile.write(self.name + "\n" + self.channel_id + "\n" + self.status + append)
             
     def get_rss(self): #returns channel's RSS feed as a list of entries
@@ -324,7 +324,7 @@ class video_downloader():
 
 def load_channels(output_directory: str):
     channels = list()
-    channel_dict = os.path.join(get_my_folder(), "channels")
+    channel_dict = os.path.join("/var/ASMRchive/.appdata", "channels")
     for data_file in os.listdir(channel_dict):
         with open(os.path.join(channel_dict, data_file), "r") as file:
             lines = file.read().splitlines()
@@ -474,9 +474,9 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
             elif status == "Cookie Please":
                 if cookies == None:
                     cookies = []
-                    for file in os.listdir(os.path.join(get_my_folder(), "cookies")):
+                    for file in os.listdir(os.path.join("/var/ASMRchive/.appdata", "cookies")):
                         if "cookie" in file.lower():
-                            cookies.append(os.path.join(get_my_folder(), "cookies", file))
+                            cookies.append(os.path.join("/var/ASMRchive/.appdata", "cookies", file))
                 if not p.url in cookie_queue:
                     cookie_queue[p.url] = []
             elif p.url in errored:
@@ -508,7 +508,7 @@ def run_shell(args_list):
     pass
     #subprocess.Popen(args_list, shell=False, stdin=None, stdout=None, stderr=None)
 
-def get_meta_cookie(link, cookie_dir=(os.path.join(get_my_folder(), "cookies"))):
+def get_meta_cookie(link, cookie_dir=(os.path.join("/var/ASMRchive/.appdata", "cookies"))):
     for cookie_file in os.listdir(cookie_dir):
         try:
             ydl_opts = {
@@ -529,8 +529,6 @@ def get_meta_cookie(link, cookie_dir=(os.path.join(get_my_folder(), "cookies")))
 def ASMRchive(channels: list, keywords: list, output_directory: str):
     for chan in channels:
         if chan.status == "archived": #we want to check the RSS for new ASMR streams
-            chan.status = "downloading"
-            chan.save()
             rss = chan.get_rss()
             saved = chan.get_saved_videos(output_directory)
             to_download = []
@@ -548,9 +546,11 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                     if "Exception: No cookies" in meta:
                         continue # Might want to inform the user that their request failed here. 
                     if "live event" in meta: # A live event, we want to start the recorder. 
-                        run_shell(["python", os.path.join(os.path.dirname(os.path.realpath(__file__)), "live.py"), video, "record", "\"" + chan.name + "\""])
+                        pass
+                        #run_shell(["python", os.path.join(os.path.dirname(os.path.realpath(__file__)), "live.py"), video, "record", "\"" + chan.name + "\""])
                 elif is_live(meta):
-                    run_shell(["python", os.path.join(os.path.dirname(os.path.realpath(__file__)), "live.py"), video, "record", "\"" + chan.name + "\""])
+                    pass
+                    #run_shell(["python", os.path.join(os.path.dirname(os.path.realpath(__file__)), "live.py"), video, "record", "\"" + chan.name + "\""])
             for video in rss:
                 if not video["link"] in saved:
                     for word in keywords:
@@ -578,6 +578,8 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 "writeinfojson": True,
             }
             if len(to_download) >=1:
+                chan.status = "downloading"
+                chan.save()
                 download_results = download_batch(to_download, ydl_opts, os.path.join(output_directory, slugify(chan.name)), max_retries=3)
                 downloaded = []
                 for success in download_results["successes"]:
