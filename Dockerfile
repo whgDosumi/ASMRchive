@@ -37,8 +37,6 @@ ADD www /var/www/html
 COPY python_app /var/python_app
 # Setup log folder.
 RUN mkdir /var/python_app/log
-# Give webserver link to channels directory.
-RUN ln -s /var/python_app/channels /var/www/html/channels
 
 # Expose httpd.
 EXPOSE 80
