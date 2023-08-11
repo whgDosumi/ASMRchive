@@ -624,7 +624,8 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                                 to_download.append([metadata["title"] ,"https://www.youtube.com/watch?v=" + metadata["id"]])
                                 break
                 return to_download
-            to_download = search_channel(meta)
+            if not meta == None:
+                to_download = search_channel(meta)
             ydl_opts = {
                 'nocheckcertificate': True,
                 'writethumbnail': True,
