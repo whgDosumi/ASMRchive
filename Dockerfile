@@ -5,7 +5,7 @@ RUN dnf install -y https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-rele
 
 # Install webserver, php, cron, python, and ffmpeg, findutils for perm mods later on.
 RUN dnf update -y && dnf -y install \
-    httpd php.x86_64 cronie python ffmpeg findutils
+    httpd php.x86_64 cronie python pip ffmpeg findutils
 
 # Set up crontab to run the python app every 15 minutes.
 RUN (echo "*/15 * * * * /usr/bin/python /var/python_app/main.py >> \"/var/python_app/log/\$(date +\%Y-\%m-\%d)-asmr.log\" 2>&1") | crontab -
