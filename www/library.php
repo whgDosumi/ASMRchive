@@ -186,8 +186,12 @@
                 $scan = scandir($this->path . "/comments");
                 $this->comment_count = count($scan)-2;
             }
-            $doc = fopen($path . '/upload_date.txt', 'r');
-            $this->upload_date = fread($doc, filesize($path . '/upload_date.txt'));
+            if (file_exists($path . '/upload_date.txt')){
+                $doc = fopen($path . '/upload_date.txt', 'r');
+                $this->upload_date = fread($doc, filesize($path . '/upload_date.txt'));
+            } else {
+                $this->upload_date = "16000101";
+            }
             $this->pretty_date = date('m-d-Y', strtotime($this->upload_date));
 
             # Gathers available formats
