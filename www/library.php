@@ -192,7 +192,7 @@
             } else {
                 $this->upload_date = "16000101";
             }
-            $this->pretty_date = date('m-d-Y', strtotime($this->upload_date));
+            $this->pretty_date = date('Y-m-d', strtotime($this->upload_date));
 
             # Gathers available formats
             foreach($SUPPORTED_FORMATS as $format) {
