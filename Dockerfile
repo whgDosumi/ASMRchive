@@ -8,15 +8,19 @@ RUN dnf update -y && dnf -y install \
     httpd php.x86_64 cronie python pip ffmpeg findutils
 
 # Set up crontab to run the python app every 15 minutes.
-RUN (echo "*/15 * * * * /usr/bin/python /var/python_app/main.py >> \"/var/python_app/log/\$(date +\%Y-\%m-\%d)-asmr.log\" 2>&1") | crontab -
+RUN (echo "*/15 * * * * /usr/bin/python /var/python_app/main.py >> \"/var/ASMRchive/.appdata/logs/python/main-\$(date +\%Y-\%m-\%d)-asmr.log\" 2>&1") | crontab -
 
-# install python requirements early for image layer optimization
+# install python requirements
 COPY python_app/requirements.txt /var/python_requirements.txt
 RUN python -m pip install -r /var/python_requirements.txt
 RUN rm /var/python_requirements.txt
 
 # Add php config (required for uploads)
 COPY php.ini /etc/php.ini
+COPY www.conf /etc/php-fpm.d/www.conf
+
+# Add httpd config
+COPY httpd.conf /etc/httpd/conf/httpd.conf
 
 # This is required to make php work.
 RUN mkdir -p /run/php-fpm/
@@ -35,8 +39,6 @@ ADD www /var/www/html
 
 # Copy over python app.
 COPY python_app /var/python_app
-# Setup log folder.
-RUN mkdir /var/python_app/log
 
 # Expose httpd.
 EXPOSE 80
