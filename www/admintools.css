@@ -195,3 +195,20 @@ tbody {
     position: relative;
     bottom: 10px;
 }
+
+#channel_name {
+	font-size: 30px;
+    max-width: 30ch;
+    display: inline-block;
+    margin-left: 0px;
+    position: relative;
+    bottom: 10px;
+}
+#channel_id {
+	font-size: 30px;
+    max-width: 30ch;
+    display: inline-block;
+    margin-left: 0px;
+    position: relative;
+    bottom: 10px;
+}

@@ -34,6 +34,24 @@
     $error_message = "";
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // leaving room here for other POST functions
+
+        // New Channel
+        if (isset($_POST['send']) and isset($_POST['channel_name']) and isset($_POST['channel_id'])) {
+            if (strlen($_POST['channel_id']) == 24 and strlen($_POST['channel_name']) <= 24 and strlen($_POST['channel_name']) >= 1) { // check for expected string lengths
+                $filecontent = $_POST['channel_name'] . "\n" . $_POST['channel_id'] . "\nnew";
+                $filename = "/var/ASMRchive/.appdata/channels/" . slugify($_POST['channel_name']) . ".channel";
+                file_put_contents($filename, $filecontent);
+                echo "<script type='text/javascript'>alert('Channel added, please wait a few minutes for the channel to download.');</script>";
+            } else {
+                if ( ! (strlen($_POST['channel_id']) == 24) ) {
+                    echo "<script type='text/javascript'>alert('Channel ID should be 24 characters.');</script>";
+                } else {
+                    echo "<script type='text/javascript'>alert('Verify the channel name is between 1 and 24 characters.');</script>";
+                }
+            }
+        }
+
+        // Upload ASMR
         if (isset($_POST['send']) and isset($_FILES['upload_file']) and isset($_POST['upload_channel'])) {
             $uploadOk = 1;
             $thumbnailOk = 0;
@@ -138,8 +156,6 @@
                 }
             }
             umask();
-        } else {
-            exit();
         }
     }
 
@@ -197,6 +213,33 @@
                         <td class="upload_table_cell"> Thumbnail </td>
                         <td class="upload_table_cell">
                             <input type="file" name="upload_thumbnail" id="upload_thumbnail">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="upload_table_error_cell"> <?=$error_message?></td>
+                        <td class="upload_table_cell"><input type="submit" name="send" value="Send" id="upload_button"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+
+        
+        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="post" enctype="multipart/form-data">
+            <table>
+                <thead>
+                    <th colspan="2">Add Channel</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="upload_table_cell"> Channel Name<span style="color:red;">*</span> </td>
+                        <td class="upload_table_cell">
+                            <input type="text" name="channel_name" id="channel_name">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="upload_table_cell"> Channel ID<span style="color:red;">*</span> </td>
+                        <td class="upload_table_cell">
+                            <input type="text" name="channel_id" id="channel_id">
                         </td>
                     </tr>
                     <tr>
