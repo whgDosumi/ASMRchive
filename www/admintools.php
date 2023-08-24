@@ -40,8 +40,12 @@
             if (strlen($_POST['channel_id']) == 24 and strlen($_POST['channel_name']) <= 24 and strlen($_POST['channel_name']) >= 1) { // check for expected string lengths
                 $filecontent = $_POST['channel_name'] . "\n" . $_POST['channel_id'] . "\nnew";
                 $filename = "/var/ASMRchive/.appdata/channels/" . slugify($_POST['channel_name']) . ".channel";
-                file_put_contents($filename, $filecontent);
-                echo "<script type='text/javascript'>alert('Channel added, please wait a few minutes for the channel to download.');</script>";
+                $result = file_put_contents($filename, $filecontent);
+                if ($result !== false) {
+                    echo "<script type='text/javascript'>alert('Channel added, please wait a few minutes for the channel to download.');</script>"; 
+                } else {
+                    echo "<script type='text/javascript'>alert('Something went wrong, contact a system administrator to review the logs.');</script>"; 
+                }
             } else {
                 if ( ! (strlen($_POST['channel_id']) == 24) ) {
                     echo "<script type='text/javascript'>alert('Channel ID should be 24 characters.');</script>";

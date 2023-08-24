@@ -6,7 +6,7 @@ php-fpm
 if [ ! -d "/var/ASMRchive/.appdata" ] # If appdata doesn't already exist, initialize it
 then
     mkdir "/var/ASMRchive/.appdata"
-    mv /var/python_app/channels /var/ASMRchive/.appdata/
+    mkdir /var/ASMRchive/.appdata/channels
     mv /var/python_app/cookies /var/ASMRchive/.appdata/
 
     # Set up log locations
@@ -14,6 +14,12 @@ then
     mkdir "/var/ASMRchive/.appdata/logs/python"
 
 
+fi
+
+# Ensure channels directory exists.
+if [ ! -d "/var/ASMRchive/.appdata/channels" ]
+then
+    mkdir "/var/ASMRchive/.appdata/channels"
 fi
 
 # Create relevant log locations in case we're updating from an older version of ASMRchive
