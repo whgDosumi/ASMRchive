@@ -35,6 +35,20 @@
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // leaving room here for other POST functions
 
+        // Request Video
+
+        if (isset($_POST['send']) and isset($_POST['upload_channel']) and isset($_POST['video_url'])) {
+            // Validate provided url
+            if (validate_yt_video($_POST['video_url'])) {
+                $targetChannel = $chans[$_POST["upload_channel"]];
+                $targetChannel->append_video($_POST['video_url']);
+                $targetChannel->save_appdata();
+                echo "<script type='text/javascript'>alert('Video added to download queue. Please wait ~15 minutes for it to arrive.');</script>"; 
+            } else {
+                echo "<script type='text/javascript'>alert('Invalid youtube video URL');</script>"; 
+            }
+        }
+
         // New Channel
         if (isset($_POST['send']) and isset($_POST['channel_name']) and isset($_POST['channel_id'])) {
             if (strlen($_POST['channel_id']) == 24 and strlen($_POST['channel_name']) <= 24 and strlen($_POST['channel_name']) >= 1) { // check for expected string lengths
@@ -248,6 +262,41 @@
                     </tr>
                     <tr>
                         <td class="upload_table_error_cell"> <?=$error_message?></td>
+                        <td class="upload_table_cell"><input type="submit" name="send" value="Send" id="upload_button"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+
+        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="post" enctype="multipart/form-data">
+            <table>
+                <thead>
+                    <th colspan="2">Request Video</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="upload_table_cell"> Channel<span style="color:red;">*</span> </td>
+                        <td class="upload_table_cell">
+                            <select name="upload_channel" id="upload_channel" required>
+                                <option value=""></option>
+                                <?php
+                                    foreach($chans as $item){
+                                        echo "<option value='$item->dir_name'>$item->alias</option>";
+                                    }
+                                ?>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="upload_table_cell"> Video URL<span style="color:red;">*</span> </td>
+                        <td class="upload_table_cell">
+                            <input type="text" name="video_url" id="video_url" required>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="upload_table_error_cell">
+                            <?=$error_message?>
+                        </td>
                         <td class="upload_table_cell"><input type="submit" name="send" value="Send" id="upload_button"></td>
                     </tr>
                 </tbody>

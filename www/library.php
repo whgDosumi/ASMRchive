@@ -21,6 +21,16 @@
         }
     }
 
+    # Validates that a given string appears to be a valid youtube video
+    function validate_yt_video($input) {
+        if (str_contains($input, "youtube.com") and filter_var($input, FILTER_VALIDATE_URL)) {
+            if (str_contains($input, "/watch?v=")){
+                return true;
+            }
+        }
+        return false;
+    }
+
     # Removes any strange characters from $data
     # Used by player.php to sanitize comment inputs
     function test_input($data) {
@@ -90,6 +100,40 @@
         public $link;
         public $count;
         public $status;
+        public $video_queue;
+        public $channel_id;
+
+        public function get_appdata() {
+            return file_get_contents('/var/ASMRchive/.appdata/channels/' . $this->dir_name . ".channel");
+        }
+
+        public function get_channel_id() {
+            return explode("\n", $this->get_appdata())[1];
+        }
+
+        public function get_channel_status() {
+            return explode("\n", $this->get_appdata())[2];
+        }
+
+        public function get_video_queue() {
+            return array_slice(explode("\n", $this->get_appdata()), 3);
+        }
+
+        public function append_video($url) {
+            if ( ! in_array($url, $this->video_queue)){
+                array_push($this->video_queue, $url);
+            }
+        }
+
+        public function save_appdata() { // Saves current state to appdata. 
+            $new = [
+                $this->alias,
+                $this->channel_id,
+                $this->status
+            ];
+            $new = array_merge($new, $this->video_queue);
+            file_put_contents('/var/ASMRchive/.appdata/channels/' . $this->dir_name . ".channel", implode(PHP_EOL, $new));
+        }
 
         # $alias is the channel name as read from channel_dir/name.txt
         # $dir_name is the name of the directory it's contained in.
@@ -111,27 +155,18 @@
                 }
             }
             $this->count = $count;
-            $temp = file_get_contents('channels/' . $this->dir_name . ".channel");
-            if (string_contains($temp, "archived")){
-                $this->status = "Archived";
-            } elseif (string_contains($temp, "recording")) {
-                $this->status = "Recording";
-            } elseif (string_contains($temp, "new")) {
-                $this->status = "New";
-            } elseif (string_contains($temp, "recorded")) {
-                $this->status = "Recorded";
-            } elseif (string_contains($temp, "waiting")) {
-                $this->status = "Waiting";
-            } elseif (string_contains($temp, "errored")) {
-                $this->status = "Errored!";
-            } elseif (string_contains($temp, "saved")) {
-                $this->status = "Saved";
-            } elseif (string_contains($temp, "downloading")){
-                $this->status = "Downloading";
-            } elseif (string_contains($temp, "inactive")){
-                $this->status = "Inactive";
-            } else {
-                $this->status = "Unknown";
+            $this->channel_id = $this->get_channel_id();
+            $this->video_queue = $this->get_video_queue();
+            // Translations for prettier names. Second value with show in web ui instead of first value.
+            $status_translations = [
+                "archived" => "Archived",
+                "recording" => "Recording",
+                "new" => "New",
+                "inactive" => "Inactive"
+            ];
+            $this->status = $this->get_channel_status();
+            if ( ! ($status_translations[$this->status] == 0)) {
+                $this->status = $status_translations[$this->status];
             }
         }
 
@@ -203,6 +238,7 @@
 
             $this->asmr_runtime = file_get_contents($path . "/runtime.txt");
         }
+
         # Used to display this video as a row in channel_index
         public function display_row() {
             echo '<tr onclick="document.location = \'' . $this->path . '/player.php\';"><td><img class="thumb" alt="No Thumbnail :(" src=' . $this->thumbnail . '></td>
