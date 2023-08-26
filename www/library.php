@@ -100,6 +100,7 @@
         public $link;
         public $count;
         public $status;
+        public $pretty_status;
         public $video_queue;
         public $channel_id;
 
@@ -165,8 +166,9 @@
                 "inactive" => "Inactive"
             ];
             $this->status = $this->get_channel_status();
+            $this->pretty_status = $this->status;
             if ( ! ($status_translations[$this->status] == 0)) {
-                $this->status = $status_translations[$this->status];
+                $this->pretty_status = $status_translations[$this->status];
             }
         }
 
@@ -177,9 +179,13 @@
             } else {
                 echo '<tr onclick="window.location=' . "'" . $this->path . "channel.php'" . '"';
             }
+            $status = $this->pretty_status;
+            if (count($this->video_queue) > 0) {
+                $status = "" . count($this->video_queue) . " Queued";
+            }
             echo '><td><img class="pfp" src=' . $this->path . 'pfp.png></td>
             <td class="channel">' . $this->alias . '</td>
-            <td class="status">' . $this->status . '</td>
+            <td class="status">' . $status . '</td>
             <td class="count">' . $this->count . '</td></tr>';
         }
     }
