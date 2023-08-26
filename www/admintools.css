@@ -48,14 +48,14 @@ body {
 
 .splitter {
     font-size: xxx-large;
-    background-color:paleturquoise;
+    background-color: paleturquoise;
     text-align: center;
     cursor: default;
 }
 
 thead {
     font-size: 45px;
-    background-color:paleturquoise;
+    background-color: paleturquoise;
     padding: 5px;
 }
 
@@ -79,15 +79,17 @@ table {
     border: 2px solid black;
     border-radius: 15px;
     border-spacing: 0;
-    background-color:darkseagreen;
+    background-color: darkseagreen;
 }
 
-th, td, tr {
-  margin: 0;
-  border-bottom: 2px solid black;
+th,
+td,
+tr {
+    margin: 0;
+    border-bottom: 2px solid black;
 }
 
-table tr:last-child td{
+table tr:last-child td {
     border-bottom: 0px;
 }
 
@@ -115,14 +117,14 @@ tbody {
 }
 
 #post_button {
-	float: right;
-	width: 25%;
-	height: 45px;
-	font-size: xx-large;
-	display: block;
+    float: right;
+    width: 25%;
+    height: 45px;
+    font-size: xx-large;
+    display: block;
 }
 
-.upload_table_cell{
+.upload_table_cell {
     font-size: 50px;
     vertical-align: middle;
     text-align: left;
@@ -130,7 +132,7 @@ tbody {
     padding-right: 0;
 }
 
-.upload_table_error_cell{
+.upload_table_error_cell {
     font-size: 30px;
     vertical-align: middle;
     text-align: left;
@@ -139,14 +141,14 @@ tbody {
 }
 
 #upload_channel {
-	font-size: 30px;
+    font-size: 30px;
     margin-left: 0px;
     position: relative;
     bottom: 6px;
 }
 
 #upload_file {
-	font-size: 30px;
+    font-size: 30px;
     margin-left: 0px;
     margin-right: 0;
     padding-right: 0;
@@ -157,8 +159,8 @@ tbody {
 }
 
 #upload_button {
-	height: 100%;
-	font-size: 30px;
+    height: 100%;
+    font-size: 30px;
     display: block;
     padding: 5px;
     margin-top: 10px;
@@ -167,7 +169,7 @@ tbody {
 }
 
 #upload_thumbnail {
-	font-size: 30px;
+    font-size: 30px;
     margin-left: 0px;
     position: relative;
     margin-right: 0;
@@ -188,7 +190,7 @@ tbody {
 }
 
 #upload_title {
-	font-size: 30px;
+    font-size: 30px;
     max-width: 30ch;
     display: inline-block;
     margin-left: 0px;
@@ -197,15 +199,25 @@ tbody {
 }
 
 #channel_name {
-	font-size: 30px;
+    font-size: 30px;
     max-width: 30ch;
     display: inline-block;
     margin-left: 0px;
     position: relative;
     bottom: 10px;
 }
+
 #channel_id {
-	font-size: 30px;
+    font-size: 30px;
+    max-width: 30ch;
+    display: inline-block;
+    margin-left: 0px;
+    position: relative;
+    bottom: 10px;
+}
+
+#video_url {
+    font-size: 30px;
     max-width: 30ch;
     display: inline-block;
     margin-left: 0px;
