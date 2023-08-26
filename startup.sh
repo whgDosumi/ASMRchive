@@ -12,8 +12,6 @@ then
     # Set up log locations
     mkdir "/var/ASMRchive/.appdata/logs"
     mkdir "/var/ASMRchive/.appdata/logs/python"
-
-
 fi
 
 # Ensure channels directory exists.
@@ -40,6 +38,9 @@ fi
 chmod o-r /var/ASMRchive/.appdata/cookies 
 chmod o-r /var/ASMRchive/.appdata/logs 
 chmod o+w /var/ASMRchive/.appdata/channels
+# Give apache ownership of the channel files
+chown apache /var/ASMRchive/.appdata/channels/*
+chgrp apache /var/ASMRchive/.appdata/channels/*
 
 python /var/python_app/clear_downloads.py
 python /var/python_app/update_web.py
