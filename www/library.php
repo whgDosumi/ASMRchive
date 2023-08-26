@@ -47,7 +47,6 @@
         $text = preg_replace('~[^-\w]+~', '', $text);
         $text = trim($text, $divider);
         $text = preg_replace('~-+~', $divider, $text);
-        $text = strtolower($text);
         if (empty($text)) {
             return 'n-a';
         }
