@@ -28,4 +28,5 @@ docker run -d \
   - `find <asmr path> -type d | xargs -d "\n" chmod ugo=rwx`
   - `find <asmr path> -type f | xargs -d "\n" chmod ugo=rw`
 
-  
+- Videos aren't downloading, yt-dlp errors in the logs.
+  - Try fully rebuilding the container with no cache.  Include --pull and --no-cache in your docker/podman build command. This will update everything to the latest version, which fixes many issues.
