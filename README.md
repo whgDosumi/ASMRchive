@@ -15,9 +15,7 @@ docker build -t asmrchive .
 ```
 docker run -d \
         -p 4444:80 \
-        -v (repo path)/ASMRchive/archive:/var/ASMRchive \
-        -v (repo path)/ASMRchive/www:/var/www/html \
-        -v (repo path)/ASMRchive/python_app:/var/asmr_python \
+        -v <Archive location on host>:/var/ASMRchive \
         --name asmrchive \
         asmrchive
 ```
