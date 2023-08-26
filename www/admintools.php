@@ -53,12 +53,27 @@
         if (isset($_POST['send']) and isset($_POST['channel_name']) and isset($_POST['channel_id'])) {
             if (strlen($_POST['channel_id']) == 24 and strlen($_POST['channel_name']) <= 24 and strlen($_POST['channel_name']) >= 1) { // check for expected string lengths
                 $filecontent = $_POST['channel_name'] . "\n" . $_POST['channel_id'] . "\nnew";
-                $filename = "/var/ASMRchive/.appdata/channels/" . slugify($_POST['channel_name']) . ".channel";
-                $result = file_put_contents($filename, $filecontent);
-                if ($result !== false) {
-                    echo "<script type='text/javascript'>alert('Channel added, please wait a few minutes for the channel to download.');</script>"; 
+                $exists = false;
+                foreach($chans as $chan) {
+                    if ($chan->channel_id == $_POST['channel_id']) {
+                        $exists = true;
+                    }
+                }
+                $result = false;
+                if (!$exists){
+                    $filename = "/var/ASMRchive/.appdata/channels/" . slugify($_POST['channel_name']) . ".channel";
+                    if (! file_exists($filename)){
+                        $result = file_put_contents($filename, $filecontent);
+                        if ($result !== false) {
+                            echo "<script type='text/javascript'>alert('Channel added, please wait a few minutes for the channel to download.');</script>"; 
+                        } else {
+                            echo "<script type='text/javascript'>alert('Something went wrong, contact a system administrator to review the logs.');</script>"; 
+                        }
+                    } else {
+                        echo "<script type='text/javascript'>alert('A channel with that name already exists!');</script>";     
+                    }
                 } else {
-                    echo "<script type='text/javascript'>alert('Something went wrong, contact a system administrator to review the logs.');</script>"; 
+                    echo "<script type='text/javascript'>alert('A channel with that channel ID already exists!');</script>"; 
                 }
             } else {
                 if ( ! (strlen($_POST['channel_id']) == 24) ) {
