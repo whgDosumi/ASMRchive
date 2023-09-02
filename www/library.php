@@ -162,7 +162,8 @@
                 "archived" => "Archived",
                 "recording" => "Recording",
                 "new" => "New",
-                "inactive" => "Inactive"
+                "inactive" => "Inactive",
+                "downloading" => "Downloading"
             ];
             $this->status = $this->get_channel_status();
             $this->pretty_status = $this->status;
