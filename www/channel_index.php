@@ -24,14 +24,15 @@ $me = new Channel($alias, $name);
 <head>
     <meta name="viewport" content="width=1000">
     <title>ASMRchive - <?php echo $me->alias?></title>
-    <link rel="stylesheet" href="/channel.css">
+    <link rel="stylesheet" href="../../channel.css">
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
 </head>
 
 <body>
-    <a href="/index.php"><div id="backbutton"><img id="backimage" src="/images/back.png"></div></a>
+    <a href="../../index.php"><div id="backbutton"><img id="backimage" src="../../images/back.png"></div></a>
     <div id="main">
-        <a href="/index.php">
-            <img src="/images/ASMRchive.png" alt="logo" class="top_logo">
+        <a href="../../index.php">
+            <img src="../../images/ASMRchive.png" alt="logo" class="top_logo">
         </a>
         <br>
         <div class="titlecard">

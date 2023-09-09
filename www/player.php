@@ -141,8 +141,9 @@ $me = new Video(".")
     <meta http-equiv="Expires" content="0" />
     <meta name="viewport" content="width=1000">
     <title>ASMRchive - Player</title>
-    <link rel="stylesheet" href="/player.css">
+    <link rel="stylesheet" href="../../../player.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="../../../favicon.ico">
 </head>
 
 <body>
@@ -150,7 +151,7 @@ $me = new Video(".")
 
     </div>
     <a onclick="go_to_parent();">
-        <div id="backbutton"><img id="backimage" src="/images/back.png"></div>
+        <div id="backbutton"><img id="backimage" src="../../../images/back.png"></div>
     </a>
     <div id="player">
         <img src="<?php echo $me->thumbnail ?>" id="thumbnail">
@@ -186,12 +187,12 @@ $me = new Video(".")
                 <p> +1m </p>
             </div>
             <div class="playbutton" onclick="play_pause()">
-                <img id="play" src="/images/pause.png">
+                <img id="play" src="../../../images/pause.png">
             </div>
             <p id="prev_tstp"></p>
-            <img src="/images/loopbutton.png" id="loopbutton"></img>
-            <img src="/images/boost.png" id="boostbutton"></img>
-            <img src="/images/dimmer.png" id="dimbutton"></img>
+            <img src="../../../images/loopbutton.png" id="loopbutton"></img>
+            <img src="../../../images/boost.png" id="boostbutton"></img>
+            <img src="../../../images/dimmer.png" id="dimbutton"></img>
         </div>
     </div>
     <div id="comments">
@@ -216,7 +217,7 @@ $me = new Video(".")
             </form>
         </div>
     </div>
-    <script src="/NoSleep.js"></script>
+    <script src="../../../NoSleep.js"></script>
     <script>
         function amplifyMedia(mediaElem, multiplier) {
             var context = new(window.AudioContext || window.webkitAudioContext),
@@ -317,12 +318,12 @@ $me = new Video(".")
         }
 
         function pause_update() {
-            document.getElementById("play").src = "/images/play.png";
+            document.getElementById("play").src = "../../../images/play.png";
             console.log("paused");
         }
 
         function play_update() {
-            document.getElementById("play").src = "/images/pause.png";
+            document.getElementById("play").src = "../../../images/pause.png";
             console.log("play");
         }
 
@@ -335,24 +336,24 @@ $me = new Video(".")
         }
 
         function play_audio() {
-            document.getElementById("play").src = "/images/pause.png";
+            document.getElementById("play").src = "../../../images/pause.png";
             document.getElementById("asmr").play();
         }
 
         function update_button() {
             if (audio.paused) {
-                button.src = "/images/play.png";
+                button.src = "../../../images/play.png";
             } else {
-                button.src = "/images/pause.png";
+                button.src = "../../../images/pause.png";
             }
         }
 
         function play_pause() {
             if (audio.paused) {
-                button.src = "/images/pause.png";
+                button.src = "../../../images/pause.png";
                 audio.play();
             } else {
-                button.src = "/images/play.png";
+                button.src = "../../../images/play.png";
                 audio.pause();
             }
         }

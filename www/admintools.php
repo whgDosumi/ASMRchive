@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=1000">
     <title>ASMRchive - Administration Tools</title>
     <link rel="stylesheet" href="admintools.css">
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
 </head>
 
 <body>
@@ -194,9 +195,9 @@
 
 
     ?>
-    <a href="/index.php"><div id="backbutton"><img id="backimage" src="/images/back.png"></div></a>
+    <a href="index.php"><div id="backbutton"><img id="backimage" src="images/back.png"></div></a>
     <div id="main">
-        <a href="/index.php">
+        <a href="index.php">
             <img src="images/ASMRchive.png" alt="logo" class="top_logo">
         </a>
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="post" enctype="multipart/form-data">
