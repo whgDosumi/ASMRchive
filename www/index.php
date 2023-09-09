@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=1000">
     <title>ASMRchive - Channels</title>
     <link rel="stylesheet" href="ASMRchive.css">
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
 </head>
 
 <body>
@@ -31,10 +32,10 @@
         array_push($chans, new Channel($name, $chan));
     }
     ?>
-    <a href="/admintools.php"><div id="adminbutton"><img id="adminimage" src="/images/Ayame.png"></div></a>
+    <a href="./admintools.php"><div id="adminbutton"><img id="adminimage" src="./images/Ayame.png"></div></a>
     <div id="main">
-        <a href="/index.php">
-            <img src="images/ASMRchive.png" alt="logo" class="top_logo">
+        <a href="./index.php">
+            <img src="./images/ASMRchive.png" alt="logo" class="top_logo">
         </a>
         <table>
             <thead>

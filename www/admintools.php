@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=1000">
     <title>ASMRchive - Administration Tools</title>
     <link rel="stylesheet" href="admintools.css">
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
 </head>
 
 <body>
@@ -194,12 +195,19 @@
 
 
     ?>
-    <a href="/index.php"><div id="backbutton"><img id="backimage" src="/images/back.png"></div></a>
+    <a href="index.php"><div id="backbutton"><img id="backimage" src="images/back.png"></div></a>
     <div id="main">
-        <a href="/index.php">
+        <a href="index.php">
             <img src="images/ASMRchive.png" alt="logo" class="top_logo">
         </a>
-        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="post" enctype="multipart/form-data">
+        <form action="<?php 
+        $protocol = isset($_SERVER['HTTP_X_FORWARDED_PROTO']) ? $_SERVER['HTTP_X_FORWARDED_PROTO'] : 'http';
+        $server_name = $_SERVER['HTTP_HOST'];
+        $request_uri = $_SERVER['REQUEST_URI'];
+
+        // Construct the base URL
+        $base_url = $protocol . '://' . $server_name . $request_uri;
+        echo htmlspecialchars($_SERVER[$base_url]);?>" method="post" enctype="multipart/form-data">
             <table>
                 <thead>
                     <th colspan="2">Upload ASMR</th>
@@ -257,7 +265,7 @@
         </form>
 
         
-        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="post" enctype="multipart/form-data">
+        <form action="<?php echo htmlspecialchars($_SERVER[$base_url]);?>" method="post" enctype="multipart/form-data">
             <table>
                 <thead>
                     <th colspan="2">Add Channel</th>
@@ -283,7 +291,7 @@
             </table>
         </form>
 
-        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="post" enctype="multipart/form-data">
+        <form action="<?php echo htmlspecialchars($_SERVER[$base_url]);?>" method="post" enctype="multipart/form-data">
             <table>
                 <thead>
                     <th colspan="2">Request Video</th>

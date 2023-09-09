@@ -217,7 +217,7 @@
             } elseif (is_file($path . '/asmr.png')) {
                 $this->thumbnail = $path . '/asmr.png';
             } else {
-                $this->thumbnail = '/images/default_thumbnail.png';
+                $this->thumbnail = '../../images/default_thumbnail.png';
             }
             $this->description = nl2br(file_get_contents("./asmr.description"));
             $doc = fopen($path . '/title.txt', 'r');
