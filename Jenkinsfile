@@ -30,7 +30,7 @@ pipeline {
                 echo "Removing existing testing containers"
                 sh "podman ps -a -q -f ancestor=jenkins-asmrchive | xargs -I {} podman container rm -f {} || true" // Removes all containers that exist under the image
                 echo "Removing existing image"
-                sh "podman image rm jenkins-asmrchive || true"
+                // sh "podman image rm jenkins-asmrchive || true"
             }   
         }
         stage ("Build Image") {
@@ -50,6 +50,7 @@ pipeline {
                 """
                 echo "Starting Container"
                 sh "podman container start jenkins-asmrchive"
+                input(id: 'userInput', message: 'Is the build okay?')
             }
         }
     }
