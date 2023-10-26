@@ -60,6 +60,7 @@ pipeline {
             }
             steps {
                 script {
+                    // Send a telegram message
                     def baseJenkinsUrl = env.JENKINS_URL
                     def jobNamePath = env.JOB_NAME.replaceAll("/", "/job/")
                     def jobUrl = "${baseJenkinsUrl}job/${jobNamePath}/"
@@ -68,6 +69,7 @@ pipeline {
                     withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN')]) {
                         sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${chatId} -d text='${message}' -d parse_mode=Markdown"
                     }
+                    // Prompt user to review the build.
                     input(id: 'userInput', message: 'Is the build okay?')
                 }
                 
