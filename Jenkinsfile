@@ -18,8 +18,13 @@ pipeline {
         stage ("Initialization") {
             steps {
                 script {
-                    // This is a placeholder, I will build this stage out more later
                     echo "Initializing"
+                    def skip_manual = params.SKIP_REVIEW
+                    if (env.JOB_NAME.contains("PR Builder")) {
+                        skip_manual = false
+                        echo "forcing manual review"
+                    }
+                    env.skip_manual_dynamic = skip_manual
                 }
             }
         }
@@ -55,7 +60,7 @@ pipeline {
         stage ("Manual Review") {
             when {
                 expression {
-                    return env.SKIP_REVIEW == "false"
+                    return env.skip_manual_dynamic == "false"
                 }
             }
             steps {
