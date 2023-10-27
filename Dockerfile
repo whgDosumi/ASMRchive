@@ -8,7 +8,7 @@ RUN dnf update -y && dnf -y install \
     httpd php.x86_64 cronie python pip ffmpeg findutils
 
 # Set up crontab to run the python app every 15 minutes.
-RUN (echo "*/15 * * * * /usr/bin/python /var/python_app/main.py >> \"/var/ASMRchive/.appdata/logs/python/main-\$(date +\%Y-\%m-\%d)-asmr.log\" 2>&1") | crontab -
+RUN (echo -e "*/15 * * * * /usr/bin/python /var/python_app/main.py >> \"/var/ASMRchive/.appdata/logs/python/main-\$(date +\%Y-\%m-\%d)-asmr.log\" 2>&1\n* * * * * /var/python_app/force_scan.sh") | crontab -
 
 # install python requirements
 COPY python_app/requirements.txt /var/python_requirements.txt
@@ -39,6 +39,9 @@ ADD www /var/www/html
 
 # Copy over python app.
 COPY python_app /var/python_app
+
+# Make force_scan.sh executable
+RUN chmod 770 /var/python_app/force_scan.sh
 
 # Expose httpd.
 EXPOSE 80

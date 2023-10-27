@@ -20,6 +20,13 @@ then
     mkdir "/var/ASMRchive/.appdata/channels"
 fi
 
+# Make a directory for the scan flag
+if [ ! -d "/var/www/html/flags" ]
+then
+    mkdir "/var/www/html/flags"
+    chown apache /var/www/html/flags
+fi
+
 # Create relevant log locations in case we're updating from an older version of ASMRchive
 if [ ! -d "/var/ASMRchive/.appdata/logs" ]
 then

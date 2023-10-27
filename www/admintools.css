@@ -224,3 +224,13 @@ tbody {
     position: relative;
     bottom: 10px;
 }
+
+#force-scan {
+    height: 100%;
+    font-size: 30px;
+    display: block;
+    padding: 5px;
+    margin: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
