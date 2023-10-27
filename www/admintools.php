@@ -36,6 +36,11 @@
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // leaving room here for other POST functions
 
+        // force scan
+        if (isset($_POST['force-scan'])) {
+            touch("/var/www/html/flags/scan_flag.txt");
+            echo "<script type='text/javascript'>alert('Forcing ASMR Scan.');</script>"; 
+        }
         // Request Video
 
         if (isset($_POST['send']) and isset($_POST['upload_channel']) and isset($_POST['video_url'])) {
@@ -195,19 +200,16 @@
 
 
     ?>
-    <a href="index.php"><div id="backbutton"><img id="backimage" src="images/back.png"></div></a>
+    <a href="index.php">
+        <div id="backbutton"><img id="backimage" src="images/back.png"></div>
+    </a>
     <div id="main">
         <a href="index.php">
             <img src="images/ASMRchive.png" alt="logo" class="top_logo">
         </a>
-        <form action="<?php 
-        $protocol = isset($_SERVER['HTTP_X_FORWARDED_PROTO']) ? $_SERVER['HTTP_X_FORWARDED_PROTO'] : 'http';
-        $server_name = $_SERVER['HTTP_HOST'];
-        $request_uri = $_SERVER['REQUEST_URI'];
 
-        // Construct the base URL
-        $base_url = $protocol . '://' . $server_name . $request_uri;
-        echo htmlspecialchars($_SERVER[$base_url]);?>" method="post" enctype="multipart/form-data">
+        
+        <form method="post" enctype="multipart/form-data">
             <table>
                 <thead>
                     <th colspan="2">Upload ASMR</th>
@@ -258,13 +260,14 @@
                     </tr>
                     <tr>
                         <td class="upload_table_error_cell"> <?=$error_message?></td>
-                        <td class="upload_table_cell"><input type="submit" name="send" value="Send" id="upload_button"></td>
+                        <td class="upload_table_cell"><input type="submit" name="send" value="Send" id="upload_button">
+                        </td>
                     </tr>
                 </tbody>
             </table>
         </form>
 
-        
+
         <form action="<?php echo htmlspecialchars($_SERVER[$base_url]);?>" method="post" enctype="multipart/form-data">
             <table>
                 <thead>
@@ -285,7 +288,8 @@
                     </tr>
                     <tr>
                         <td class="upload_table_error_cell"> <?=$error_message?></td>
-                        <td class="upload_table_cell"><input type="submit" name="send" value="Send" id="upload_button"></td>
+                        <td class="upload_table_cell"><input type="submit" name="send" value="Send" id="upload_button">
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -320,12 +324,15 @@
                         <td class="upload_table_error_cell">
                             <?=$error_message?>
                         </td>
-                        <td class="upload_table_cell"><input type="submit" name="send" value="Send" id="upload_button"></td>
+                        <td class="upload_table_cell"><input type="submit" name="send" value="Send" id="upload_button">
+                        </td>
                     </tr>
                 </tbody>
             </table>
         </form>
-
+        <form method="post" enctype="multipart/form-data">
+            <input type="submit" name="force-scan" value="Force Scan" id="force-scan">
+        </form>
         <br>
         <table>
             <thead>
@@ -356,7 +363,7 @@
 </body>
 
 <script>
-if ( window.history.replaceState ) {
-  window.history.replaceState( null, null, window.location.href );
-}
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
 </script>
