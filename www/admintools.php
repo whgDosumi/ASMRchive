@@ -260,7 +260,7 @@
                     </tr>
                     <tr>
                         <td class="upload_table_error_cell"> <?=$error_message?></td>
-                        <td class="upload_table_cell"><input type="submit" name="send" value="Send" id="upload_button">
+                        <td class="upload_table_cell"><input type="submit" name="send" value="Send" id="upload_button" class="submit_button">
                         </td>
                     </tr>
                 </tbody>
@@ -288,7 +288,7 @@
                     </tr>
                     <tr>
                         <td class="upload_table_error_cell"> <?=$error_message?></td>
-                        <td class="upload_table_cell"><input type="submit" name="send" value="Send" id="add_channel_button">
+                        <td class="upload_table_cell"><input type="submit" class="submit_button" name="send" value="Send" id="add_channel_button">
                         </td>
                     </tr>
                 </tbody>
@@ -324,7 +324,7 @@
                         <td class="upload_table_error_cell">
                             <?=$error_message?>
                         </td>
-                        <td class="upload_table_cell"><input type="submit" name="send" value="Send" id="request_video_button">
+                        <td class="upload_table_cell"><input class="submit_button" type="submit" name="send" value="Send" id="request_video_button">
                         </td>
                     </tr>
                 </tbody>
