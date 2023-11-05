@@ -59,8 +59,8 @@ pipeline {
         }
         stage ("Testing") {
             steps {
-                sh "podman build -t asmrchive-test testing/"
-                sh "podman run asmrchive-test"
+                sh "podman --storage-opt ignore_chown_errors=true build -t asmrchive-test testing/"
+                sh "podman run --network=\"host\" asmrchive-test"
             }
         }
         stage ("Manual Review") {
