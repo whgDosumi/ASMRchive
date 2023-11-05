@@ -92,9 +92,11 @@ while tries < max_retries:
     for channel in channels:
         if channel.name == test_channel_name:
             test_channel = channel
-    if test_channel.status == "Archived" and test_channel.count >= 1:
-        passed = True
-        break
+    if not test_channel == None:
+        if test_channel.status == "Archived" and test_channel.count >= 1:
+            passed = True
+            break
+    time.sleep(refresh_rate)
 assert passed
             
 
