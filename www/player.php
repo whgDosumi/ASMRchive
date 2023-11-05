@@ -203,7 +203,7 @@ $me = new Video(".")
         ?>
         <div id="comment_form">
             <h4 style="padding: 0;margin:0;">New Comment:</h4>
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" id="comment_form">
+            <form method="post" id="comment_form">
                 Name:<br> <input id="name_box" type="text" name="user_name" maxlength="40" required><input type="submit" value="Post" id="post_button"><br>
                 Message: <br><textarea id="message_box" type="text" name="text" required></textarea>
                 <p onclick="append_timestamp()" id="comment_timestamp">Current time: 00:00</p>
