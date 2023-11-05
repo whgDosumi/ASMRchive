@@ -44,7 +44,7 @@ pipeline {
                 sh "podman --storage-opt ignore_chown_errors=true build -t jenkins-asmrchive ."
             }
         }
-        stage ("Construct Container") {
+        stage ("Create Container") {
             steps {
                 echo "Constructing Container"
                 sh """
@@ -55,6 +55,12 @@ pipeline {
                 """
                 echo "Starting Container"
                 sh "podman container start jenkins-asmrchive"
+            }
+        }
+        stage ("Testing") {
+            steps {
+                sh "podman build -t asmrchive-test testing/"
+                sh "podman run asmrchive-test"
             }
         }
         stage ("Manual Review") {
