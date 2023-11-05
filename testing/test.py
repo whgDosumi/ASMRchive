@@ -41,6 +41,8 @@ def load_channels(webpage_text): # creates channel objects by reading the homepa
         start = webpage_text.find(">", start) + 1
         end = webpage_text.find("</", start)
         count = webpage_text[start:end]
+        if count == "":
+            break
         channels.append(Channel(name, status, count))
         end = webpage_text.find("class=\"channel\"", start)
     return channels
