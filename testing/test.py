@@ -18,17 +18,50 @@ chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-dev-shm-usage")
 
+class Video():
+    def __init__(self, url, title) -> None:
+        self.url = url
+        self.title = title
+
 class Channel():
-    def __init__(self, name, status, count) -> None:
+    def __init__(self, name, status, count, url) -> None:
         self.name = name
         self.status = status
         self.count = int(count)
+        self.url = url
+        self.videos = self.load_videos()
+    
+    def load_videos(self):
+        web.get(self.url)
+        webpage_text = web.page_source
+        videos = []
+        start = webpage_text.find("<tbody>")
+        end = 0
+        while end != -1 and start != -1:
+            start = webpage_text.find("<tr onclick=\"document.location", start) + 34
+            end = webpage_text.find("\'", start)
+            url = self.url.replace("channel.php", webpage_text[start:end])
+            start = webpage_text.find("class=\"title\"", start) + 14
+            end = webpage_text.find("</p>", start)
+            title = webpage_text[start:end]
+            videos.append(Video(url, title))
+            start = webpage_text.find("<tr onclick=\"document.location", start)
+        return videos
 
-def load_channels(webpage_text): # creates channel objects by reading the homepage url
+
+
+
+
+def load_channels(): # creates channel objects by reading the homepage url
+    web.get(homepage_url)
+    webpage_text = web.page_source
     channels = []
-    start = 0
+    start = webpage_text.find("<tbody>")
     end = 0
     while end != -1:
+        start = webpage_text.find("<tr onclick=\"window.location=", start) + 30
+        end = webpage_text.find("\'\">", start)
+        url = homepage_url + "/" + webpage_text[start:end]
         start = webpage_text.find("class=\"channel\"", start)
         start = webpage_text.find(">", start) + 1
         end = webpage_text.find("</", start)
@@ -43,8 +76,11 @@ def load_channels(webpage_text): # creates channel objects by reading the homepa
         count = webpage_text[start:end]
         if count == "":
             break
-        channels.append(Channel(name, status, count))
+        channels.append(Channel(name, status, count, url))
         end = webpage_text.find("class=\"channel\"", start)
+        start = webpage_text.find("<tr onclick=\"window.location=", start)
+        if start == -1:
+            break
     return channels
 
 # Allow a port override in case we're testing on a dev machine
@@ -65,7 +101,6 @@ print(homepage_url)
 web = webdriver.Chrome(options=chrome_options)
 # Get our main pages, ensure we can connect properly
 web.get(homepage_url)
-
 web.get(admintools_url)
 
 # Add test channel
@@ -89,7 +124,7 @@ passed = False # To track wether the test passed or failed
 while tries < max_retries:
     tries += 1
     web.get(homepage_url)
-    channels = load_channels(web.page_source)
+    channels = load_channels()
     test_channel = None
     for channel in channels:
         if channel.name == test_channel_name:
@@ -100,8 +135,6 @@ while tries < max_retries:
             break
     time.sleep(refresh_rate)
 assert passed
-            
-
 
 # Declare proudly that our testing has passed
 print("All automated tests have passed.")
