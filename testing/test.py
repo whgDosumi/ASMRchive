@@ -48,10 +48,6 @@ class Channel():
             start = webpage_text.find("<tr onclick=\"document.location", start)
         return videos
 
-
-
-
-
 def load_channels(): # creates channel objects by reading the homepage url
     web.get(homepage_url)
     webpage_text = web.page_source
@@ -117,7 +113,7 @@ assert "Forcing ASMR Scan." in alert.text
 alert.accept()
 
 # Wait for the new channel to appear, and for the video to download
-max_retries = 10
+max_retries = 15
 refresh_rate = 5
 tries = 0
 passed = False # To track wether the test passed or failed
