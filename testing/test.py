@@ -30,7 +30,6 @@ class Channel():
         self.count = int(count)
         self.url = url
         self.videos = self.load_videos()
-    
     def load_videos(self):
         web.get(self.url)
         webpage_text = web.page_source
@@ -132,5 +131,16 @@ while tries < max_retries:
     time.sleep(refresh_rate)
 assert passed
 
+# Test comments on the videos
+test_comment_name = "Dominic Toretto"
+test_comment_text = "01:23 is my favorite part."
+
+channels = load_channels()
+for channel in channels:
+    for video in channel.videos:
+        web.get(video.url)
+        web.find_element(By.ID, "name_box").send_keys(test_comment_name)
+        web.find_element(By.ID, "message_box").send_keys(test_comment_text)
+        web.find_element(By.ID, "post_button").click()
 # Declare proudly that our testing has passed
 print("All automated tests have passed.")
