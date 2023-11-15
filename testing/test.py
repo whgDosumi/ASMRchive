@@ -185,6 +185,20 @@ for channel in channels:
             # Make sure the comment exists
             web.get(video.url)
             assert (test_comment_name in web.page_source)
+
+            # Test the timestamp
+            audio_element = web.find_element(By.ID, "asmr")
+            max_duration = web.execute_script("return arguments[0].duration;", audio_element)
+            max_duration = int(max_duration)
+            comment_stamps = web.find_elements(By.CLASS_NAME, "comment_timestamp")
+            for stamp in comment_stamps:
+                tstamp = web.execute_script("return arguments[0].innerHTML;", stamp)
+                if tstamp == "01:23":
+                    break
+            stamp.click()
+            current_time = web.execute_script("return arguments[0].currentTime;", audio_element)
+            assert current_time > 80 or int(current_time) == max_duration
+
             # Determine the latest comment and delete it.
             comments = web.find_elements(By.CLASS_NAME, "delete_button")
             latest_comment = comments[0]
