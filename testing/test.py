@@ -8,6 +8,7 @@ import os
 import requests
 import time
 import shutil
+import random
 
 test_channel_name = "Dom"
 test_channel_id = "UC1kvM3pZGg3QaSQBS91Cwzg"
@@ -19,9 +20,20 @@ chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-dev-shm-usage")
 
 class Video():
-    def __init__(self, url, title) -> None:
+    def __init__(self, url, thumbnail, title, upload_date, runtime, comments) -> None:
         self.url = url
+        self.thumbnail = thumbnail
         self.title = title
+        self.upload_date = upload_date
+        self.runtime = runtime
+        self.comments = comments
+        self.valid = self.is_valid()
+    
+    def is_valid(self):
+        if self.upload_date == "1600-01-01" and self.runtime == "" and "default_thumbnail.png" in self.thumbnail:
+            return False
+        return True
+
 
 class Channel():
     def __init__(self, name, status, count, url) -> None:
@@ -40,10 +52,22 @@ class Channel():
             start = webpage_text.find("<tr onclick=\"document.location", start) + 34
             end = webpage_text.find("\'", start)
             url = self.url.replace("channel.php", webpage_text[start:end])
+            start = webpage_text.find("src=", start) + 5
+            end = webpage_text.find("\"", start)
+            thumbnail = webpage_text[start:end]
             start = webpage_text.find("class=\"title\"", start) + 14
             end = webpage_text.find("</p>", start)
             title = webpage_text[start:end]
-            videos.append(Video(url, title))
+            start = webpage_text.find("class=\"date\"", start) + 13
+            end = webpage_text.find("<", start)
+            upload_date = webpage_text[start:end]
+            start = webpage_text.find("class=\"date\"", start) + 13
+            end = webpage_text.find("<", start)
+            runtime = webpage_text[start:end]
+            start = webpage_text.find("class=\"count\"", start) + 14
+            end = webpage_text.find("<", start)
+            comments = webpage_text[start:end]
+            videos.append(Video(url, thumbnail, title, upload_date, runtime, comments))
             start = webpage_text.find("<tr onclick=\"document.location", start)
         return videos
 
@@ -91,7 +115,7 @@ else:
 homepage_url = f"http://localhost:{test_port}"
 admintools_url = f"http://localhost:{test_port}/admintools.php"
 script_directory = os.path.dirname(os.path.abspath(__file__))
-print(homepage_url)
+print(f"Testing on: {homepage_url}")
 #Initialize chrome webdriver
 web = webdriver.Chrome(options=chrome_options)
 # Get our main pages, ensure we can connect properly
@@ -134,13 +158,62 @@ assert passed
 # Test comments on the videos
 test_comment_name = "Dominic Toretto"
 test_comment_text = "01:23 is my favorite part."
+tests_per_channel = 3 # How many tests should be ran on a channel.
 
 channels = load_channels()
+passes = 0
+tests_ran = 0
+invalids = 0
 for channel in channels:
-    for video in channel.videos:
-        web.get(video.url)
-        web.find_element(By.ID, "name_box").send_keys(test_comment_name)
-        web.find_element(By.ID, "message_box").send_keys(test_comment_text)
-        web.find_element(By.ID, "post_button").click()
+    tests = 0
+    while tests < tests_per_channel:
+        tests += 1
+        tests_ran += 1
+        video = random.choice(channel.videos)
+        if not video.valid:
+            invalids += 1
+        else:
+            web.get(video.url)
+            # Add a comment
+            web.implicitly_wait(5)
+            web.find_element(By.ID, "name_box").send_keys(test_comment_name)
+            web.find_element(By.ID, "message_box").send_keys(test_comment_text)
+            web.find_element(By.ID, "post_button").click()
+            # The page should reload
+            web.implicitly_wait(5)
+            web.find_element(By.CLASS_NAME, "delete_button")
+            # Make sure the comment exists
+            web.get(video.url)
+            assert (test_comment_name in web.page_source)
+            # Determine the latest comment and delete it.
+            comments = web.find_elements(By.CLASS_NAME, "delete_button")
+            latest_comment = comments[0]
+            for comment in comments:
+                if comment.location["y"] < latest_comment.location["y"]: 
+                    latest_comment = comment
+            latest_comment.click()
+            alert = WebDriverWait(web, 10).until(EC.alert_is_present())
+            assert test_comment_name in alert.text
+            alert.accept()
+            # Confirm the comment is deleted
+            assertion_attempts = 0
+            while True:
+                assertion_attempts += 1
+                try:
+                    web.get(video.url)
+                    assert (not test_comment_name in web.page_source)
+                    break
+                except Exception as e:
+                    if assertion_attempts >= 5:
+                        print("Test comment not deleted.")
+                        print(f"channel: {channel.name}")
+                        print(f"video url: {video.url}")
+                        print(f"video title: {video.title}")
+                        raise # if we've tried 5 times it's not gonna work the 6th. 
+                    time.sleep(1)
+            passes += 1
+# Make sure we passed some tests, and also didn't have any failures other than for invalids. 
+assert (passes == tests_ran - invalids and passes > 0)
+
 # Declare proudly that our testing has passed
 print("All automated tests have passed.")
