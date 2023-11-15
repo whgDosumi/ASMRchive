@@ -1,3 +1,5 @@
 python_app/channels
 dev_tools
 testing/port_override.txt
+testing/reset_test.sh
+testing/run_test.sh
