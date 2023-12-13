@@ -19,4 +19,4 @@ RUN mkdir /test
 COPY ./* /test/
 RUN pip install -r /test/requirements.txt
 
-CMD python /test/test.py
+CMD ["python", "/test/test.py"]

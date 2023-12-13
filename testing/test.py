@@ -121,6 +121,7 @@ if len(sys.argv) > 1:
 else:
     homepage_url = f"http://localhost:{test_port}"
     admintools_url = f"http://localhost:{test_port}/admintools.php"
+    
 print(f"Using {homepage_url} as the homepage url")
 script_directory = os.path.dirname(os.path.abspath(__file__))
 print(f"Testing on: {homepage_url}")
