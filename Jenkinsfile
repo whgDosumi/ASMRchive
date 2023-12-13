@@ -57,11 +57,31 @@ pipeline {
                 sh "podman container start jenkins-asmrchive"
             }
         }
-        stage ("Testing") {
+        stage ("Testing w/ Port") {
             steps {
                 sh "podman --storage-opt ignore_chown_errors=true build -t asmrchive-test testing/"
                 sh "podman run --network=\"host\" asmrchive-test"
-                //sh "podman run --network=\"host\" asmrchive-test 'http://localhost/Jenkins_ASMRchive'"
+            }
+        }
+        stage ("Reconstructing Container") {
+            steps {
+                echo "Removing first container"
+                sh "podman container stop jenkins-asmrchive"
+                sh "podman container rm jenkins-asmrchive"
+                echo "Constructing container"
+                sh """
+                podman create \
+                    -p 4445:80 \
+                    --name jenkins-asmrchive \
+                    jenkins-asmrchive
+                """
+                echo "Starting Container"
+                sh "podman container start jenkins-asmrchive"
+            }
+        }
+        stage ("Testing Reverse Proxy") { 
+            steps {
+                sh "podman run --network=\"host\" asmrchive-test 'http://localhost/Jenkins_ASMRchive'"
             }
         }
         stage ("Manual Review") {
