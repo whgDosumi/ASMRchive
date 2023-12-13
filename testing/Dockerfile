@@ -19,4 +19,3 @@ RUN mkdir /test
 COPY ./* /test/
 RUN pip install -r /test/requirements.txt
 ENTRYPOINT ["python", "/test/test.py"]
-CMD ["python", "/test/test.py"]
