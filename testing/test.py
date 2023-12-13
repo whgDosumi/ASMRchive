@@ -9,6 +9,7 @@ import requests
 import time
 import shutil
 import random
+import sys
 
 test_channel_name = "Dom"
 test_channel_id = "UC1kvM3pZGg3QaSQBS91Cwzg"
@@ -112,8 +113,15 @@ if os.path.exists("/test/port_override.txt"):
 else:
     test_port = 4445
 
-homepage_url = f"http://localhost:{test_port}"
-admintools_url = f"http://localhost:{test_port}/admintools.php"
+# Determine the URL we're testing
+if len(sys.argv) > 1:
+    # Allow passing a different url for when it's not running on the same host (or to test a reverse proxy)
+    homepage_url = sys.argv[1]
+    admintools_url = homepage_url + "/admintools.php"
+else:
+    homepage_url = f"http://localhost:{test_port}"
+    admintools_url = f"http://localhost:{test_port}/admintools.php"
+print(f"Using {homepage_url} as the homepage url")
 script_directory = os.path.dirname(os.path.abspath(__file__))
 print(f"Testing on: {homepage_url}")
 #Initialize chrome webdriver
