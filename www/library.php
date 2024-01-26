@@ -79,7 +79,7 @@
             }
             $temp_match = str_replace(":", "<colonhere>", $match);
 
-            $replace_string = '<span style="cursor: pointer;text-decoration: underline;color:blue;" onclick="set_time(' . strval($seconds) . ')">' . $temp_match . '</span>';
+            $replace_string = '<span class="comment_timestamp" style="cursor: pointer;text-decoration: underline;color:blue;" onclick="set_time(' . strval($seconds) . ')">' . $temp_match . '</span>';
 
             $pos = strpos($text, $match);
             if ($pos !== false) {

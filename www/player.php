@@ -46,7 +46,7 @@ class Comment
     {
         echo '
         <div class="comment">
-            <form action="' . htmlspecialchars($_SERVER["PHP_SELF"]) . '" method="post">
+            <form method="post">
                 <input type="submit" value="Delete" class="delete_button" onclick="return confirm(\'Are you sure you want to delete comment by ' . $this->user_name . '?\');">
                 <p class="comment_name">' . $this->user_name . '<span style="font-size: 15px;">&nbsp;&nbsp;at&nbsp;' . $this->date . '</span></p>
                 <p class="comment_text">' . nl2br($this->display_text) . '</p>

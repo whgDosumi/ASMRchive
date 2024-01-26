@@ -35,7 +35,7 @@ pipeline {
                 echo "Removing existing testing containers"
                 sh "podman ps -a -q -f ancestor=jenkins-asmrchive | xargs -I {} podman container rm -f {} || true" // Removes all containers that exist under the image
                 echo "Removing existing image"
-                // sh "podman image rm jenkins-asmrchive || true"
+                sh "podman image rm jenkins-asmrchive || true"
             }   
         }
         stage ("Build Image") {
@@ -44,7 +44,7 @@ pipeline {
                 sh "podman --storage-opt ignore_chown_errors=true build -t jenkins-asmrchive ."
             }
         }
-        stage ("Construct Container") {
+        stage ("Create Container") {
             steps {
                 echo "Constructing Container"
                 sh """
@@ -55,6 +55,33 @@ pipeline {
                 """
                 echo "Starting Container"
                 sh "podman container start jenkins-asmrchive"
+            }
+        }
+        stage ("Testing w/ Port") {
+            steps {
+                sh "podman --storage-opt ignore_chown_errors=true build -t asmrchive-test testing/"
+                sh "podman run --network=\"host\" asmrchive-test"
+            }
+        }
+        stage ("Reconstructing Container") {
+            steps {
+                echo "Removing first container"
+                sh "podman container stop jenkins-asmrchive"
+                sh "podman container rm jenkins-asmrchive"
+                echo "Constructing container"
+                sh """
+                podman create \
+                    -p 4445:80 \
+                    --name jenkins-asmrchive \
+                    jenkins-asmrchive
+                """
+                echo "Starting Container"
+                sh "podman container start jenkins-asmrchive"
+            }
+        }
+        stage ("Testing Reverse Proxy") { 
+            steps {
+                sh "podman run --network=\"host\" asmrchive-test 'http://localhost/Jenkins_ASMRchive/'"
             }
         }
         stage ("Manual Review") {
