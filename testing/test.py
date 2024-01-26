@@ -118,7 +118,6 @@ if len(sys.argv) > 1:
     # Allow passing a different url for when it's not running on the same host (or to test a reverse proxy)
     homepage_url = sys.argv[1]
     admintools_url = homepage_url + "/admintools.php"
-    time.sleep(9999999)
 else:
     homepage_url = f"http://localhost:{test_port}"
     admintools_url = f"http://localhost:{test_port}/admintools.php"
