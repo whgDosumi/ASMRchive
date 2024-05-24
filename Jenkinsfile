@@ -116,10 +116,12 @@ pipeline {
     post {
         success {
             script {
-                def message = "Build Successful: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
-                def chatId = "222789278"
-                withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN')]) {
-                    sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${chatId} -d text='${message}'"
+                if (!env.JOB_NAME.contains("Daily Master Build")) {
+                    def message = "Build Successful: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+                    def chatId = "222789278"
+                    withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN')]) {
+                        sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${chatId} -d text='${message}'"
+                    }
                 }
             }
         }
