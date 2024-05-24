@@ -129,25 +129,27 @@ def get_length(audio_path):
 def get_pfp(yt_url):
     webpage = requests.get(yt_url).text
     start = webpage.find("\"avatar\":")
-    good = False
-    while not good:
-        init_start = webpage.find("s176", start + 1)
-        start = init_start
-        end = webpage.find("\"", start)
-        start = webpage.rfind("\"", start-200, start) + 1
-        if start == end:
-            return False
-        url = webpage[start:end]
-        url = url.replace("s176", "s176")
+    url_pattern = re.compile(r"\{\"url\":\"")
+    s_pattern = re.compile(r"=s\d{2,4}")
+    # Finds the start index of the url
+    url_start = url_pattern.search(webpage[start:]).end() + start
+    # Finds the end using the start as a reference.
+    url_end = webpage.find("\"", url_start)
+    url = webpage[url_start:url_end]
+
+    # Change size of pic and return
+    size = s_pattern.search(url)
+    if size:
+        resized_url = url.replace(size.group(), "=s140")
         try:
-            requests.get(url)
-            good = True
-            return url
+            # Ensure the url loads
+            requests.get(resized_url)
+            return resized_url
         except:
-            if init_start == -1:
-                return False
-                good = True
-            start = init_start + 1
+            raise f"Failed to load url {resized_url}"
+    else:
+        raise f"Failed to locate pfp for channel {yt_url}"
+
 
 def log(message: str):
     with open("log.txt", "a", encoding="UTF-8") as logfile:
@@ -222,7 +224,8 @@ class Channel():
             with open(os.path.join(self.path, "pfp.png"), "wb") as image_file:
                 image_file.write(requests.get(get_pfp("https://www.youtube.com/channel/" + self.channel_id), stream=True).raw.data)
         except Exception as e:
-            shutil.copyfile("default-pfp.png", os.path.join(self.path, "pfp.png"))
+            print(f"Exception: {e}\nUsing default pfp")
+            shutil.copyfile(os.path.join(get_my_folder(), "default-pfp.png"), os.path.join(self.path, "pfp.png"))
         
 
     def save(self):

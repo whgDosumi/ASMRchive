@@ -8,11 +8,14 @@ pipeline {
         throttleOption: 'category'
         )
         // Only keep 3 builds
-        buildDiscarder(logRotator(numToKeepStr: '3'))
+        buildDiscarder(logRotator(numToKeepStr: '10'))
     }
     parameters {
         // Determines whether we should skip the manual review step
         booleanParam(defaultValue: true, description: "Skip manual review?", name: "SKIP_REVIEW")
+        booleanParam(defaultValue: false, description: "Use Image Cache?", name: "USE_CACHE")
+        booleanParam(defaultValue: false, description: "Suppress Telegram Notifications", name: "SUPPRESS_NOTIFS")
+        text(name: "Build ID", defaultValue: "", description: "Build ID")
     }
     stages {
         stage ("Initialization") {
@@ -30,12 +33,16 @@ pipeline {
         }
         stage ("Tidy Up") { // Cleans up environment to ensure we don't have artifacts from old builds
             steps {
-                // We'll call the image created by this pipeline jenkins-asmrchive
-                // Containers will be called the same
-                echo "Removing existing testing containers"
-                sh "podman ps -a -q -f ancestor=jenkins-asmrchive | xargs -I {} podman container rm -f {} || true" // Removes all containers that exist under the image
-                echo "Removing existing image"
-                sh "podman image rm jenkins-asmrchive || true"
+                script {
+                    // We'll call the image created by this pipeline jenkins-asmrchive
+                    // Containers will be called the same
+                    echo "Removing existing testing containers"
+                    sh "podman ps -a -q -f ancestor=jenkins-asmrchive | xargs -I {} podman container rm -f {} || true" // Removes all containers that exist under the image
+                    if (!params.USE_CACHE) {
+                        echo "Removing existing image"
+                        sh "podman image rm jenkins-asmrchive || true"
+                    }
+                }
             }   
         }
         stage ("Build Image") {
@@ -44,7 +51,7 @@ pipeline {
                 sh "podman --storage-opt ignore_chown_errors=true build -t jenkins-asmrchive ."
             }
         }
-        stage ("Create Container") {
+        stage ("Spawn Container") {
             steps {
                 echo "Constructing Container"
                 sh """
@@ -57,13 +64,18 @@ pipeline {
                 sh "podman container start jenkins-asmrchive"
             }
         }
-        stage ("Testing w/ Port") {
+        stage ("Unit Tests") {
+            steps {
+                sh "podman exec -it jenkins-asmrchive python /var/python_app/test.py"
+            }
+        }
+        stage ("Integration Tests (no rproxy)") {
             steps {
                 sh "podman --storage-opt ignore_chown_errors=true build -t asmrchive-test testing/"
                 sh "podman run --network=\"host\" asmrchive-test"
             }
         }
-        stage ("Reconstructing Container") {
+        stage ("Respawn Container") {
             steps {
                 echo "Removing first container"
                 sh "podman container stop jenkins-asmrchive"
@@ -79,7 +91,7 @@ pipeline {
                 sh "podman container start jenkins-asmrchive"
             }
         }
-        stage ("Testing Reverse Proxy") { 
+        stage ("Integration Tests (rproxy)") { 
             steps {
                 sh "podman run --network=\"host\" asmrchive-test 'http://localhost/Jenkins_ASMRchive/'"
             }
@@ -111,19 +123,25 @@ pipeline {
     post {
         success {
             script {
-                def message = "Build Successful: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
-                def chatId = "222789278"
-                withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN')]) {
-                    sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${chatId} -d text='${message}'"
+                if (!params.SUPPRESS_NOTIFS) {
+                    if (!env.JOB_NAME.contains("Daily Master Build")) {
+                        def message = "Build Successful: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+                        def chatId = "222789278"
+                        withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN')]) {
+                            sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${chatId} -d text='${message}'"
+                        }
+                    }
                 }
             }
         }
         failure {
             script {
-                def message = "Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
-                def chatId = "222789278"
-                withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN')]) {
-                    sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${chatId} -d text='${message}'"
+                if (!params.SUPPRESS_NOTIFS) {
+                    def message = "Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+                    def chatId = "222789278"
+                    withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN')]) {
+                        sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${chatId} -d text='${message}'"
+                    }
                 }
             }
         }
