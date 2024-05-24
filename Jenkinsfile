@@ -13,6 +13,8 @@ pipeline {
     parameters {
         // Determines whether we should skip the manual review step
         booleanParam(defaultValue: true, description: "Skip manual review?", name: "SKIP_REVIEW")
+        booleanParam(defaultValue: false, description: "Use Image Cache?" name: "USE_CACHE")
+        booleanParam(defaultValue: false, description: "Suppress Telegram Notifications" name: "SUPPRESS_NOTIFS")
     }
     stages {
         stage ("Initialization") {
@@ -34,8 +36,10 @@ pipeline {
                 // Containers will be called the same
                 echo "Removing existing testing containers"
                 sh "podman ps -a -q -f ancestor=jenkins-asmrchive | xargs -I {} podman container rm -f {} || true" // Removes all containers that exist under the image
-                echo "Removing existing image"
-                sh "podman image rm jenkins-asmrchive || true"
+                if (!params.USE_CACHE) {
+                    echo "Removing existing image"
+                    sh "podman image rm jenkins-asmrchive || true"
+                }
             }   
         }
         stage ("Build Image") {
@@ -116,21 +120,25 @@ pipeline {
     post {
         success {
             script {
-                if (!env.JOB_NAME.contains("Daily Master Build")) {
-                    def message = "Build Successful: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
-                    def chatId = "222789278"
-                    withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN')]) {
-                        sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${chatId} -d text='${message}'"
+                if (!params.SUPPRESS_NOTIFS) {
+                    if (!env.JOB_NAME.contains("Daily Master Build")) {
+                        def message = "Build Successful: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+                        def chatId = "222789278"
+                        withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN')]) {
+                            sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${chatId} -d text='${message}'"
+                        }
                     }
                 }
             }
         }
         failure {
             script {
-                def message = "Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
-                def chatId = "222789278"
-                withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN')]) {
-                    sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${chatId} -d text='${message}'"
+                if (!params.SUPPRESS_NOTIFS) {
+                    def message = "Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+                    def chatId = "222789278"
+                    withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN')]) {
+                        sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${chatId} -d text='${message}'"
+                    }
                 }
             }
         }
