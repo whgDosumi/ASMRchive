@@ -8,7 +8,7 @@ pipeline {
         throttleOption: 'category'
         )
         // Only keep 3 builds
-        buildDiscarder(logRotator(numToKeepStr: '3'))
+        buildDiscarder(logRotator(numToKeepStr: '10'))
     }
     parameters {
         // Determines whether we should skip the manual review step
