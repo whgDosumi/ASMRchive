@@ -46,4 +46,4 @@ RUN chmod 770 /var/python_app/force_scan.sh
 # Expose httpd.
 EXPOSE 80
 
-CMD /var/startup.sh
+CMD /var/startup.sh >> startup_log.txt
