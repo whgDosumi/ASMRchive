@@ -44,7 +44,7 @@ pipeline {
                 sh "podman --storage-opt ignore_chown_errors=true build -t jenkins-asmrchive ."
             }
         }
-        stage ("Create Container") {
+        stage ("Spawn Container") {
             steps {
                 echo "Constructing Container"
                 sh """
@@ -59,7 +59,7 @@ pipeline {
         }
         stage ("Unit Tests") {
             steps {
-                sh "podman exec -it asmrchive-test python /var/python_app/test.py"
+                sh "podman exec -it jenkins-asmrchive python /var/python_app/test.py"
             }
         }
         stage ("Integration Tests (no rproxy)") {
@@ -68,7 +68,7 @@ pipeline {
                 sh "podman run --network=\"host\" asmrchive-test"
             }
         }
-        stage ("Reconstructing Container") {
+        stage ("Respawn Container") {
             steps {
                 echo "Removing first container"
                 sh "podman container stop jenkins-asmrchive"
