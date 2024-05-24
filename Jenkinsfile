@@ -57,7 +57,12 @@ pipeline {
                 sh "podman container start jenkins-asmrchive"
             }
         }
-        stage ("Testing w/ Port") {
+        stage ("Unit Tests") {
+            steps {
+                sh "podman exec -it asmrchive-test python /var/python_app/test.py"
+            }
+        }
+        stage ("Integration Tests (no rproxy)") {
             steps {
                 sh "podman --storage-opt ignore_chown_errors=true build -t asmrchive-test testing/"
                 sh "podman run --network=\"host\" asmrchive-test"
@@ -79,7 +84,7 @@ pipeline {
                 sh "podman container start jenkins-asmrchive"
             }
         }
-        stage ("Testing Reverse Proxy") { 
+        stage ("Integration Tests (rproxy)") { 
             steps {
                 sh "podman run --network=\"host\" asmrchive-test 'http://localhost/Jenkins_ASMRchive/'"
             }

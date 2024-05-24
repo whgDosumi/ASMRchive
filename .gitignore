@@ -4,3 +4,4 @@ testing/port_override.txt
 testing/reset_test.sh
 testing/run_test.sh
 testing/rprox.sh
+__pycache__/

@@ -146,11 +146,9 @@ def get_pfp(yt_url):
             requests.get(resized_url)
             return resized_url
         except:
-            print (f"Failed to load url! {resized_url}")
-            return "Failure"
+            raise f"Failed to load url {resized_url}"
     else:
-        print(f"Failed to locate pfp for channel {yt_url}")
-        return "Failure"
+        raise f"Failed to locate pfp for channel {yt_url}"
 
 
 def log(message: str):
@@ -226,6 +224,7 @@ class Channel():
             with open(os.path.join(self.path, "pfp.png"), "wb") as image_file:
                 image_file.write(requests.get(get_pfp("https://www.youtube.com/channel/" + self.channel_id), stream=True).raw.data)
         except Exception as e:
+            print(f"Exception: {e}\nUsing default pfp")
             shutil.copyfile(os.path.join(get_my_folder(), "default-pfp.png"), os.path.join(self.path, "pfp.png"))
         
 
