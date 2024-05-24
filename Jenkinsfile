@@ -13,8 +13,8 @@ pipeline {
     parameters {
         // Determines whether we should skip the manual review step
         booleanParam(defaultValue: true, description: "Skip manual review?", name: "SKIP_REVIEW")
-        booleanParam(defaultValue: false, description: "Use Image Cache?" name: "USE_CACHE")
-        booleanParam(defaultValue: false, description: "Suppress Telegram Notifications" name: "SUPPRESS_NOTIFS")
+        booleanParam(defaultValue: false, description: "Use Image Cache?", name: "USE_CACHE")
+        booleanParam(defaultValue: false, description: "Suppress Telegram Notifications", name: "SUPPRESS_NOTIFS")
     }
     stages {
         stage ("Initialization") {
