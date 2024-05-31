@@ -37,7 +37,7 @@
         <a href="./index.php">
             <img src="./images/ASMRchive.png" alt="logo" class="top_logo">
         </a>
-        <table>
+        <table <?php if(count($chans) <= 0) { echo "hidden"; } ?> >
             <thead>
                 <th colspan="2">Channel</th>
                 <th>Status</th>
@@ -53,11 +53,11 @@
                         array_push($zeros, $chan);
                     }
                 }
-                ?>
-                <th colspan="4" class="splitter">No Entries &#128546;</th>
-                <?php
-                foreach ($zeros as $chan) {
-                    $chan->display_row();
+                if (count($zeros) > 0) {
+                    echo "<th colspan=\"4\" class=\"splitter\">No Entries &#128546;</th>";
+                    foreach ($zeros as $chan) {
+                        $chan->display_row();
+                    }
                 }
                 ?>
             </tbody>
