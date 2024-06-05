@@ -7,12 +7,17 @@ RUN dnf install -y https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-rele
 RUN dnf update -y && dnf -y install \
     httpd php.x86_64 cronie python pip ffmpeg findutils
 
+# Upgrade pip
+RUN python -m pip install --upgrade pip
+
 # Set up crontab to run the python app every 15 minutes.
 RUN (echo -e "*/15 * * * * /usr/bin/python /var/python_app/main.py >> \"/var/ASMRchive/.appdata/logs/python/main-\$(date +\%Y-\%m-\%d)-asmr.log\" 2>&1\n* * * * * /var/python_app/force_scan.sh") | crontab -
 
 # install python requirements
 COPY python_app/requirements.txt /var/python_requirements.txt
 RUN python -m pip install -r /var/python_requirements.txt
+RUN python -m pip cache purge
+RUN python -m pip install --upgrade -r /var/python_requirements.txt
 RUN rm /var/python_requirements.txt
 
 # Add php config (required for uploads)
