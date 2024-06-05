@@ -1,4 +1,5 @@
 from main import *
+import subprocess
 
 def print_green(text):
     green = "\033[92m"
@@ -15,6 +16,13 @@ class TestResult:
         self.name = name
         self.passed = passed
         self.message = message
+
+def check_ytdlp():
+    result = subprocess.run(["yt-dlp", "-U"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result_text = result.stdout.strip()
+    if ("yt-dlp is up to date" in result_text.lower()):
+        return True, result_text
+    return False, result_text
 
 # Tests get_pfp function in main
 def can_get_pfp(channel_url):
@@ -57,7 +65,8 @@ def run_tests(tests):
 if __name__ == "__main__":
     # Add your tests to this dict, function_name: (args,)
     tests = {
-        can_get_pfp: ("https://www.youtube.com/channel/UC1kvM3pZGg3QaSQBS91Cwzg",), 
+        can_get_pfp: ("https://www.youtube.com/channel/UC1kvM3pZGg3QaSQBS91Cwzg",),
+        check_ytdlp: (),
     }
 
     run_tests(tests)
