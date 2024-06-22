@@ -15,15 +15,15 @@ import subprocess
 meta_dict = {}
 
 
-#Used to convert webm files to mp3s
-def convert_library(asmr_directory, threads=4):
-    bad_formats = ["webm", "opus", "m4a", "flac", "aac", "wav"]
-    convert_to = "mp3"
+# Used for compatibility.
+def convert_library(asmr_directory, threads=10):
+    bad_formats = ["webm", "opus", "flac", "aac", "wav", "mp3"]
+    convert_to = "m4a"
 
     def convert(root, file, convert_to):
         ff_input = os.path.join(root, file)
         ff_output = os.path.join(root, "asmr." + str(convert_to))
-        command = ("ffmpeg -y -i " + ff_input + " " + ff_output)
+        command = f"ffmpeg -y -i {ff_input} -codec:a aac -b:a 256k {ff_output}"
         os.system(command)
 
 
@@ -32,19 +32,17 @@ def convert_library(asmr_directory, threads=4):
     activity_log = []
     for root, dirs, files in os.walk(asmr_directory):
         for dir in dirs:
-            while len(processes) >= threads:
-                new = []
-                for p in processes:
-                    p.join(timeout=.1)
-                    if p.is_alive():
-                        new.append(p)
-                processes = new
             dir_path = os.path.join(root, dir)
             ldir = os.listdir(dir_path)
             for format in bad_formats:
                 if ("asmr." + format in ldir) and not (dir_path in converted_dirs) and not (("asmr." + convert_to) in ldir):
                     converted_dirs.append(dir_path)
                     activity_log.append([dir_path,format,convert_to])
+                    while len(processes) >= threads:
+                        for p in processes:
+                            p.join(timeout=.1)
+                            if not p.is_alive():
+                                processes.remove(p)
                     p = Process(target=convert, args=(dir_path, "asmr." + format, convert_to))
                     p.start()
                     processes.append(p)
