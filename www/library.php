@@ -6,7 +6,7 @@
     # These are the supported audio formats
     # Check with Dominic before updating these, to ensure the conversion will work.
     # The order is the order of preference the client will use if all are present.
-    $SUPPORTED_FORMATS = array(".wav", ".webm", ".flac", ".m4a", ".opus", ".mp3");
+    $SUPPORTED_FORMATS = array(".wav", ".webm", ".flac", ".opus", ".m4a", ".mp3");
 
     header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
     header("Pragma: no-cache"); // HTTP 1.0.

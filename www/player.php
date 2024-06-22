@@ -300,11 +300,23 @@ $me = new Video(".")
             http.send();
             return http.status != 404;
         }
-        if (!url_exists("asmr.mp3")) {
+        if (!url_exists("asmr.m4a")) {
             if (iOS()) {
                 alert("Conversion not complete, if this doesn't work wait 15 minutes and try again.")
             }
         }
+        // Remove webm option from ios devices:
+        document.addEventListener("DOMContentLoaded", function() {
+            if (iOS()) {
+                var sources = audio.getElementsByTagName("source");
+                for (var i = 0; i < sources.length; i++) {
+                    if (sources[i].src.endsWith(".webm")) {
+                        audio.removeChild(sources[i]);
+                    }
+                }
+                audio.load();
+            }
+        });
         var audio = document.getElementById("asmr");
         audio.currentTime = <?php echo $start_timestamp; ?>;
         button = document.getElementById("play");
@@ -369,10 +381,9 @@ $me = new Video(".")
         }
 
         function set_time(seconds) {
+            audio.pause();
             audio.currentTime = seconds;
-            if (audio.paused) {
-                play_pause();
-            }
+            audio.play();
         }
 
         function seconds_to_hms(seconds) {
