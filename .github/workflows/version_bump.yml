@@ -1,0 +1,40 @@
+name: Version Bump
+
+on:
+  push:
+    branches:
+      - versioning
+    paths-ignore:
+      - "*.md"
+      - "./version.txt"
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Setup Python # Required for bump_version.sh which calls python semver
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install semver # Required for bump_version.sh which calls python semver
+        run: python -m pip install semver
+
+      - name: Check and Bump Version 
+        run: |
+          skip_count=$(git log -n 1 | grep "\[skip-ci\]" | wc -l) # Check for [skip-ci] in last commit
+          if [ $skip_count -ge 1 ]; then
+            echo Skipping CI as commit contains [skip-ci]
+          else
+            ./bump_version.sh
+            git config --local user.email "whgdomi@gmail.com"
+            git config --local user.name "GitHub Action"
+            git add version.txt CHANGELOG.md
+            git commit -m "ci: bump version [skip ci]" || echo "No changes to commit"
+            git push
+          fi
