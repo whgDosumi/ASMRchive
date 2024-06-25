@@ -3,7 +3,7 @@ name: Version Bump
 on:
   push:
     branches:
-      - versioning
+      - master
     paths-ignore:
       - "*.md"
       - "./version.txt"
