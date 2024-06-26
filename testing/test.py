@@ -11,14 +11,25 @@ import shutil
 import random
 import sys
 
+supported_formats = [".wav", ".webm", ".flac", ".opus", ".m4a", ".mp3"]
+
 test_channel_name = "Dom"
 test_channel_id = "UC1kvM3pZGg3QaSQBS91Cwzg"
+
+
+default_download_directory = "/test/downloads"
 
 # Define chrome options
 chrome_options = Options()
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-dev-shm-usage")
+chrome_options.add_experimental_option("prefs", {
+    "download.default_directory": default_download_directory,
+    "download.prompt_for_download": False,
+    "download.directory_upgrade": True,
+})
+
 
 class Video():
     def __init__(self, url, thumbnail, title, upload_date, runtime, comments) -> None:
@@ -183,6 +194,25 @@ for channel in channels:
             invalids += 1
         else:
             web.get(video.url)
+            # Test the download button
+            before = os.listdir(default_download_directory);
+            web.find_element(By.ID, "downloadbutton").click()
+            success = False
+            attempts = 0
+            while not success and attempts < 5:
+                # Give it some time to download
+                time.sleep(5)
+                after = os.listdir(default_download_directory)
+                for format in supported_formats:
+                    for file in after:
+                        if format in file and not file in before:
+                            if os.path.getsize(os.path.join(default_download_directory, file)) > 100:
+                                success = True
+                                os.remove(os.path.join(default_download_directory, file))
+                    if success:
+                        break
+                attempts += 1
+            assert success
             # Add a comment
             web.implicitly_wait(5)
             web.find_element(By.ID, "name_box").send_keys(test_comment_name)
@@ -237,6 +267,6 @@ for channel in channels:
             passes += 1
 # Make sure we passed some tests, and also didn't have any failures other than for invalids. 
 assert (passes == tests_ran - invalids and passes > 0)
-
+web.quit()
 # Declare proudly that our testing has passed
 print("All automated tests have passed.")
