@@ -190,6 +190,7 @@ $me = new Video(".")
                 <img id="play" src="../../../images/pause.png">
             </div>
             <p id="prev_tstp"></p>
+            <img src="../../../images/download.png" id="downloadbutton"></img>
             <img src="../../../images/loopbutton.png" id="loopbutton"></img>
             <img src="../../../images/boost.png" id="boostbutton"></img>
             <img src="../../../images/dimmer.png" id="dimbutton"></img>
@@ -451,6 +452,33 @@ $me = new Video(".")
 
         dimbutton.addEventListener("click", function() {
             showdim();
+        });
+
+        // Returns a file extension given a filename
+        function get_ext(filename) {
+            // Find the last period in the filename
+            const lastDotIndex = filename.lastIndexOf(".");
+        
+            // If a period is found, return the substring from that period to the end
+            // Otherwise, return an empty string indicating no extension found
+            return lastDotIndex !== -1 ? filename.substring(lastDotIndex) : "";
+        }
+
+        downloadbutton.addEventListener("click", function() {
+            const link = document.createElement("a");
+            var source = audio.getElementsByTagName("source")[0];
+            if (source && source.src) {
+                source = source.src;
+                var ext = get_ext(source);
+                link.download = "<?php echo $me->download_name; ?>" + ext;
+                link.href = source;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                console.log("Error, could not find audio source to download.")
+            }
+            
         });
 
         boostbutton.addEventListener("click", function() {

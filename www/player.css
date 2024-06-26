@@ -11,17 +11,6 @@ body {
 	height: 50px;
 }
 
-#repeatbutton {
-	position: absolute;
-	right: 20px;
-	top: 1252px;
-	padding: 10px;
-	width: 45px;
-	z-index: 8;
-	background-color: azure;
-	border-radius: 10px;
-}
-
 #seektime {
 	position: absolute;
 	right: 100px;
@@ -50,13 +39,28 @@ body {
 	border-top-right-radius: 15px;
 }
 
-#loopbutton {
+#downloadbutton {
 	background-color: azure;
-	width: 80px;
+	width: 70px;
+	height: 70px;
 	margin: 0;
 	display: block;
 	position: absolute;
-	right: 200px;
+	right: 270px;
+	bottom: 0px;
+	padding: 5px;
+	border-top-right-radius: 15px;
+	border-top-left-radius: 15px;
+}
+
+#loopbutton {
+	background-color: azure;
+	width: 70px;
+	height: 70px;
+	margin: 0;
+	display: block;
+	position: absolute;
+	right: 180px;
 	bottom: 0px;
 	padding: 5px;
 	border-top-right-radius: 15px;
@@ -65,12 +69,12 @@ body {
 
 #boostbutton {
 	background-color: azure;
-	width: 80px;
-	height: 80px;
+	width: 70px;
+	height: 70px;
 	margin: 0;
 	display: block;
 	position: absolute;
-	right: 100px;
+	right: 90px;
 	bottom: 0px;
 	padding: 5px;
 	border-top-right-radius: 15px;
@@ -79,7 +83,8 @@ body {
 
 #dimbutton {
 	background-color: azure;
-	width: 80px;
+	width: 70px;
+	height: 70px;
 	margin: 0;
 	display: block;
 	position: absolute;
@@ -88,18 +93,6 @@ body {
 	padding: 5px;
 	border-bottom-right-radius: 15px;
 	border-top-left-radius: 15px;
-}
-
-#seekslider {
-	display: inline-block;
-	position:absolute;
-	left: 25px;
-	top: 1255px;
-	width: 200px;
-	z-index: 2;
-	background-color: #FFF;
-	transform: scale(3); /* Or however big you want it */
-  	transform-origin: 0 0;
 }
 
 #asmr {

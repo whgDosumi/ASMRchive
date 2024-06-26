@@ -204,6 +204,8 @@
         public $asmr_runtime;
         public $comment_count;
         public $description;
+        public $download_name;
+        public $channel_name;
         # $path is the path to the directory of the video
         public function __construct($path) {
             global $SUPPORTED_FORMATS;
@@ -222,6 +224,7 @@
             $this->description = nl2br(file_get_contents("./asmr.description"));
             $doc = fopen($path . '/title.txt', 'r');
             $this->title = fread($doc, filesize($path . '/title.txt'));
+            fclose($doc);
             $this->comment_count = 0;
             if (is_dir($this->path . "/comments")) {
                 $scan = scandir($this->path . "/comments");
@@ -230,11 +233,19 @@
             if (file_exists($path . '/upload_date.txt')){
                 $doc = fopen($path . '/upload_date.txt', 'r');
                 $this->upload_date = fread($doc, filesize($path . '/upload_date.txt'));
+                fclose($doc);
             } else {
                 $this->upload_date = "16000101";
             }
+            if (file_exists("../name.txt")) {
+                $doc = fopen("../name.txt", "r");
+                $this->channel_name = fread($doc, filesize("../name.txt"));
+                fclose($doc);
+            } else {
+                $this->channel_name = "Unknown";
+            }
             $this->pretty_date = date('Y-m-d', strtotime($this->upload_date));
-
+            $this->download_name = slugify($this->channel_name) . "_" . $this->pretty_date;
             # Gathers available formats
             foreach($SUPPORTED_FORMATS as $format) {
                 if (is_file($path . "/asmr" . $format)){
