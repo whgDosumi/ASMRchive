@@ -16,6 +16,7 @@ RUN dnf -y localinstall google-chrome-stable_current_x86_64.rpm --skip-broken --
 
 
 RUN mkdir /test
+RUN mkdir /test/downloads
 COPY ./* /test/
 RUN pip install -r /test/requirements.txt
 ENTRYPOINT ["python", "/test/test.py"]

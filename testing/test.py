@@ -16,8 +16,8 @@ supported_formats = [".wav", ".webm", ".flac", ".opus", ".m4a", ".mp3"]
 test_channel_name = "Dom"
 test_channel_id = "UC1kvM3pZGg3QaSQBS91Cwzg"
 
-home_directory = os.path.expanduser("~")
-default_download_directory = os.path.join(home_directory, "Downloads")
+
+default_download_directory = "/test/downloads"
 
 # Define chrome options
 chrome_options = Options()
