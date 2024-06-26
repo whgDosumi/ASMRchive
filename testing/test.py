@@ -208,6 +208,7 @@ for channel in channels:
                         if format in file and not file in before:
                             if os.path.getsize(os.path.join(default_download_directory, file)) > 100:
                                 success = True
+                                os.remove(os.path.join(default_download_directory, file))
                     if success:
                         break
                 attempts += 1
