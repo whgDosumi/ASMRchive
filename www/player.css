@@ -331,7 +331,9 @@ audio {
 #ytimage {
     display: block;
     height: 75px;
-	margin-left: 14.5%;
+	width: 65px;
+	margin-left: 5px;
+	margin-right: 5px;
 	z-index: 100;
 }
 
