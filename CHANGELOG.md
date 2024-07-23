@@ -1,3 +1,14 @@
+## 1.2.0 - 2024-07-23
+feat: YouTube Button
+
+* feat: Add youtube image
+
+* feat: Add button
+
+* feat: Add functionality to youtube button
+
+* test: Add test for youtube button
+
 ## 1.1.0 - 2024-06-26
 Download Button (#112)
 
