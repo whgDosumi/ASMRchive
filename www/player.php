@@ -150,7 +150,7 @@ $me = new Video(".")
     <div id="dimscreen" onclick="hidedim()">
 
     </div>
-    <a id="ytlink" href=""><div id="ytbutton"><img id="ytimage" src="../../../images/yt.png"></div></a>
+    <a id="ytlink" href=""><div id="ytbutton"><img id="ytimage" src="../../../images/yt.svg"></div></a>
     <a onclick="go_to_parent();">
         <div id="backbutton"><img id="backimage" src="../../../images/back.png"></div>
     </a>
