@@ -155,7 +155,11 @@ $me = new Video(".")
         <div id="backbutton"><img id="backimage" src="../../../images/back.png"></div>
     </a>
     <div id="player">
-        <img src="<?php echo $me->thumbnail ?>" id="thumbnail">
+        <img src="<?php 
+        if (str_contains($me->thumbnail, "default")) {
+            echo "../";
+        }
+        echo $me->thumbnail; ?>" id="thumbnail">
         <p class="title"><?php echo $me->title; ?></p>
         <p class="description"><?php echo $me->description; ?></p>
         <div class="controls">
