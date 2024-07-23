@@ -1,3 +1,6 @@
+## 1.2.1 - 2024-07-23
+fix: Change yt image (#115)
+
 ## 1.2.0 - 2024-07-23
 feat: YouTube Button
 
