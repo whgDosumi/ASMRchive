@@ -150,7 +150,7 @@ $me = new Video(".")
     <div id="dimscreen" onclick="hidedim()">
 
     </div>
-    <a href=""><div id="ytbutton"><img id="ytimage" src="../../../images/yt.png"></div></a>
+    <a id="ytlink" href=""><div id="ytbutton"><img id="ytimage" src="../../../images/yt.png"></div></a>
     <a onclick="go_to_parent();">
         <div id="backbutton"><img id="backimage" src="../../../images/back.png"></div>
     </a>
@@ -322,7 +322,17 @@ $me = new Video(".")
         var audio = document.getElementById("asmr");
         audio.currentTime = <?php echo $start_timestamp; ?>;
         button = document.getElementById("play");
-
+        
+        // Get ID and set href of yt button
+        var url = window.location.href;
+        var startpos = url.lastIndexOf("/", url.lastIndexOf("/") - 1);
+        var id = url.substring(startpos + 1, url.lastIndexOf("/"));
+        if (id.length == 11)
+        {
+            document.getElementById("ytlink").href = "https://www.youtube.com/watch?v=" + id;
+        } else{
+            document.getElementById("ytlink").hidden = true;
+        }
 
         function update_timestamp() {
             var timestamps = document.getElementsByClassName("timestamp");
@@ -454,6 +464,8 @@ $me = new Video(".")
         dimbutton.addEventListener("click", function() {
             showdim();
         });
+
+
 
         // Returns a file extension given a filename
         function get_ext(filename) {
