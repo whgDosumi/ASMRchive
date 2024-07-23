@@ -213,6 +213,9 @@ for channel in channels:
                         break
                 attempts += 1
             assert success
+            # Confirm yt button is working
+            assert web.find_element(By.ID, "ytlink").get_attribute("href") != ""
+
             # Add a comment
             web.implicitly_wait(5)
             web.find_element(By.ID, "name_box").send_keys(test_comment_name)
