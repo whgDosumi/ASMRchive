@@ -1,3 +1,12 @@
+## 1.2.2 - 2024-07-23
+fix: Update yt image
+
+* fix: Change yt image
+
+* fix: Fix broken url check function
+
+* fix: Fix broken images in player when using default thumbnail.
+
 ## 1.2.1 - 2024-07-23
 fix: Change yt image (#115)
 
