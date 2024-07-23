@@ -373,7 +373,12 @@ def get_video_info(url):
         return [False,e]
 
 def get_vid(url):
-    return url[url.find("?v=") + 3:]
+    if len(url) == 11:
+        return url
+    index = url.find("?v=")
+    if index > 0:
+        return url[index + 3:]
+    raise f"get_vid function failed, was passed an odd input of {url}"
 
 
 
