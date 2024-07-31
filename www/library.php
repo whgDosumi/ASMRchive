@@ -116,7 +116,9 @@
         }
 
         public function get_video_queue() {
-            return array_slice(explode("\n", $this->get_appdata()), 3);
+            return array_filter(array_slice(explode("\n", $this->get_appdata()), 3), function($value) {
+                return trim($value) !== "";
+            });
         }
 
         public function append_video($url) {

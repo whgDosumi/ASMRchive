@@ -331,6 +331,11 @@ def load_channels(output_directory: str):
             lines = file.read().splitlines()
             if len(lines) > 3:
                 reqs = lines[3:len(lines)]
+                temp = []
+                for req in reqs:
+                    if req.strip() != "":
+                        temp.append(req)
+                reqs = temp
                 new = []
                 for i in reqs:
                     if re.search(r"youtube\.com/watch", i): #if it's a standard youtube url
