@@ -1,3 +1,10 @@
+## 1.2.3 - 2024-07-31
+fix: Fix queue when newline in channel file
+
+* fix: Fix website queue
+
+* fix: Filter blank lines in python end
+
 ## 1.2.2 - 2024-07-23
 fix: Update yt image
 
