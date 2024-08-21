@@ -48,6 +48,9 @@ COPY python_app /var/python_app
 # Make force_scan.sh executable
 RUN chmod 770 /var/python_app/force_scan.sh
 
+# Copy in version for webserver.
+ADD version.txt /var/www/html/version.txt
+
 # Expose httpd.
 EXPOSE 80
 
