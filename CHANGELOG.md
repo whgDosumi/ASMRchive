@@ -1,3 +1,6 @@
+## 1.3.0 - 2024-08-21
+feat: Add version to admintools (#122)
+
 ## 1.2.4 - 2024-08-21
 fix: Handles youtube block with re-queue (#120)
 
