@@ -596,7 +596,6 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 'format': "bestaudio/best",
                 "writedescription": True,
                 "writeinfojson": True,
-                "nooverwrites": True,
             }
             if len(to_download) >=1:
                 chan.status = "downloading"
