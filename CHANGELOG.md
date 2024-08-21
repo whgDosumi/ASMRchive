@@ -1,3 +1,10 @@
+## 1.2.4 - 2024-08-21
+fix: Handles youtube block with re-queue (#120)
+
+* fix: Handles youtube block with re-queue
+
+* fix: remove nooverwrites rule which shouldn't have been left in.
+
 ## 1.2.3 - 2024-07-31
 fix: Fix queue when newline in channel file
 
