@@ -11,7 +11,11 @@
 <body>
     <?php
     include "/var/www/html/library.php";
-    
+    // Get current version
+    $asmrchive_version = "Unknown Version";
+    if (file_exists("version.txt")) {
+        $asmrchive_version = file_get_contents("version.txt");
+    }
     $channel_folders = scandir("ASMR/");
     $channels = array();
     
@@ -202,6 +206,9 @@
     ?>
     <a href="index.php">
         <div id="backbutton"><img id="backimage" src="images/back.png"></div>
+    </a>
+    <a href="https://github.com/whgDosumi/ASMRchive">
+        <p id="version"><?php echo $asmrchive_version; ?></p>
     </a>
     <div id="main">
         <a href="index.php">

@@ -116,6 +116,19 @@ tbody {
     border-bottom-right-radius: 15px;
 }
 
+#version {
+    padding: 2px;
+    margin: 0;
+    font-size: 20px;
+    font-weight: bold;
+    color: black;
+    background-color: darkseagreen;
+    position: fixed;
+    top: 0;
+    right: 0;
+    border-bottom-left-radius: 5px;
+}
+
 #post_button {
     float: right;
     width: 25%;
