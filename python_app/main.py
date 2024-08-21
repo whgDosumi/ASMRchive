@@ -250,7 +250,7 @@ class video_downloader():
     def __init__(self, url, ydl_opts, path, id, return_dict, bypass_slowness) -> None:
         self.url = url
         self.ydl_opts = ydl_opts
-        self.ydl_opts['progress_hooks'] = [self.my_hook,]
+        #self.ydl_opts['progress_hooks'] = [self.my_hook,]
         self.error = None
         self.return_dict = return_dict
         self.id = id
@@ -299,6 +299,8 @@ class video_downloader():
             elif "403: Forbidden" in str(e):
                 return_dict[id] = [self.id, str(e)]
             elif "unable to rename file" in str(e):
+                return_dict[id] = [self.id, str(e)]
+            elif "Sign in to confirm you’re not a bot. This helps protect our community." in str(e):
                 return_dict[id] = [self.id, str(e)]
             else:
                 for flag in cookie_exception_flags:
@@ -409,6 +411,7 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
     function_output = {}
     function_output["successes"] = []
     function_output["failures"] = []
+    function_output["bots"] = []
     queue_manager = multiprocessing.Manager()
     ydl_opts["cookiefile"] = None
     cookies = None
@@ -493,7 +496,11 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
             elif p.url in errored:
                 error_count[p.url] += 1
                 if error_count[p.url] > max_retries:
-                    purge[p.url] = "failure"
+                    # We want to try again in the future, but for now we want to hold off on the youtube queries.
+                    if "Sign in to confirm you’re not a bot. This helps protect our community." in returns[p.id][1]:
+                        purge[p.url] = "Bot Error"
+                    else:
+                        purge[p.url] = "failure"
             else: #we got an error
                 errored[p.url] = status
                 if max_retries > 0:
@@ -510,6 +517,8 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
         for p in purge:
             if purge[p] == "success":
                 function_output["successes"].append(p)
+            elif purge[p] == "Bot Error":
+                function_output["bots"].append(p)
             else:
                 function_output["failures"].append(p)                
     queue_manager.shutdown()
@@ -595,6 +604,8 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 downloaded = []
                 for success in download_results["successes"]:
                     downloaded.append(success)
+                for id in download_results["bots"]:
+                    chan.carried_reqs.append(id)
                 if not os.path.exists(os.path.join(output_directory, slugify(chan.name))):
                     os.makedirs(os.path.join(output_directory, slugify(chan.name)))
                 with open(os.path.join(output_directory, slugify(chan.name), "saved_urls.txt"), "a") as saved_doc:
