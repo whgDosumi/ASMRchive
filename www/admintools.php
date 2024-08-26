@@ -346,19 +346,20 @@
                 <th colspan="2">Channel</th>
                 <th>Status</th>
                 <th>Count</th>
+                <th>Members</th>
             </thead>
             <tbody>
                 <?php
                 $zeros = [];
                 foreach ($chans as $chan) {
                     if ($chan->count > 0) {
-                        $chan->display_row();
+                        $chan->display_row($show_members = true);
                     } else {
                         array_push($zeros, $chan);
                     }
                 }
                 ?>
-                <th colspan="4" class="splitter">No Entries &#128546;</th>
+                <th colspan="5" class="splitter">No Entries &#128546;</th>
                 <?php
                 foreach ($zeros as $chan) {
                     $chan->display_row();
