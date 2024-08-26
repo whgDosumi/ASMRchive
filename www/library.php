@@ -103,6 +103,10 @@
         public $video_queue;
         public $channel_id;
 
+        public function get_members_playlist() {
+            return "https://www.youtube.com/playlist?list=UUMO" . substr($this->channel_id, 2);
+        }
+
         public function get_appdata() {
             return file_get_contents('/var/ASMRchive/.appdata/channels/' . $this->dir_name . ".channel");
         }
@@ -174,7 +178,7 @@
             }
         }
 
-        public function display_row()
+        public function display_row($show_members = false)
         {
             if ($this->count == 0) {
                 echo '<tr style="cursor: not-allowed;"';
@@ -188,7 +192,11 @@
             echo '><td><img class="pfp" src=' . $this->path . 'pfp.png></td>
             <td class="channel">' . $this->alias . '</td>
             <td class="status">' . $status . '</td>
-            <td class="count">' . $this->count . '</td></tr>';
+            <td class="count">' . $this->count . '</td>';
+            if ($show_members) {
+                echo '<td class="member_table"><a href=' . $this->get_members_playlist() . '><img class="member_image" src=images/playlist-icon.png></a></td>';
+            }
+            echo "</tr>";
         }
     }
     
