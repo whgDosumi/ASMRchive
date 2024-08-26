@@ -1,3 +1,6 @@
+## 1.4.0 - 2024-08-26
+feat: Add members playlist link to admintools (#124)
+
 ## 1.3.0 - 2024-08-21
 feat: Add version to admintools (#122)
 
