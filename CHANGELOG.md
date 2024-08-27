@@ -1,3 +1,6 @@
+## 1.4.1 - 2024-08-27
+fix: Fix member playlist for no entries channels (#126)
+
 ## 1.4.0 - 2024-08-26
 feat: Add members playlist link to admintools (#124)
 
