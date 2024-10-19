@@ -331,7 +331,7 @@ $me = new Video(".")
         if ("mediaSession" in navigator) {
             navigator.mediaSession.metadata = new MediaMetadata({
                 title: "<?php echo addslashes($me->title); ?>",
-                artist: "<?php echo $me->channel_name; ?>",
+                artist: "<?php echo addslashes($me->channel_name); ?>",
                 artwork: [
                     { src: "<?php echo $me->thumbnail; ?>", type: "<?php echo $me->thumbnail_type; ?>" }
                 ]
