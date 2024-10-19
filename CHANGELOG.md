@@ -1,3 +1,6 @@
+## 1.4.2 - 2024-10-19
+chore: Update to Fedora 40 (#129)
+
 ## 1.4.1 - 2024-08-27
 fix: Fix member playlist for no entries channels (#126)
 
