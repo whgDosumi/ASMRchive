@@ -1,3 +1,10 @@
+## 1.5.0 - 2024-10-19
+feat: Add metadata to ASMRchive player
+
+* feat: Add metadata to ASMRchive player
+
+* fix: Handle escaping double quotes
+
 ## 1.4.2 - 2024-10-19
 chore: Update to Fedora 40 (#129)
 
