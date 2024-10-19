@@ -205,6 +205,7 @@
     # Used when a video needs to be an interactable object.
     class Video {
         public $thumbnail;
+        public $thumbnail_type; # MIME type
         public $path;
         public $title;
         public $upload_date;
@@ -222,14 +223,19 @@
             $this->path = $path;
             if (is_file($path . '/asmr.webp')) {
                 $this->thumbnail = $path . '/asmr.webp';
+                $this->thumbnail_type = "image/webp";
             } elseif (is_file($path . '/asmr.jpg')) {
                 $this->thumbnail = $path . '/asmr.jpg';
+                $this->thumbnail_type = "image/jpeg";
             } elseif (is_file($path . '/asmr.jpeg')) {
                 $this->thumbnail = $path . '/asmr.jpeg';
+                $this->thumbnail_type = "image/jpeg";
             } elseif (is_file($path . '/asmr.png')) {
                 $this->thumbnail = $path . '/asmr.png';
+                $this->thumbnail_type = "image/png";
             } else {
                 $this->thumbnail = '../../images/default_thumbnail.png';
+                $this->thumbnail_type = "image/png";
             }
             $this->description = nl2br(file_get_contents("./asmr.description"));
             $doc = fopen($path . '/title.txt', 'r');

@@ -327,6 +327,17 @@ $me = new Video(".")
         audio.currentTime = <?php echo $start_timestamp; ?>;
         button = document.getElementById("play");
         
+        // Set thumbnail metadata
+        if ("mediaSession" in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: "<?php echo addslashes($me->title); ?>",
+                artist: "<?php echo $me->channel_name; ?>",
+                artwork: [
+                    { src: "<?php echo $me->thumbnail; ?>", type: "<?php echo $me->thumbnail_type; ?>" }
+                ]
+            });
+        }
+
         // Get ID and set href of yt button
         var url = window.location.href;
         var startpos = url.lastIndexOf("/", url.lastIndexOf("/") - 1);
