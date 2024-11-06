@@ -1,3 +1,6 @@
+## 1.5.1 - 2024-11-06
+fix: Update yt-dlp explicitly (#132)
+
 ## 1.5.0 - 2024-10-19
 feat: Add metadata to ASMRchive player
 
