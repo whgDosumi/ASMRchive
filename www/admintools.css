@@ -137,6 +137,12 @@ tbody {
     top: 0;
     right: 0;
     border-bottom-left-radius: 5px;
+    text-align: right;
+}
+
+#builddate {
+    font-size: 10px;
+    padding-top: 0;
 }
 
 #post_button {

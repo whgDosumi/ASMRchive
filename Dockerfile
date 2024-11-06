@@ -54,4 +54,10 @@ ADD version.txt /var/www/html/version.txt
 # Expose httpd.
 EXPOSE 80
 
+# Set timezone to EST
+RUN ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
+
+# Write build date
+RUN python3 -c "from datetime import datetime; print(datetime.today().strftime('%Y-%m-%d'))" >> /var/www/html/version.txt
+
 CMD /var/startup.sh >> startup_log.txt
