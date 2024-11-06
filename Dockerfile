@@ -16,8 +16,8 @@ RUN (echo -e "*/15 * * * * /usr/bin/python /var/python_app/main.py >> \"/var/ASM
 # install python requirements
 COPY python_app/requirements.txt /var/python_requirements.txt
 RUN python -m pip install -r /var/python_requirements.txt
-RUN python -m pip cache purge
-RUN python -m pip install --upgrade -r /var/python_requirements.txt
+# Make sure we update yt-dlp
+RUN python3 -m pip install -U "yt-dlp[default]"
 RUN rm /var/python_requirements.txt
 
 # Add php config (required for uploads)
