@@ -1,3 +1,10 @@
+## 1.6.0 - 2024-11-06
+feat: Add build date (#134)
+
+* feat: Add build date
+
+* feat: Adjust build date
+
 ## 1.5.1 - 2024-11-06
 fix: Update yt-dlp explicitly (#132)
 
