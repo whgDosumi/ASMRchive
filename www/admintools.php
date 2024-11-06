@@ -14,7 +14,9 @@
     // Get current version
     $asmrchive_version = "Unknown Version";
     if (file_exists("version.txt")) {
-        $asmrchive_version = file_get_contents("version.txt");
+        $lines = explode(PHP_EOL, file_get_contents("version.txt"));
+        $asmrchive_version = $lines[0];
+        $build_date = $lines[1];
     }
     $channel_folders = scandir("ASMR/");
     $channels = array();
@@ -208,7 +210,7 @@
         <div id="backbutton"><img id="backimage" src="images/back.png"></div>
     </a>
     <a href="https://github.com/whgDosumi/ASMRchive">
-        <p id="version"><?php echo $asmrchive_version; ?></p>
+        <p id="version"><?php echo $asmrchive_version; ?> <br> <span id="builddate"><?php echo $build_date; ?></span></p>
     </a>
     <div id="main">
         <a href="index.php">
