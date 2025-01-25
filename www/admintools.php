@@ -44,7 +44,7 @@
 
         // force scan
         if (isset($_POST['force-scan'])) {
-            touch("/var/www/html/flags/scan_flag.txt");
+            touch("/var/ASMRchive/.appdata/flags/scan_flag.txt");
             echo "<script type='text/javascript'>alert('Forcing ASMR Scan.');</script>"; 
         }
         // Request Video
