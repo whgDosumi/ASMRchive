@@ -49,6 +49,7 @@ chmod o+w /var/ASMRchive/.appdata/channels
 chown apache /var/ASMRchive/.appdata/channels/*
 chgrp apache /var/ASMRchive/.appdata/channels/*
 
+python /var/python_app/check_dlp.py
 python /var/python_app/clear_downloads.py
 python /var/python_app/update_web.py
 python /var/python_app/main.py bypass_convert >> \"/var/ASMRchive/.appdata/logs/python/main-`date +\%Y-\%m-\%d`-asmr.log\" 2>&1
