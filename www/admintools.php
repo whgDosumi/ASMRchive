@@ -45,7 +45,7 @@
         // force scan
         if (isset($_POST['force-scan'])) {
             touch("/var/ASMRchive/.appdata/flags/scan_flag.txt");
-            echo "<script type='text/javascript'>alert('Forcing ASMR Scan in Next 30 Seconds.');</script>"; 
+            echo "<script type='text/javascript'>alert('Forcing ASMR Scan.');</script>"; 
         }
         // Request Video
 
