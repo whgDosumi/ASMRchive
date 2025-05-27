@@ -228,6 +228,11 @@
             <table>
                     <?php
                         $dlp_info = get_dlp_update();
+                        // Ensure necessary values are set, otherwise set to defaults
+                        $dlp_info["current_version"] = $dlp_info["current_version"] ?? "Unknown";
+                        $dlp_info["latest_version"] = $dlp_info["latest_version"] ?? "Unknown";
+                        // Default to true because we don't want the button to show. 
+                        $dlp_info["up_to_date"] = $dlp_info["up_to_date"] ?? true;
                     ?>
                 <thead>
                     <th colspan="2">YT-DLP Version</th>
