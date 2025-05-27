@@ -12,6 +12,10 @@ check() {
         python3 -m pip install -U "yt-dlp[default]"
         python /var/python_app/check_dlp.py
     fi
+    if [ -f "/var/ASMRchive/.appdata/flags/check_dlp_flag.txt" ]; then
+        rm -f "/var/ASMRchive/.appdata/flags/check_dlp_flag.txt"
+        python /var/python_app/check_dlp.py
+    fi
 }
 
 check
