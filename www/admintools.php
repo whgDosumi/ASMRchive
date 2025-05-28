@@ -383,7 +383,7 @@
             </table>
         </form>
         <form method="post" enctype="multipart/form-data">
-            <input type="submit" name="force-scan" value="Scan Now" id="force-scan">
+            <input type="submit" name="force-scan" value="ASMR Scan Now" id="force-scan">
         </form>
         <br>
         <table>
