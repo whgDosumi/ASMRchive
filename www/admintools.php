@@ -228,40 +228,6 @@
         <a href="index.php">
             <img src="images/ASMRchive.png" alt="logo" class="top_logo">
         </a>
-
-        <form method="post" enctype="multipart/form-data">
-            <table>
-                    <?php
-                        $dlp_info = get_dlp_update();
-                        // Ensure necessary values are set, otherwise set to defaults
-                        $dlp_info["current_version"] = $dlp_info["current_version"] ?? "Unknown";
-                        $dlp_info["latest_version"] = $dlp_info["latest_version"] ?? "Unknown";
-                        // Default to true because we don't want the button to show. 
-                        $dlp_info["up_to_date"] = $dlp_info["up_to_date"] ?? true;
-                    ?>
-                <thead>
-                    <th colspan="2">YT-DLP Version</th>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="upload_table_cell"> Current: </td>
-                        <td class="upload_table_cell"> <?php echo $dlp_info["current_version"]; ?> </td>
-                    </tr>
-                    <tr>
-                        <td class="upload_table_cell"> Latest: </td>
-                        <td class="upload_table_cell"> <?php echo $dlp_info["latest_version"]; ?> </td>
-                    </tr>
-                    <tr>
-                    <td class="upload_table_cell\"><input type="submit" name="dlp_check" value="Check" id="dlp_check" class="submit_button"> </td>
-                    <?php
-                        if (!$dlp_info["up_to_date"]) {
-                            echo "<td class=\"upload_table_cell\"><input type=\"submit\" name=\"dlp_update\" value=\"Update\" id=\"dlp_update\" class=\"submit_button\"> </td>";
-                        }
-                    ?>
-                    </tr>
-                </tbody>
-            </table>
-        </form>
         <form method="post" enctype="multipart/form-data">
             <table>
                 <thead>
@@ -379,6 +345,39 @@
                         </td>
                         <td class="upload_table_cell"><input class="submit_button" type="submit" name="send" value="Send" id="request_video_button">
                         </td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+        <form method="post" enctype="multipart/form-data">
+            <table>
+                    <?php
+                        $dlp_info = get_dlp_update();
+                        // Ensure necessary values are set, otherwise set to defaults
+                        $dlp_info["current_version"] = $dlp_info["current_version"] ?? "Unknown";
+                        $dlp_info["latest_version"] = $dlp_info["latest_version"] ?? "Unknown";
+                        // Default to true because we don't want the button to show. 
+                        $dlp_info["up_to_date"] = $dlp_info["up_to_date"] ?? true;
+                    ?>
+                <thead>
+                    <th colspan="2">YT-DLP Version</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="upload_table_cell"> Current: </td>
+                        <td class="upload_table_cell"> <?php echo $dlp_info["current_version"]; ?> </td>
+                    </tr>
+                    <tr>
+                        <td class="upload_table_cell"> Latest: </td>
+                        <td class="upload_table_cell"> <?php echo $dlp_info["latest_version"]; ?> </td>
+                    </tr>
+                    <tr>
+                    <td class="upload_table_cell\"><input type="submit" name="dlp_check" value="Check" id="dlp_check" class="submit_button"> </td>
+                    <?php
+                        if (!$dlp_info["up_to_date"]) {
+                            echo "<td class=\"upload_table_cell\"><input type=\"submit\" name=\"dlp_update\" value=\"Update\" id=\"dlp_update\" class=\"submit_button\"> </td>";
+                        }
+                    ?>
                     </tr>
                 </tbody>
             </table>
