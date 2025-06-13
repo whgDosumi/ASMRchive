@@ -178,7 +178,9 @@ if args.test.lower() == "dlp" or args.test.lower() == "dlponly":
         except:
             passed = True
             break
-assert passed
+    assert passed
+    if args.test.lower() == "dlponly":
+        exit()
 
 # Add test channel
 web.get(admintools_url)
