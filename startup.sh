@@ -3,6 +3,14 @@
 crond
 php-fpm
 
+# Override for yt-dlp version
+if [ -z "${DLP_VER+x}" ]; then
+    echo "DLP-VER not overridden."
+else
+    python -m pip uninstall -y yt-dlp
+    python -m pip install -U yt-dlp==$DLP_VER
+fi
+
 if [ ! -d "/var/ASMRchive/.appdata" ] # If appdata doesn't already exist, initialize it
 then
     mkdir "/var/ASMRchive/.appdata"

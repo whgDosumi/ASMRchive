@@ -58,6 +58,7 @@ pipeline {
                 podman create \
                     -p 4445:80 \
                     --name jenkins-asmrchive \
+                    -e DLP_VER=2024.12.06 \
                     jenkins-asmrchive
                 """
                 echo "Starting Container"
@@ -85,6 +86,7 @@ pipeline {
                 podman create \
                     -p 4445:80 \
                     --name jenkins-asmrchive \
+                    -e DLP_VER=2024.12.06 \
                     jenkins-asmrchive
                 """
                 echo "Starting Container"
