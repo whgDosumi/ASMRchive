@@ -129,8 +129,9 @@ else:
 
 p = argparse.ArgumentParser()
 p.add_argument("--url")
-p.add_argument("--test")
+p.add_argument("--test", default="")
 args = p.parse_args()
+
 
 if args.url:
     # Allow passing a different url for when it's not running on the same host (or to test a reverse proxy)
