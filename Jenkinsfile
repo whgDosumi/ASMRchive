@@ -58,7 +58,6 @@ pipeline {
                 podman create \
                     -p 4445:80 \
                     --name jenkins-asmrchive \
-                    -e DLP_VER=2024.12.06 \
                     jenkins-asmrchive
                 """
                 echo "Starting Container"
@@ -70,14 +69,31 @@ pipeline {
                 sh "podman exec -it jenkins-asmrchive python /var/python_app/test.py"
             }
         }
-        stage ("Integration Tests (no rproxy)") {
+        stage ("Integration Tests") {
             steps {
                 sh "podman --storage-opt ignore_chown_errors=true build -t asmrchive-test testing/"
                 sh "podman run --network=\"host\" asmrchive-test"
             }
         }
-        stage ("Respawn Container") {
+        stage ("Integration Tests (rproxy)") { 
             steps {
+                echo "Removing first container"
+                sh "podman container stop jenkins-asmrchive"
+                sh "podman container rm jenkins-asmrchive"
+                echo "Constructing container"
+                sh """
+                podman create \
+                    -p 4445:80 \
+                    --name jenkins-asmrchive \
+                    jenkins-asmrchive
+                """
+                echo "Starting Container"
+                sh "podman container start jenkins-asmrchive"
+                sh "podman run --network=\"host\" asmrchive-test 'http://localhost/Jenkins_ASMRchive/'"
+            }
+        }
+        stage ("Integration Test (DLP Updates)") {
+            steps{
                 echo "Removing first container"
                 sh "podman container stop jenkins-asmrchive"
                 sh "podman container rm jenkins-asmrchive"
@@ -91,11 +107,11 @@ pipeline {
                 """
                 echo "Starting Container"
                 sh "podman container start jenkins-asmrchive"
-            }
-        }
-        stage ("Integration Tests (rproxy)") { 
-            steps {
-                sh "podman run --network=\"host\" asmrchive-test 'http://localhost/Jenkins_ASMRchive/'"
+                sh "podman run \
+                        --network=\"host\" \
+                        asmrchive-test \
+                        --url http://localhost/Jenkins_ASMRchive/ \
+                        --test dlponly"
             }
         }
         stage ("Manual Review") {

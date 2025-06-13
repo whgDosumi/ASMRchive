@@ -10,6 +10,7 @@ import time
 import shutil
 import random
 import sys
+import argparse
 
 supported_formats = [".wav", ".webm", ".flac", ".opus", ".m4a", ".mp3"]
 
@@ -124,14 +125,21 @@ if os.path.exists("/test/port_override.txt"):
 else:
     test_port = 4445
 
-# Determine the URL we're testing
-if len(sys.argv) > 1:
+# Get args
+
+p = argparse.ArgumentParser()
+p.add_argument("--url")
+p.add_argument("--test")
+args = p.parse_args()
+
+if args.url:
     # Allow passing a different url for when it's not running on the same host (or to test a reverse proxy)
-    homepage_url = sys.argv[1]
+    homepage_url = args.url
     admintools_url = homepage_url + "/admintools.php"
 else:
     homepage_url = f"http://localhost:{test_port}"
     admintools_url = f"http://localhost:{test_port}/admintools.php"
+
 
 print(f"Using {homepage_url} as the homepage url")
 script_directory = os.path.dirname(os.path.abspath(__file__))
@@ -142,7 +150,37 @@ web = webdriver.Chrome(options=chrome_options)
 web.get(homepage_url)
 web.get(admintools_url)
 
+# Do the DLP test if requested.
+if args.test.lower() == "dlp" or args.test.lower() == "dlponly":
+    web.get(admintools_url)
+    # Verify the version is wrong
+    assert "stable@2024.12.06" in web.page_source
+    # Click the update button
+    web.find_element(By.ID, "dlp_update").click()
+    alert = WebDriverWait(web, 10).until(EC.alert_is_present())
+    alert.accept()
+    # Wait for the version to update
+    max_retries = 15
+    refresh_rate = 5
+    tries = 0
+    passed = False
+    while tries < max_retries:
+        tries += 1
+        web.get(admintools_url)
+        web.find_element(By.ID, "dlp_check").click()
+        alert = WebDriverWait(web, 10).until(EC.alert_is_present())
+        alert.accept()
+        try:
+            time.sleep(refresh_rate)
+            web.get(admintools_url)
+            web.find_element(By.ID, "dlp_update")
+        except:
+            passed = True
+            break
+assert passed
+
 # Add test channel
+web.get(admintools_url)
 web.find_element(By.ID, "channel_name").send_keys(test_channel_name)
 web.find_element(By.ID, "channel_id").send_keys(test_channel_id)
 web.find_element(By.ID, "add_channel_button").click()
