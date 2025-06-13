@@ -89,7 +89,7 @@ pipeline {
                 """
                 echo "Starting Container"
                 sh "podman container start jenkins-asmrchive"
-                sh "podman run --network=\"host\" asmrchive-test 'http://localhost/Jenkins_ASMRchive/'"
+                sh "podman run --network=\"host\" asmrchive-test --url http://localhost/Jenkins_ASMRchive/"
             }
         }
         stage ("Integration Test (DLP Updates)") {
