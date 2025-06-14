@@ -10,6 +10,7 @@ import time
 import shutil
 import random
 import sys
+import argparse
 
 supported_formats = [".wav", ".webm", ".flac", ".opus", ".m4a", ".mp3"]
 
@@ -124,14 +125,22 @@ if os.path.exists("/test/port_override.txt"):
 else:
     test_port = 4445
 
-# Determine the URL we're testing
-if len(sys.argv) > 1:
+# Get args
+
+p = argparse.ArgumentParser()
+p.add_argument("--url")
+p.add_argument("--test", default="")
+args = p.parse_args()
+
+
+if args.url:
     # Allow passing a different url for when it's not running on the same host (or to test a reverse proxy)
-    homepage_url = sys.argv[1]
+    homepage_url = args.url
     admintools_url = homepage_url + "/admintools.php"
 else:
     homepage_url = f"http://localhost:{test_port}"
     admintools_url = f"http://localhost:{test_port}/admintools.php"
+
 
 print(f"Using {homepage_url} as the homepage url")
 script_directory = os.path.dirname(os.path.abspath(__file__))
@@ -139,10 +148,67 @@ print(f"Testing on: {homepage_url}")
 #Initialize chrome webdriver
 web = webdriver.Chrome(options=chrome_options)
 # Get our main pages, ensure we can connect properly
+print("Waiting for website to be up...")
+timeout = 120
+rr = 5
+t = 0
+while t < timeout:
+    try:
+        r = requests.get(homepage_url)
+        if r.status_code == 200:
+            break
+    except:
+        pass
+    t += rr
+    time.sleep(rr)
 web.get(homepage_url)
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "main"))
+)
 web.get(admintools_url)
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "main"))
+)
+print("Sites up!")
+
+# Do the DLP test if requested.
+if args.test.lower() == "dlp" or args.test.lower() == "dlponly":
+    print("Performing DLP Test...")
+    web.get(admintools_url)
+    # Verify the version is wrong
+    assert "stable@2024.12.06" in web.page_source
+    print("Current version is stable@2024.12.06, not up to date.")
+    # Click the update button
+    web.find_element(By.ID, "dlp_update").click()
+    alert = WebDriverWait(web, 10).until(EC.alert_is_present())
+    alert.accept()
+    print("Update button pressed, waiting for update to complete.")
+    # Wait for the version to update
+    max_retries = 15
+    refresh_rate = 5
+    tries = 0
+    passed = False
+    while tries < max_retries:
+        tries += 1
+        web.get(admintools_url)
+        web.find_element(By.ID, "dlp_check").click()
+        alert = WebDriverWait(web, 10).until(EC.alert_is_present())
+        alert.accept()
+        try:
+            time.sleep(refresh_rate)
+            web.get(admintools_url)
+            web.find_element(By.ID, "dlp_update")
+        except:
+            print("Update button is gone! YT-DLP is up to date!")
+            passed = True
+            break
+    assert passed
+    if args.test.lower() == "dlponly":
+        print("dlponly specified, exiting.")
+        exit()
 
 # Add test channel
+web.get(admintools_url)
 web.find_element(By.ID, "channel_name").send_keys(test_channel_name)
 web.find_element(By.ID, "channel_id").send_keys(test_channel_id)
 web.find_element(By.ID, "add_channel_button").click()

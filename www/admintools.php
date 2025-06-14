@@ -44,7 +44,7 @@
 
         // force scan
         if (isset($_POST['force-scan'])) {
-            touch("/var/www/html/flags/scan_flag.txt");
+            touch("/var/ASMRchive/.appdata/flags/scan_flag.txt");
             echo "<script type='text/javascript'>alert('Forcing ASMR Scan.');</script>"; 
         }
         // Request Video
@@ -94,6 +94,18 @@
                     echo "<script type='text/javascript'>alert('Verify the channel name is between 1 and 24 characters.');</script>";
                 }
             }
+        }
+
+        // Update yt-dlp
+        if (isset($_POST["dlp_update"])) {
+            // Flag for yt-dlp to be updated
+            touch("/var/ASMRchive/.appdata/flags/update_dlp_flag.txt");
+            echo "<script type='text/javascript'>alert('Container will update yt-dlp. Reload in a few minutes to verify the update was completed.');</script>";
+        }
+        // Check yt-dlp
+        if (isset($_POST["dlp_check"])) {
+            touch("/var/ASMRchive/.appdata/flags/check_dlp_flag.txt");
+            echo "<script type='text/javascript'>alert('Will refresh yt-dlp info, please wait a moment and refresh to see the update.');</script>";
         }
 
         // Upload ASMR
@@ -216,8 +228,6 @@
         <a href="index.php">
             <img src="images/ASMRchive.png" alt="logo" class="top_logo">
         </a>
-
-        
         <form method="post" enctype="multipart/form-data">
             <table>
                 <thead>
@@ -340,7 +350,40 @@
             </table>
         </form>
         <form method="post" enctype="multipart/form-data">
-            <input type="submit" name="force-scan" value="Force Scan" id="force-scan">
+            <table>
+                    <?php
+                        $dlp_info = get_dlp_update();
+                        // Ensure necessary values are set, otherwise set to defaults
+                        $dlp_info["current_version"] = $dlp_info["current_version"] ?? "Unknown";
+                        $dlp_info["latest_version"] = $dlp_info["latest_version"] ?? "Unknown";
+                        // Default to true because we don't want the button to show. 
+                        $dlp_info["up_to_date"] = $dlp_info["up_to_date"] ?? true;
+                    ?>
+                <thead>
+                    <th colspan="2">YT-DLP Version</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="upload_table_cell"> Current: </td>
+                        <td class="upload_table_cell"> <?php echo $dlp_info["current_version"]; ?> </td>
+                    </tr>
+                    <tr>
+                        <td class="upload_table_cell"> Latest: </td>
+                        <td class="upload_table_cell"> <?php echo $dlp_info["latest_version"]; ?> </td>
+                    </tr>
+                    <tr>
+                    <td class="upload_table_cell\"><input type="submit" name="dlp_check" value="Check" id="dlp_check" class="submit_button"> </td>
+                    <?php
+                        if (!$dlp_info["up_to_date"]) {
+                            echo "<td class=\"upload_table_cell\"><input type=\"submit\" name=\"dlp_update\" value=\"Update\" id=\"dlp_update\" class=\"submit_button\"> </td>";
+                        }
+                    ?>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+        <form method="post" enctype="multipart/form-data">
+            <input type="submit" name="force-scan" value="ASMR Scan Now" id="force-scan">
         </form>
         <br>
         <table>

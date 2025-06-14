@@ -53,6 +53,10 @@
         return $text;
     }
 
+    function get_dlp_update() {
+        return json_decode(file_get_contents('/var/ASMRchive/.appdata/yt_dlp_info.json'), true);
+    }
+
     #Generates a random string of length $length (defaults 20)
     function generateRandomString($length = 20) {
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

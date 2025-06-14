@@ -15,6 +15,7 @@ pipeline {
         booleanParam(defaultValue: true, description: "Skip manual review?", name: "SKIP_REVIEW")
         booleanParam(defaultValue: false, description: "Use Image Cache?", name: "USE_CACHE")
         booleanParam(defaultValue: false, description: "Suppress Telegram Notifications", name: "SUPPRESS_NOTIFS")
+        booleanParam(defaultValue: false, description: "Pause Between Steps", name: "Pause")
         text(name: "Build ID", defaultValue: "", description: "Build ID")
     }
     stages {
@@ -34,8 +35,6 @@ pipeline {
         stage ("Tidy Up") { // Cleans up environment to ensure we don't have artifacts from old builds
             steps {
                 script {
-                    // We'll call the image created by this pipeline jenkins-asmrchive
-                    // Containers will be called the same
                     echo "Removing existing testing containers"
                     sh "podman ps -a -q -f ancestor=jenkins-asmrchive | xargs -I {} podman container rm -f {} || true" // Removes all containers that exist under the image
                     if (!params.USE_CACHE) {
@@ -69,13 +68,13 @@ pipeline {
                 sh "podman exec -it jenkins-asmrchive python /var/python_app/test.py"
             }
         }
-        stage ("Integration Tests (no rproxy)") {
+        stage ("Integration Tests") {
             steps {
                 sh "podman --storage-opt ignore_chown_errors=true build -t asmrchive-test testing/"
                 sh "podman run --network=\"host\" asmrchive-test"
             }
         }
-        stage ("Respawn Container") {
+        stage ("Integration Tests (rproxy)") { 
             steps {
                 echo "Removing first container"
                 sh "podman container stop jenkins-asmrchive"
@@ -89,11 +88,28 @@ pipeline {
                 """
                 echo "Starting Container"
                 sh "podman container start jenkins-asmrchive"
+                sh "podman run --network=\"host\" asmrchive-test --url http://localhost/Jenkins_ASMRchive/"
             }
         }
-        stage ("Integration Tests (rproxy)") { 
-            steps {
-                sh "podman run --network=\"host\" asmrchive-test 'http://localhost/Jenkins_ASMRchive/'"
+        stage ("Integration Test (DLP Updates)") {
+            steps{
+                echo "Removing first container"
+                sh "podman container stop jenkins-asmrchive"
+                sh "podman container rm jenkins-asmrchive"
+                echo "Constructing container"
+                sh """
+                podman create \
+                    -p 4445:80 \
+                    --name jenkins-asmrchive \
+                    -e DLP_VER=2024.12.06 \
+                    jenkins-asmrchive
+                """
+                echo "Starting Container"
+                sh "podman container start jenkins-asmrchive"
+                sh "podman run \
+                        --network=\"host\" \
+                        asmrchive-test \
+                        --test dlponly"
             }
         }
         stage ("Manual Review") {
