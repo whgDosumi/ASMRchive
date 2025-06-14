@@ -15,6 +15,7 @@ pipeline {
         booleanParam(defaultValue: true, description: "Skip manual review?", name: "SKIP_REVIEW")
         booleanParam(defaultValue: false, description: "Use Image Cache?", name: "USE_CACHE")
         booleanParam(defaultValue: false, description: "Suppress Telegram Notifications", name: "SUPPRESS_NOTIFS")
+        booleanParam(defaultValue: false, description: "Pause Between Steps", name: "Pause")
         text(name: "Build ID", defaultValue: "", description: "Build ID")
     }
     stages {
@@ -34,8 +35,6 @@ pipeline {
         stage ("Tidy Up") { // Cleans up environment to ensure we don't have artifacts from old builds
             steps {
                 script {
-                    // We'll call the image created by this pipeline jenkins-asmrchive
-                    // Containers will be called the same
                     echo "Removing existing testing containers"
                     sh "podman ps -a -q -f ancestor=jenkins-asmrchive | xargs -I {} podman container rm -f {} || true" // Removes all containers that exist under the image
                     if (!params.USE_CACHE) {
@@ -110,7 +109,6 @@ pipeline {
                 sh "podman run \
                         --network=\"host\" \
                         asmrchive-test \
-                        --url http://localhost/Jenkins_ASMRchive/ \
                         --test dlponly"
             }
         }
