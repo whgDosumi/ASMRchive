@@ -1,3 +1,6 @@
+## 1.7.1 - 2025-06-14
+fix: Fix support for shorts (#140)
+
 ## 1.7.0 - 2025-06-14
 feat: Yt dlp version check
 
