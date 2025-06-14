@@ -148,6 +148,7 @@ print(f"Testing on: {homepage_url}")
 #Initialize chrome webdriver
 web = webdriver.Chrome(options=chrome_options)
 # Get our main pages, ensure we can connect properly
+print("Waiting for website to be up...")
 timeout = 120
 rr = 5
 t = 0
@@ -168,16 +169,20 @@ web.get(admintools_url)
 WebDriverWait(web, timeout).until(
     EC.presence_of_element_located((By.ID, "main"))
 )
+print("Sites up!")
 
 # Do the DLP test if requested.
 if args.test.lower() == "dlp" or args.test.lower() == "dlponly":
+    print("Performing DLP Test...")
     web.get(admintools_url)
     # Verify the version is wrong
     assert "stable@2024.12.06" in web.page_source
+    print("Current version is stable@2024.12.06, not up to date.")
     # Click the update button
     web.find_element(By.ID, "dlp_update").click()
     alert = WebDriverWait(web, 10).until(EC.alert_is_present())
     alert.accept()
+    print("Update button pressed, waiting for update to complete.")
     # Wait for the version to update
     max_retries = 15
     refresh_rate = 5
@@ -194,10 +199,12 @@ if args.test.lower() == "dlp" or args.test.lower() == "dlponly":
             web.get(admintools_url)
             web.find_element(By.ID, "dlp_update")
         except:
+            print("Update button is gone! YT-DLP is up to date!")
             passed = True
             break
     assert passed
     if args.test.lower() == "dlponly":
+        print("dlponly specified, exiting.")
         exit()
 
 # Add test channel
