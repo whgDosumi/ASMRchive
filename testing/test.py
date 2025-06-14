@@ -149,6 +149,14 @@ print(f"Testing on: {homepage_url}")
 web = webdriver.Chrome(options=chrome_options)
 # Get our main pages, ensure we can connect properly
 timeout = 120
+rr = 5
+t = 0
+while t < timeout:
+    r = requests.get(homepage_url)
+    if r.status_code == 200:
+        break
+    t += rr
+    time.sleep(rr)
 web.get(homepage_url)
 WebDriverWait(web, timeout).until(
     EC.presence_of_element_located((By.ID, "main"))
