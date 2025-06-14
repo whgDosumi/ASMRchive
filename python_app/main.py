@@ -340,7 +340,7 @@ def load_channels(output_directory: str):
                 reqs = temp
                 new = []
                 for i in reqs:
-                    if re.search(r"youtube\.com/watch", i): #if it's a standard youtube url
+                    if (re.search(r"youtube\.com/watch", i) or re.search(r"youtube\.com/shorts", i)): #if it's a standard youtube url
                         new.append(i[-11:])
                     elif re.match(r"^.{11}$", i): #if the string is 11 characters long
                         new.append(i)
@@ -385,6 +385,9 @@ def get_vid(url):
     index = url.find("?v=")
     if index > 0:
         return url[index + 3:]
+    index = url.find("/shorts/")
+    if index > 0:
+        return url[index + 8]
     raise f"get_vid function failed, was passed an odd input of {url}"
 
 

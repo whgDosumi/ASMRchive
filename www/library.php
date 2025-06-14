@@ -24,7 +24,7 @@
     # Validates that a given string appears to be a valid youtube video
     function validate_yt_video($input) {
         if (str_contains($input, "youtube.com") and filter_var($input, FILTER_VALIDATE_URL)) {
-            if (str_contains($input, "/watch?v=")){
+            if (str_contains($input, "/watch?v=") or str_contains($input, "shorts/")){
                 return true;
             }
         }
