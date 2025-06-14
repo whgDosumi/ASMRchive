@@ -148,8 +148,15 @@ print(f"Testing on: {homepage_url}")
 #Initialize chrome webdriver
 web = webdriver.Chrome(options=chrome_options)
 # Get our main pages, ensure we can connect properly
+timeout = 60
 web.get(homepage_url)
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "main"))
+)
 web.get(admintools_url)
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "main"))
+)
 
 # Do the DLP test if requested.
 if args.test.lower() == "dlp" or args.test.lower() == "dlponly":
