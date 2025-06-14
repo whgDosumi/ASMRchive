@@ -1,3 +1,42 @@
+## 1.7.0 - 2025-06-14
+feat: Yt dlp version check
+
+* fix: Expand flag system
+
+* feat: Add yt-dlp Version Check
+
+* fix: Set default values in case dlp has no check file
+
+* feat: Add check button
+
+* fix: Adjust alert text
+
+* fix: Move dlp check down on admintools
+
+* chore: Adjust text on scan now button
+
+* ci: Add dlp-override for integration testing the new feature.
+
+* ci: Add pipeline for testing yt-dlp update feature.
+
+* ci: Fix testing error on .lower of nonetype.
+
+* ci: Fix indentation issue, add dlponly flag to speed up Jenkins
+
+* ci: fix Jenkinsfile positional argument in test
+
+* ci: Wait for webpage to load properly before starting.
+
+* ci: Increase timeout
+
+* ci: Test to figure out why this is failing
+
+* ci: Test to ensure the page is giving 200 before trying the next step...
+
+* ci: Try to catch the exception
+
+* ci: Add progress print statements.
+
 ## 1.6.0 - 2024-11-06
 feat: Add build date (#134)
 
