@@ -152,9 +152,12 @@ timeout = 120
 rr = 5
 t = 0
 while t < timeout:
-    r = requests.get(homepage_url)
-    if r.status_code == 200:
-        break
+    try:
+        r = requests.get(homepage_url)
+        if r.status_code == 200:
+            break
+    except:
+        pass
     t += rr
     time.sleep(rr)
 web.get(homepage_url)
