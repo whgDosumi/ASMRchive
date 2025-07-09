@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=1000">
     <title>ASMRchive - Channels</title>
     <link rel="stylesheet" href="ASMRchive.css">
+    <link rel="apple-touch-icon" href="https://cloud.wronghood.net/ports/touch_icon.png">
     <link rel="icon" type="image/x-icon" href="./favicon.ico">
 </head>
 
