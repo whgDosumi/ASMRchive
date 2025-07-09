@@ -45,7 +45,13 @@ def print_results(results):
             print_red(f"{result.name}: {status}")
             print_red(f"  Reason: {result.message}")
     print("-----\n\n")
-            
+
+def can_get_apple_touch_icon(url):
+    try:
+        requests.get(url)
+        return True, "Successfully loaded the apple touch icon."
+    except Exception as e:
+        return False, str(e)     
 
 def run_tests(tests):
     results = []
@@ -67,6 +73,7 @@ if __name__ == "__main__":
     tests = {
         can_get_pfp: ("https://www.youtube.com/channel/UC1kvM3pZGg3QaSQBS91Cwzg",),
         check_ytdlp: (),
+        can_get_apple_touch_icon: (f"{os.getenv("HOST_URL")}/ASMRchive/apple_touch_icon.png"),
     }
 
     run_tests(tests)
