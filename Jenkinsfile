@@ -57,7 +57,7 @@ pipeline {
                 podman create \
                     -p 4445:80 \
                     --name jenkins-asmrchive \
-                    -e HOST_URL "http://localhost:4445/" \
+                    -e HOST_URL=http://localhost:4445/ \
                     jenkins-asmrchive
                 """
                 echo "Starting Container"
@@ -85,7 +85,7 @@ pipeline {
                 podman create \
                     -p 4445:80 \
                     --name jenkins-asmrchive \
-                    -e HOST_URL "http://localhost/Jenkins_ASMRchive/" \
+                    -e HOST_URL=http://localhost/Jenkins_ASMRchive/ \
                     jenkins-asmrchive
                 """
                 echo "Starting Container"
@@ -104,7 +104,7 @@ pipeline {
                     -p 4445:80 \
                     --name jenkins-asmrchive \
                     -e DLP_VER=2024.12.06 \
-                    -e HOST_URL "http://localhost/Jenkins_ASMRchive/" \
+                    -e HOST_URL=http://localhost/Jenkins_ASMRchive/ \
                     jenkins-asmrchive
                 """
                 echo "Starting Container"
