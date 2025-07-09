@@ -57,7 +57,7 @@ pipeline {
                 podman create \
                     -p 4445:80 \
                     --name jenkins-asmrchive \
-                    -e HOST_URL=http://localhost:4445/ \
+                    -e HOST_URL=http://localhost:80/ \
                     jenkins-asmrchive
                 """
                 echo "Starting Container"
