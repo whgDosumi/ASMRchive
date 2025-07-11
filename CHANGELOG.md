@@ -1,3 +1,22 @@
+## 1.8.0 - 2025-07-11
+feat: Apple touch icon (#141)
+
+* feat: Add touch icon.
+
+* feat: Host touch icon within node.
+
+* test: Write unit test
+
+* fix: Put env variable in string
+
+* fix: Fixes syntax for env variables
+
+* fix: Add comma to test
+
+* fix: Fix port with wrong context
+
+* fix: Remove port?
+
 ## 1.7.1 - 2025-06-14
 fix: Fix support for shorts (#140)
 
