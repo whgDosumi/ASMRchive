@@ -73,7 +73,7 @@ if __name__ == "__main__":
     tests = {
         can_get_pfp: ("https://www.youtube.com/channel/UC1kvM3pZGg3QaSQBS91Cwzg",),
         check_ytdlp: (),
-        can_get_apple_touch_icon: (f"{os.getenv("HOST_URL")}/ASMRchive/apple_touch_icon.png",),
+        can_get_apple_touch_icon: ("http://127.0.0.1/ASMRchive/apple_touch_icon.png",),
     }
 
     run_tests(tests)
