@@ -1,3 +1,6 @@
+## 1.8.1 - 2025-07-17
+ci: Fix url in unit test
+
 ## 1.8.0 - 2025-07-11
 feat: Apple touch icon (#141)
 
