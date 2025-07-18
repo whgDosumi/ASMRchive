@@ -1,5 +1,6 @@
 from main import *
 import subprocess
+import time 
 
 def print_green(text):
     green = "\033[92m"
@@ -46,12 +47,21 @@ def print_results(results):
             print_red(f"  Reason: {result.message}")
     print("-----\n\n")
 
-def can_get_apple_touch_icon(url):
-    try:
-        requests.get(url)
-        return True, "Successfully loaded the apple touch icon."
-    except Exception as e:
-        return False, str(e)     
+def can_get_apple_touch_icon(url, max_tries=5, wait_for=5):
+    # Give us a few tries, while we wait for the webserver to load up.
+
+    # max_tries specifies how many times it'll try before failing.
+    # wait_for specifies how many seconds it will wait before trying again.
+    tries = 0
+    success = False
+    while tries < max_tries:
+        tries += 1
+        try:
+            requests.get(url)
+            return True, "Successfully loaded the apple touch icon."
+        except Exception as e:
+            time.sleep(wait_for)
+    return False, str(e)
 
 def run_tests(tests):
     results = []
