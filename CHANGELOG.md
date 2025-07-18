@@ -1,3 +1,6 @@
+## 1.8.2 - 2025-07-18
+test: Allows unit test to try a few times before failing, allowing time for server to come up.
+
 ## 1.8.1 - 2025-07-17
 ci: Fix url in unit test
 
