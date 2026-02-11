@@ -61,6 +61,8 @@ RUN ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 RUN curl -fsSL https://deno.land/install.sh > deno_install.sh
 RUN sh deno_install.sh -y
 RUN rm deno_install.sh
+# Add to path
+RUN ln -s /root/.deno/bin/deno /usr/local/bin/deno
 
 # Write build date
 RUN python3 -c "from datetime import datetime; print(datetime.today().strftime('%Y-%m-%d'))" >> /var/www/html/version.txt
