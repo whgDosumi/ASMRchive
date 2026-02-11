@@ -57,6 +57,11 @@ EXPOSE 80
 # Set timezone to EST
 RUN ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 
+# Install DENO for yt-dlp js challenges
+RUN curl -fsSL https://deno.land/install.sh > deno_install.sh
+RUN sh deno_install.sh -y
+RUN rm deno_install.sh
+
 # Write build date
 RUN python3 -c "from datetime import datetime; print(datetime.today().strftime('%Y-%m-%d'))" >> /var/www/html/version.txt
 
