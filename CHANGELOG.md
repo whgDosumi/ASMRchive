@@ -1,3 +1,6 @@
+## 1.8.4 - 2026-02-11
+fix: Adds deno to path. Required for yt-dlp to use it. (#150)
+
 ## 1.8.3 - 2026-02-11
 fix: Several bug fixes, upgrade major os edition.
 
