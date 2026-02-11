@@ -1,3 +1,12 @@
+## 1.8.3 - 2026-02-11
+fix: Several bug fixes, upgrade major os edition.
+
+* chore: update base image to Fedora 43
+
+* fix: Fixes inability to solve js challenges
+
+* fix: Fixes a problem where members-only videos will download themselves 10 times every time.
+
 ## 1.8.2 - 2025-07-18
 test: Allows unit test to try a few times before failing, allowing time for server to come up.
 
