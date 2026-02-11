@@ -283,6 +283,8 @@ class video_downloader():
                         runtime_file.write(length)
                 shutil.copy("/var/www/html/player.php", os.path.join(self.path, "player.php"))
                 meta = get_meta(self.url)
+                if "Exception" in meta:
+                    meta = get_meta_cookie(self.url)
                 yt_duration = meta["duration"]
                 # Check that the duration roughly matches the duration of the youtube video
                 variance = 3 # seconds of acceptable difference
