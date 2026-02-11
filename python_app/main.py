@@ -15,17 +15,16 @@ import subprocess
 meta_dict = {}
 
 
-# Used for compatibility.
-def convert_library(asmr_directory, threads=10):
-    bad_formats = ["webm", "opus", "flac", "aac", "wav", "mp3"]
-    convert_to = "m4a"
-
-    def convert(root, file, convert_to):
+def convert_file(root, file, convert_to):
         ff_input = os.path.join(root, file)
         ff_output = os.path.join(root, "asmr." + str(convert_to))
         command = f"ffmpeg -y -i {ff_input} -codec:a aac -b:a 256k {ff_output}"
         os.system(command)
 
+# Used for compatibility.
+def convert_library(asmr_directory, threads=10):
+    bad_formats = ["webm", "opus", "flac", "aac", "wav", "mp3"]
+    convert_to = "m4a"
 
     processes = []
     converted_dirs = []
@@ -43,7 +42,7 @@ def convert_library(asmr_directory, threads=10):
                             p.join(timeout=.1)
                             if not p.is_alive():
                                 processes.remove(p)
-                    p = Process(target=convert, args=(dir_path, "asmr." + format, convert_to))
+                    p = Process(target=convert_file, args=(dir_path, "asmr." + format, convert_to))
                     p.start()
                     processes.append(p)
     for p in processes:
@@ -284,6 +283,8 @@ class video_downloader():
                         runtime_file.write(length)
                 shutil.copy("/var/www/html/player.php", os.path.join(self.path, "player.php"))
                 meta = get_meta(self.url)
+                if "Exception" in meta:
+                    meta = get_meta_cookie(self.url)
                 yt_duration = meta["duration"]
                 # Check that the duration roughly matches the duration of the youtube video
                 variance = 3 # seconds of acceptable difference

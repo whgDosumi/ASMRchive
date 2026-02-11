@@ -1,11 +1,11 @@
-FROM fedora:40
+FROM fedora:43
 
 # Install rpmfusion for ffmpeg
 RUN dnf install -y https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 
 # Install webserver, php, cron, python, and ffmpeg, findutils for perm mods later on.
 RUN dnf update -y && dnf -y install \
-    httpd php.x86_64 cronie python pip ffmpeg findutils
+    httpd php.x86_64 cronie python pip ffmpeg findutils unzip
 
 # Upgrade pip
 RUN python -m pip install --upgrade pip
@@ -56,6 +56,11 @@ EXPOSE 80
 
 # Set timezone to EST
 RUN ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
+
+# Install DENO for yt-dlp js challenges
+RUN curl -fsSL https://deno.land/install.sh > deno_install.sh
+RUN sh deno_install.sh -y
+RUN rm deno_install.sh
 
 # Write build date
 RUN python3 -c "from datetime import datetime; print(datetime.today().strftime('%Y-%m-%d'))" >> /var/www/html/version.txt
