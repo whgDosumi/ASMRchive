@@ -1,22 +1,16 @@
-# Runs a headless chrome for testing purposes. 
 FROM almalinux:latest
 
-RUN dnf install -y epel-release
-RUN dnf clean all
-RUN dnf -y update
-RUN dnf install -y python pip wget unzip
-# Install chrome
-RUN wget https://dl.google.com/linux/linux_signing_key.pub
-RUN update-crypto-policies --set DEFAULT:SHA1
-RUN rpm --import linux_signing_key.pub
-RUN update-crypto-policies --set DEFAULT
-RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
-RUN dnf clean all
-RUN dnf -y localinstall google-chrome-stable_current_x86_64.rpm --skip-broken --setopt=install_weak_deps=False
+RUN dnf install -y epel-release \
+    && dnf clean all \
+    && dnf -y update \
+    && dnf install -y python3 python3-pip chromium chromium-headless chromedriver \
+    && dnf clean all
 
+RUN mkdir -p /test/downloads
 
-RUN mkdir /test
-RUN mkdir /test/downloads
+COPY requirements.txt /test/
+RUN pip3 install --no-cache-dir -r /test/requirements.txt
+
 COPY ./* /test/
-RUN pip install -r /test/requirements.txt
-ENTRYPOINT ["python", "/test/test.py"]
+
+ENTRYPOINT ["python3", "/test/test.py"]
