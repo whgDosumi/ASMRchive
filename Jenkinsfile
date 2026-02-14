@@ -75,24 +75,6 @@ pipeline {
                 sh "podman run --network=\"host\" asmrchive-test"
             }
         }
-        stage ("Integration Tests (rproxy)") { 
-            steps {
-                echo "Removing first container"
-                sh "podman container stop jenkins-asmrchive"
-                sh "podman container rm jenkins-asmrchive"
-                echo "Constructing container"
-                sh """
-                podman create \
-                    -p 4445:80 \
-                    --name jenkins-asmrchive \
-                    -e HOST_URL=http://localhost/Jenkins_ASMRchive/ \
-                    jenkins-asmrchive
-                """
-                echo "Starting Container"
-                sh "podman container start jenkins-asmrchive"
-                sh "podman run --network=\"host\" asmrchive-test --url http://localhost/Jenkins_ASMRchive/"
-            }
-        }
         stage ("Integration Test (DLP Updates)") {
             steps{
                 echo "Removing first container"
