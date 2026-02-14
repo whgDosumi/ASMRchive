@@ -1,3 +1,38 @@
+## 1.8.5 - 2026-02-14
+ci: Pipeline Optimizations (#151)
+
+* ci: Remove unnecessary reverse proxy test.
+
+* ci: Remove unused Build ID parameter
+
+This was defined at some point but never implemented in the pipeline.
+Removed to reduce confusion, and clean up the parameter list. May re-add later.
+
+* ci: Add intelligent image caching based on job.
+
+PR Builds will be forced to fully rebuild.
+Branch Builds will use caching for speed!
+Dangling images are now cleaned up when doing fresh builds.
+
+Should significantly reduce build times during branch updates for faster
+testing, while ensuring PR builds get clean dependency updates.
+
+* ci: Add optional pause functionality.
+
+With the previously unused pause parameter, it's now implemented
+so, when enabled, allows stepping through each stage of the pipeline
+for deeper troubleshooting capabilities. Also updated the container URL.
+
+* ci: Fix extra curly brace
+
+* build: Optimize image layers
+
+- Reduced image size by adding dnf clean all
+- Combined run layers to speed up build and reduce total layers (size).
+- Moved deno install to start of build process, optimize layer cache.
+
+* test: Fix testing pipeline
+
 ## 1.8.4 - 2026-02-11
 fix: Adds deno to path. Required for yt-dlp to use it. (#150)
 
