@@ -112,7 +112,7 @@ pipeline {
                     sh "podman --storage-opt ignore_chown_errors=true build ${cacheFlag} -t asmrchive-test testing/"
                 }
                 sh "podman run --network=\"host\" asmrchive-test"
-                script {}
+                script {
                     if (params.Pause) {
                         def pauseMsg = """
                         Stage: Integration Tests - COMPLETE
