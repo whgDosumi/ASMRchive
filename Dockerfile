@@ -5,20 +5,28 @@ RUN dnf install -y https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-rele
 
 # Install webserver, php, cron, python, and ffmpeg, findutils for perm mods later on.
 RUN dnf update -y && dnf -y install \
-    httpd php.x86_64 cronie python pip ffmpeg findutils unzip
+    httpd php.x86_64 cronie python pip ffmpeg findutils unzip \
+    && dnf clean all
 
-# Upgrade pip
-RUN python -m pip install --upgrade pip
+
+# Install DENO for yt-dlp js challenges
+RUN curl -fsSL https://deno.land/install.sh | sh -s -- -y \
+    && ln -s /root/.deno/bin/deno /usr/local/bin/deno
+
+
+# Set timezone to EST
+RUN ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 
 # Set up crontab to run the python app every 15 minutes.
 RUN (echo -e "*/15 * * * * /usr/bin/python3 /var/python_app/main.py >> \"/var/ASMRchive/.appdata/logs/python/main-\$(date +\%Y-\%m-\%d)-asmr.log\" 2>&1\n* * * * * /var/python_app/flag_check.sh\n0 * * * * /usr/bin/python3 /var/python_app/check_dlp.py") | crontab -
 
-# install python requirements
+# install python requirements, ensure yt-dlp is up to date.
 COPY python_app/requirements.txt /var/python_requirements.txt
-RUN python -m pip install -r /var/python_requirements.txt
-# Make sure we update yt-dlp
-RUN python3 -m pip install -U "yt-dlp[default]"
-RUN rm /var/python_requirements.txt
+RUN python -m pip install --upgrade pip \
+    && python -m pip install -r /var/python_requirements.txt \
+    && python3 -m pip install -U "yt-dlp[default]" \ 
+    && rm /var/python_requirements.txt
+
 
 # Add php config (required for uploads)
 COPY php.ini /etc/php.ini
@@ -27,20 +35,20 @@ COPY www.conf /etc/php-fpm.d/www.conf
 # Add httpd config
 COPY httpd.conf /etc/httpd/conf/httpd.conf
 
-# This is required to make php work.
-RUN mkdir -p /run/php-fpm/
+# Set up directory structure
+# The php-fpm directory is required for php to communicate with Apache
+# Soft link provides webserver access to the ASMRchive directory.
+RUN mkdir -p /run/php-fpm/ \
+    && mkdir /var/ASMRchive \
+    && ln -s /var/ASMRchive /var/www/html/ASMR
 
-# mkdir for ASMRchive directory.
-RUN mkdir /var/ASMRchive
-# and make link in web
-RUN ln -s /var/ASMRchive /var/www/html/ASMR
 
 # Copy over startup.sh and make it executable.
 COPY startup.sh /var/startup.sh
 RUN chmod 770 /var/startup.sh
 
 # Copy over webserver.
-ADD www /var/www/html
+COPY www /var/www/html
 
 # Copy over python app.
 COPY python_app /var/python_app
@@ -49,20 +57,10 @@ COPY python_app /var/python_app
 RUN chmod 770 /var/python_app/flag_check.sh
 
 # Copy in version for webserver.
-ADD version.txt /var/www/html/version.txt
+COPY version.txt /var/www/html/version.txt
 
 # Expose httpd.
 EXPOSE 80
-
-# Set timezone to EST
-RUN ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
-
-# Install DENO for yt-dlp js challenges
-RUN curl -fsSL https://deno.land/install.sh > deno_install.sh
-RUN sh deno_install.sh -y
-RUN rm deno_install.sh
-# Add to path
-RUN ln -s /root/.deno/bin/deno /usr/local/bin/deno
 
 # Write build date
 RUN python3 -c "from datetime import datetime; print(datetime.today().strftime('%Y-%m-%d'))" >> /var/www/html/version.txt
