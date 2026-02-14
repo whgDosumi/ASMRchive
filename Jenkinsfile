@@ -16,7 +16,6 @@ pipeline {
         booleanParam(defaultValue: false, description: "Use Image Cache?", name: "USE_CACHE")
         booleanParam(defaultValue: false, description: "Suppress Telegram Notifications", name: "SUPPRESS_NOTIFS")
         booleanParam(defaultValue: false, description: "Pause Between Steps", name: "Pause")
-        text(name: "Build ID", defaultValue: "", description: "Build ID")
     }
     stages {
         stage ("Initialization") {
