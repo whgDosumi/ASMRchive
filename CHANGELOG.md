@@ -1,3 +1,14 @@
+## 1.9.0 - 2026-02-15
+feat: Cookie upload via admintools (#152)
+
+Adds a form to admintools that accepts Netscape-format cookies with a
+configurable TTL (15/30/60/120 min). Cookies are saved with expiration
+timestamps in the filename and automatically cleaned up by flag_check.sh.
+
+- Cookie files are write-only (0200) to prevent Apache from reading them
+- Cookies directory permissions updated so Apache can write but not list
+- Fixed PHP timezone (was UTC, now matches container EST)
+
 ## 1.8.5 - 2026-02-14
 ci: Pipeline Optimizations (#151)
 
