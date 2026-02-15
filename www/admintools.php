@@ -108,6 +108,57 @@
             echo "<script type='text/javascript'>alert('Will refresh yt-dlp info, please wait a moment and refresh to see the update.');</script>";
         }
 
+        // Upload Cookie
+        if (isset($_POST['cookie_upload']) && isset($_POST['cookie_content']) && isset($_POST['cookie_ttl'])) {
+            $cookie_content = $_POST['cookie_content'];
+            $cookie_ttl = intval($_POST['cookie_ttl']);
+            $allowed_ttls = [15, 30, 60, 120];
+
+            if (!in_array($cookie_ttl, $allowed_ttls)) {
+                echo "<script type='text/javascript'>alert('Invalid TTL selected.');</script>";
+            } else {
+                // Validate Netscape cookie format
+                $cookie_content = str_replace("\r\n", "\n", $cookie_content);
+                $cookie_content = str_replace("\r", "\n", $cookie_content);
+                $lines = explode("\n", trim($cookie_content));
+                $valid = true;
+                $data_lines = 0;
+                foreach ($lines as $line) {
+                    $line = trim($line);
+                    if ($line === "" || str_starts_with($line, "#")) {
+                        continue;
+                    }
+                    $fields = explode("\t", $line);
+                    if (count($fields) !== 7) {
+                        $valid = false;
+                        break;
+                    }
+                    $data_lines++;
+                }
+                if (!$valid || $data_lines === 0) {
+                    echo "<script type='text/javascript'>alert('Invalid Netscape cookie format. Each data line must have 7 tab-separated fields.');</script>";
+                } else if (!is_dir("/var/ASMRchive/.appdata/cookies/")) {
+                    echo "<script type='text/javascript'>alert('Cookies directory does not exist.');</script>";
+                } else {
+                    $expiry = date("Ymd-Hi", strtotime("+{$cookie_ttl} minutes"));
+                    $suffix = bin2hex(random_bytes(2));
+                    $filename = "cookie-{$expiry}-{$suffix}.txt";
+                    $filepath = "/var/ASMRchive/.appdata/cookies/{$filename}";
+                    $result = file_put_contents($filepath, $cookie_content);
+                    if ($result !== false) {
+                        chmod($filepath, 0200);
+                        echo "<script type='text/javascript'>
+                            var expiry = new Date(Date.now() + {$cookie_ttl} * 60000);
+                            var timeStr = expiry.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+                            alert('Cookie uploaded. Expires at ' + timeStr + '.');
+                        </script>";
+                    } else {
+                        echo "<script type='text/javascript'>alert('Failed to save cookie file.');</script>";
+                    }
+                }
+            }
+        }
+
         // Upload ASMR
         if (isset($_POST['send']) and isset($_FILES['upload_file']) and isset($_POST['upload_channel'])) {
             $uploadOk = 1;
@@ -344,6 +395,38 @@
                             <?=$error_message?>
                         </td>
                         <td class="upload_table_cell"><input class="submit_button" type="submit" name="send" value="Send" id="request_video_button">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+        <form method="post">
+            <table>
+                <thead>
+                    <th colspan="2">Upload Cookie</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="upload_table_cell" title="Netscape HTTP cookie format, tab-separated"> Cookie<span style="color:red;">*</span> </td>
+                        <td class="upload_table_cell">
+                            <textarea name="cookie_content" id="cookie_content" required></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="upload_table_cell"> Time to Live<span style="color:red;">*</span> </td>
+                        <td class="upload_table_cell">
+                            <select name="cookie_ttl" id="cookie_ttl" required>
+                                <option value="15">15 minutes</option>
+                                <option value="30" selected>30 minutes</option>
+                                <option value="60">1 hour</option>
+                                <option value="120">2 hours</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="upload_table_error_cell"></td>
+                        <td class="upload_table_cell">
+                            <input type="submit" name="cookie_upload" value="Send" class="submit_button">
                         </td>
                     </tr>
                 </tbody>

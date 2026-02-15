@@ -50,7 +50,8 @@ ln -s /var/ASMRchive/.appdata/channels /var/www/html/channels # Give webserver a
 fi
 
 # Set desired file permissions
-chmod o-r /var/ASMRchive/.appdata/cookies 
+chgrp apache /var/ASMRchive/.appdata/cookies
+chmod 730 /var/ASMRchive/.appdata/cookies
 chmod o-r /var/ASMRchive/.appdata/logs 
 chmod o+w /var/ASMRchive/.appdata/channels
 # Give apache ownership of the channel files
