@@ -8,9 +8,6 @@ pipeline {
         // Sanitize BUILD_TAG for use in container/image/network/volume names.
         // BUILD_TAG is jenkins-{JOB_NAME}-{BUILD_NUMBER} e.g. jenkins-PR-Builder-42
         BUILD_TAG_CLEAN = "${env.BUILD_TAG.replaceAll('[^a-zA-Z0-9_-]', '-').toLowerCase()}"
-        // Assign a unique host port based on which executor is running this build.
-        // Executors are numbered 0-4, giving ports 4445-4449.
-        BUILD_PORT = "${4445 + (env.EXECUTOR_NUMBER as Integer ?: 0)}"
     }
     parameters {
         // Determines whether we should skip the manual review step
@@ -24,6 +21,11 @@ pipeline {
             steps {
                 script {
                     echo "Initializing"
+                    // Assign a unique host port based on which executor is running this build.
+                    // Executors are numbered 0-4, giving ports 4445-4449.
+                    // The Jenkins server is configured with a proxy server, so you can access at
+                    // jenkins-${env.EXECUTOR_NUMBER + 1}.wronghood.net
+                    env.BUILD_PORT = "${4445 + ((env.EXECUTOR_NUMBER ?: '0') as Integer)}"
                     def skip_manual = params.SKIP_REVIEW
                     def use_cache = params.USE_CACHE
                     if (env.JOB_NAME.contains("PR Builder")) {
@@ -45,13 +47,13 @@ pipeline {
                     env.CONTAINER_NAME = "asmrchive-${env.BUILD_TAG_CLEAN}"
                     env.NETWORK_NAME   = "asmrchive-net-${env.BUILD_TAG_CLEAN}"
                     env.VOLUME_NAME    = "asmrchive-vol-${env.BUILD_TAG_CLEAN}"
-
-                    echo "App image:  ${env.APP_IMAGE}"
-                    echo "Test image: ${env.TEST_IMAGE}"
-                    echo "Container:  ${env.CONTAINER_NAME}"
-                    echo "Network:    ${env.NETWORK_NAME}"
-                    echo "Volume:     ${env.VOLUME_NAME}"
-                    echo "Port:       ${env.BUILD_PORT}"
+                    echo "Build Tag Clean: ${env.BUILD_TAG_CLEAN}"
+                    echo "App image:       ${env.APP_IMAGE}"
+                    echo "Test image:      ${env.TEST_IMAGE}"
+                    echo "Container:       ${env.CONTAINER_NAME}"
+                    echo "Network:         ${env.NETWORK_NAME}"
+                    echo "Volume:          ${env.VOLUME_NAME}"
+                    echo "Live Demo:       http://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net"
                 }
             }
         }
@@ -88,7 +90,7 @@ pipeline {
                         def pauseMsg = """
                         Stage: Spawn Container - COMPLETE
 
-                        Container is running at: http://lan.wronghood.net:${BUILD_PORT}
+                        Container is running at: http://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net
 
                         Exec into the container: podman exec -it ${CONTAINER_NAME} bash
 
@@ -107,7 +109,7 @@ pipeline {
                         def pauseMsg = """
                         Stage: Unit Tests - COMPLETE
 
-                        Container is running at: http://lan.wronghood.net:${BUILD_PORT}
+                        Container is running at: http://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net
 
                         Exec into the container: podman exec -it ${CONTAINER_NAME} bash
 
@@ -125,7 +127,7 @@ pipeline {
                     sh "podman --storage-opt ignore_chown_errors=true build ${cacheFlag} --label project=asmrchive --label image_type=test -t ${TEST_IMAGE} testing/"
                 }
                 sh """
-                podman run \
+                podman run --rm \
                     --network ${NETWORK_NAME} \
                     ${TEST_IMAGE} \
                     --url http://${CONTAINER_NAME}:80
@@ -135,7 +137,7 @@ pipeline {
                         def pauseMsg = """
                         Stage: Integration Tests - COMPLETE
 
-                        Container is running at: http://lan.wronghood.net:${BUILD_PORT}
+                        Container is running at: http://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net
 
                         Exec into the container: podman exec -it ${CONTAINER_NAME} bash
 
@@ -166,7 +168,7 @@ pipeline {
                 echo "Starting Container"
                 sh "podman container start ${CONTAINER_NAME}"
                 sh """
-                podman run \
+                podman run --rm \
                     --network ${NETWORK_NAME} \
                     ${TEST_IMAGE} \
                     --url http://${CONTAINER_NAME}:80 \
@@ -177,7 +179,7 @@ pipeline {
                         def pauseMsg = """
                         Stage: Integration Tests (DLP Updates) - COMPLETE
 
-                        Container is running at: http://lan.wronghood.net:${BUILD_PORT}
+                        Container is running at: http://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net
 
                         Exec into the container: podman exec -it ${CONTAINER_NAME} bash
 
@@ -200,7 +202,7 @@ pipeline {
                     def baseJenkinsUrl = env.JENKINS_URL
                     def jobNamePath = env.JOB_NAME.replaceAll("/", "/job/")
                     def jobUrl = "${baseJenkinsUrl}job/${jobNamePath}/"
-                    def message = "Build requires manual review\n[Jenkins Job](${jobUrl})\n[Live Demo](http://lan.wronghood.net:${BUILD_PORT})"
+                    def message = "Build requires manual review\n[Jenkins Job](${jobUrl})\n[Live Demo](http://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net)"
                     def chatId = "222789278"
                     withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN')]) {
                         sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${chatId} -d text='${message}' -d parse_mode=Markdown"
@@ -209,7 +211,7 @@ pipeline {
                     def pauseMsg = """
                     Stage: All Tests - COMPLETE
 
-                    Container is running at: http://lan.wronghood.net:${BUILD_PORT}
+                    Container is running at: http://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net
 
                     Exec into the container: podman exec -it ${CONTAINER_NAME} bash
 
@@ -225,7 +227,7 @@ pipeline {
             // Remove this build's container and network.
             // The volume is kept for retention (cleaned up below).
             sh "podman container rm -f ${CONTAINER_NAME} || true"
-            sh "podman network rm ${NETWORK_NAME} || true"
+            sh "podman network rm -f ${NETWORK_NAME} || true"
 
             // Keep the 5 most recently built app images; remove older ones.
             // podman images lists newest-first, so tail -n +6 is everything past the first 5.
