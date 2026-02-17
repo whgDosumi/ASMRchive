@@ -7,7 +7,7 @@ pipeline {
     environment {
         // Sanitize BUILD_TAG for use in container/image/network/volume names.
         // BUILD_TAG is jenkins-{JOB_NAME}-{BUILD_NUMBER} e.g. jenkins-PR-Builder-42
-        BUILD_TAG_CLEAN = "${env.BUILD_TAG.replaceAll('[^a-zA-Z0-9_-]', '-')}"
+        BUILD_TAG_CLEAN = "${env.BUILD_TAG.replaceAll('[^a-zA-Z0-9_-]', '-').toLowerCase()}"
         // Assign a unique host port based on which executor is running this build.
         // Executors are numbered 0-4, giving ports 4445-4449.
         BUILD_PORT = "${4445 + (env.EXECUTOR_NUMBER as Integer ?: 0)}"
