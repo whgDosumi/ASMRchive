@@ -1,14 +1,16 @@
 pipeline {
     agent any
     options {
-        // For throttling other builds
-        throttleJobProperty(
-        categories: ['ASMRchive'],
-        throttleEnabled: true,
-        throttleOption: 'category'
-        )
-        // Only keep 3 builds
+        // Only keep 10 builds
         buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+    environment {
+        // Sanitize BUILD_TAG for use in container/image/network/volume names.
+        // BUILD_TAG is jenkins-{JOB_NAME}-{BUILD_NUMBER} e.g. jenkins-PR-Builder-42
+        BUILD_TAG_CLEAN = "${env.BUILD_TAG.replaceAll('[^a-zA-Z0-9_-]', '-')}"
+        // Assign a unique host port based on which executor is running this build.
+        // Executors are numbered 0-4, giving ports 4445-4449.
+        BUILD_PORT = "${4445 + (env.EXECUTOR_NUMBER as Integer ?: 0)}"
     }
     parameters {
         // Determines whether we should skip the manual review step
@@ -34,50 +36,61 @@ pipeline {
                     }
                     env.skip_manual_dynamic = skip_manual.toString()
                     env.use_cache_dynamic = use_cache.toString()
+
+                    // Derive unique resource names for this build from BUILD_TAG_CLEAN.
+                    // All names are prefixed with 'asmrchive' and use a two-letter
+                    // abbreviation to identify the resource type (net, vol).
+                    env.APP_IMAGE      = "asmrchive-${env.BUILD_TAG_CLEAN}"
+                    env.TEST_IMAGE     = "asmrchive-test-${env.BUILD_TAG_CLEAN}"
+                    env.CONTAINER_NAME = "asmrchive-${env.BUILD_TAG_CLEAN}"
+                    env.NETWORK_NAME   = "asmrchive-net-${env.BUILD_TAG_CLEAN}"
+                    env.VOLUME_NAME    = "asmrchive-vol-${env.BUILD_TAG_CLEAN}"
+
+                    echo "App image:  ${env.APP_IMAGE}"
+                    echo "Test image: ${env.TEST_IMAGE}"
+                    echo "Container:  ${env.CONTAINER_NAME}"
+                    echo "Network:    ${env.NETWORK_NAME}"
+                    echo "Volume:     ${env.VOLUME_NAME}"
+                    echo "Port:       ${env.BUILD_PORT}"
                 }
             }
-        }
-        stage ("Tidy Up") { // Cleans up environment to ensure we don't have artifacts from old builds
-            steps {
-                echo "Removing existing testing containers"
-                sh "podman ps -a -q -f ancestor=jenkins-asmrchive | xargs -I {} podman container rm -f {} || true" // Removes all containers that exist under the image
-                script {
-                    if (env.use_cache_dynamic == "false") {
-                        echo "Fresh build - cleaning up old images."
-                        sh "podman image prune -a -f || true"
-                    }
-                }
-            }   
         }
         stage ("Build Image") {
             steps {
                 echo "Building image (cache: ${env.use_cache_dynamic})"
                 script {
                     def cacheFlag = env.use_cache_dynamic == "true" ? "" : "--no-cache --pull"
-                    sh "podman --storage-opt ignore_chown_errors=true build ${cacheFlag} -t jenkins-asmrchive ."
+                    sh "podman --storage-opt ignore_chown_errors=true build ${cacheFlag} --label project=asmrchive --label image_type=app -t ${APP_IMAGE} ."
                 }
             }
         }
         stage ("Spawn Container") {
             steps {
-                echo "Constructing Container"
+                echo "Creating podman network: ${NETWORK_NAME}"
+                sh "podman network create ${NETWORK_NAME}"
+                echo "Creating podman volume: ${VOLUME_NAME}"
+                sh "podman volume create --label project=asmrchive ${VOLUME_NAME}"
+                echo "Constructing Container on port ${BUILD_PORT}"
                 sh """
                 podman create \
-                    -p 4445:80 \
-                    --name jenkins-asmrchive \
+                    -p ${BUILD_PORT}:80 \
+                    --name ${CONTAINER_NAME} \
+                    --network ${NETWORK_NAME} \
+                    --volume ${VOLUME_NAME}:/var/ASMRchive \
+                    --label project=asmrchive \
                     -e HOST_URL=http://localhost/ \
-                    jenkins-asmrchive
+                    ${APP_IMAGE}
                 """
                 echo "Starting Container"
-                sh "podman container start jenkins-asmrchive"
+                sh "podman container start ${CONTAINER_NAME}"
                 script {
                     if (params.Pause) {
                         def pauseMsg = """
                         Stage: Spawn Container - COMPLETE
-                        
-                        Container is running at: http://lan.wronghood.net:4445
-                        
-                        Exec into the container: podman exec -it jenkins-asmrchive bash
+
+                        Container is running at: http://lan.wronghood.net:${BUILD_PORT}
+
+                        Exec into the container: podman exec -it ${CONTAINER_NAME} bash
 
                         Click 'Proceed' when ready to continue to Unit Tests.
                         """
@@ -88,15 +101,15 @@ pipeline {
         }
         stage ("Unit Tests") {
             steps {
-                sh "podman exec jenkins-asmrchive python /var/python_app/test.py"
+                sh "podman exec ${CONTAINER_NAME} python /var/python_app/test.py"
                 script {
                     if (params.Pause) {
                         def pauseMsg = """
                         Stage: Unit Tests - COMPLETE
-                        
-                        Container is running at: http://lan.wronghood.net:4445
-                        
-                        Exec into the container: podman exec -it jenkins-asmrchive bash
+
+                        Container is running at: http://lan.wronghood.net:${BUILD_PORT}
+
+                        Exec into the container: podman exec -it ${CONTAINER_NAME} bash
 
                         Click 'Proceed' when ready to continue to Integration Tests.
                         """
@@ -109,17 +122,22 @@ pipeline {
             steps {
                 script {
                     def cacheFlag = env.use_cache_dynamic == "true" ? "" : "--no-cache --pull"
-                    sh "podman --storage-opt ignore_chown_errors=true build ${cacheFlag} -t asmrchive-test testing/"
+                    sh "podman --storage-opt ignore_chown_errors=true build ${cacheFlag} --label project=asmrchive --label image_type=test -t ${TEST_IMAGE} testing/"
                 }
-                sh "podman run --network=\"host\" asmrchive-test"
+                sh """
+                podman run \
+                    --network ${NETWORK_NAME} \
+                    ${TEST_IMAGE} \
+                    --url http://${CONTAINER_NAME}:80
+                """
                 script {
                     if (params.Pause) {
                         def pauseMsg = """
                         Stage: Integration Tests - COMPLETE
-                        
-                        Container is running at: http://lan.wronghood.net:4445
-                        
-                        Exec into the container: podman exec -it jenkins-asmrchive bash
+
+                        Container is running at: http://lan.wronghood.net:${BUILD_PORT}
+
+                        Exec into the container: podman exec -it ${CONTAINER_NAME} bash
 
                         Click 'Proceed' when ready to continue to DLP Update tests.
                         """
@@ -129,33 +147,39 @@ pipeline {
             }
         }
         stage ("Integration Test (DLP Updates)") {
-            steps{
+            steps {
                 echo "Removing first container"
-                sh "podman container stop jenkins-asmrchive"
-                sh "podman container rm jenkins-asmrchive"
+                sh "podman container stop ${CONTAINER_NAME}"
+                sh "podman container rm ${CONTAINER_NAME}"
                 echo "Constructing container"
                 sh """
                 podman create \
-                    -p 4445:80 \
-                    --name jenkins-asmrchive \
+                    -p ${BUILD_PORT}:80 \
+                    --name ${CONTAINER_NAME} \
+                    --network ${NETWORK_NAME} \
+                    --volume ${VOLUME_NAME}:/var/ASMRchive \
+                    --label project=asmrchive \
                     -e DLP_VER=2024.12.06 \
                     -e HOST_URL=http://localhost/Jenkins_ASMRchive/ \
-                    jenkins-asmrchive
+                    ${APP_IMAGE}
                 """
                 echo "Starting Container"
-                sh "podman container start jenkins-asmrchive"
-                sh "podman run \
-                        --network=\"host\" \
-                        asmrchive-test \
-                        --test dlponly"
+                sh "podman container start ${CONTAINER_NAME}"
+                sh """
+                podman run \
+                    --network ${NETWORK_NAME} \
+                    ${TEST_IMAGE} \
+                    --url http://${CONTAINER_NAME}:80 \
+                    --test dlponly
+                """
                 script {
                     if (params.Pause) {
                         def pauseMsg = """
                         Stage: Integration Tests (DLP Updates) - COMPLETE
-                        
-                        Container is running at: http://lan.wronghood.net:4445
-                        
-                        Exec into the container: podman exec -it jenkins-asmrchive bash
+
+                        Container is running at: http://lan.wronghood.net:${BUILD_PORT}
+
+                        Exec into the container: podman exec -it ${CONTAINER_NAME} bash
 
                         Click 'Proceed' when ready to continue to Manual Review.
                         """
@@ -176,7 +200,7 @@ pipeline {
                     def baseJenkinsUrl = env.JENKINS_URL
                     def jobNamePath = env.JOB_NAME.replaceAll("/", "/job/")
                     def jobUrl = "${baseJenkinsUrl}job/${jobNamePath}/"
-                    def message = "Build requires manual review\n[Jenkins Job](${jobUrl})\n[Live Demo](http://lan.wronghood.net:4445)"
+                    def message = "Build requires manual review\n[Jenkins Job](${jobUrl})\n[Live Demo](http://lan.wronghood.net:${BUILD_PORT})"
                     def chatId = "222789278"
                     withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN')]) {
                         sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${chatId} -d text='${message}' -d parse_mode=Markdown"
@@ -184,20 +208,54 @@ pipeline {
                     // Prompt user to review the build.
                     def pauseMsg = """
                     Stage: All Tests - COMPLETE
-                    
-                    Container is running at: http://lan.wronghood.net:4445
-                    
-                    Exec into the container: podman exec -it jenkins-asmrchive bash
+
+                    Container is running at: http://lan.wronghood.net:${BUILD_PORT}
+
+                    Exec into the container: podman exec -it ${CONTAINER_NAME} bash
 
                     Click 'Proceed' when ready to finalize the build.
                     """
                     input(id: 'userInput', message: pauseMsg)
                 }
-                
             }
         }
     }
     post {
+        always {
+            script {
+                // Remove this build's container and network.
+                // The volume is kept for retention (cleaned up below).
+                sh "podman container rm -f ${CONTAINER_NAME} || true"
+                sh "podman network rm ${NETWORK_NAME} || true"
+
+                // Keep the 5 most recently built app images; remove older ones.
+                // podman images lists newest-first, so tail -n +6 gives us everything
+                // beyond the first 5 (i.e. the ones we want to remove).
+                sh """
+                excess=\$(podman images --filter 'label=project=asmrchive' --filter 'label=image_type=app' --format '{{.ID}}' | tail -n +6)
+                if [ -n "\$excess" ]; then echo "\$excess" | xargs podman rmi -f || true; fi
+                """
+
+                // Same for test images.
+                sh """
+                excess=\$(podman images --filter 'label=project=asmrchive' --filter 'label=image_type=test' --format '{{.ID}}' | tail -n +6)
+                if [ -n "\$excess" ]; then echo "\$excess" | xargs podman rmi -f || true; fi
+                """
+
+                // Keep the 5 most recently created volumes; remove older ones.
+                // podman volume ls has no guaranteed sort order, so we inspect each
+                // volume's creation time and sort explicitly before trimming.
+                sh """
+                excess=\$(
+                    for vol in \$(podman volume ls --filter 'label=project=asmrchive' --format '{{.Name}}'); do
+                        created=\$(podman volume inspect "\$vol" --format '{{.CreatedAt}}')
+                        echo "\$created \$vol"
+                    done | sort -r | tail -n +6 | awk '{print \$NF}'
+                )
+                if [ -n "\$excess" ]; then echo "\$excess" | xargs podman volume rm || true; fi
+                """
+            }
+        }
         success {
             script {
                 if (!params.SUPPRESS_NOTIFS) {
