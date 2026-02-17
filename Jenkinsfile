@@ -222,39 +222,61 @@ pipeline {
     }
     post {
         always {
-            script {
-                // Remove this build's container and network.
-                // The volume is kept for retention (cleaned up below).
-                sh "podman container rm -f ${CONTAINER_NAME} || true"
-                sh "podman network rm ${NETWORK_NAME} || true"
+            // Remove this build's container and network.
+            // The volume is kept for retention (cleaned up below).
+            sh "podman container rm -f ${CONTAINER_NAME} || true"
+            sh "podman network rm ${NETWORK_NAME} || true"
 
-                // Keep the 5 most recently built app images; remove older ones.
-                // podman images lists newest-first, so tail -n +6 gives us everything
-                // beyond the first 5 (i.e. the ones we want to remove).
-                sh """
-                excess=\$(podman images --filter 'label=project=asmrchive' --filter 'label=image_type=app' --format '{{.ID}}' | tail -n +6)
-                if [ -n "\$excess" ]; then echo "\$excess" | xargs podman rmi -f || true; fi
-                """
+            // Keep the 5 most recently built app images; remove older ones.
+            // podman images lists newest-first, so tail -n +6 is everything past the first 5.
+            // We deduplicate IDs before counting — cached builds share the same image layer,
+            // so the same ID can appear multiple times (once per tag) and inflate the count.
+            sh """
+                all_ids=\$(podman images \
+                    --filter 'label=project=asmrchive' \
+                    --filter 'label=image_type=app' \
+                    --format '{{.ID}}')
 
-                // Same for test images.
-                sh """
-                excess=\$(podman images --filter 'label=project=asmrchive' --filter 'label=image_type=test' --format '{{.ID}}' | tail -n +6)
-                if [ -n "\$excess" ]; then echo "\$excess" | xargs podman rmi -f || true; fi
-                """
+                unique_ids=\$(echo "\$all_ids" | awk '!seen[\$0]++')
+                excess=\$(echo "\$unique_ids" | tail -n +6)
 
-                // Keep the 5 most recently created volumes; remove older ones.
-                // podman volume ls has no guaranteed sort order, so we inspect each
-                // volume's creation time and sort explicitly before trimming.
-                sh """
-                excess=\$(
+                if [ -n "\$excess" ]; then
+                    echo "\$excess" | xargs podman rmi -f || true
+                fi
+            """
+
+            // Same for test images.
+            sh """
+                all_ids=\$(podman images \
+                    --filter 'label=project=asmrchive' \
+                    --filter 'label=image_type=test' \
+                    --format '{{.ID}}')
+
+                unique_ids=\$(echo "\$all_ids" | awk '!seen[\$0]++')
+                excess=\$(echo "\$unique_ids" | tail -n +6)
+
+                if [ -n "\$excess" ]; then
+                    echo "\$excess" | xargs podman rmi -f || true
+                fi
+            """
+
+            // Keep the 5 most recently created volumes; remove older ones.
+            // podman volume ls has no guaranteed sort order, so we inspect each
+            // volume's creation time and sort explicitly before trimming.
+            sh """
+                all_vols=\$(
                     for vol in \$(podman volume ls --filter 'label=project=asmrchive' --format '{{.Name}}'); do
                         created=\$(podman volume inspect "\$vol" --format '{{.CreatedAt}}')
                         echo "\$created \$vol"
-                    done | sort -r | tail -n +6 | awk '{print \$NF}'
+                    done | sort -r | awk '{print \$NF}'
                 )
-                if [ -n "\$excess" ]; then echo "\$excess" | xargs podman volume rm || true; fi
-                """
-            }
+
+                excess=\$(echo "\$all_vols" | tail -n +6)
+
+                if [ -n "\$excess" ]; then
+                    echo "\$excess" | xargs podman volume rm || true
+                fi
+            """
         }
         success {
             script {
