@@ -53,7 +53,7 @@ pipeline {
                     echo "Container:       ${env.CONTAINER_NAME}"
                     echo "Network:         ${env.NETWORK_NAME}"
                     echo "Volume:          ${env.VOLUME_NAME}"
-                    echo "Live Demo:       http://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net"
+                    echo "Live Demo:       https://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net"
                 }
             }
         }
@@ -90,7 +90,7 @@ pipeline {
                         def pauseMsg = """
                         Stage: Spawn Container - COMPLETE
 
-                        Container is running at: http://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net
+                        Container is running at: https://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net
 
                         Exec into the container: podman exec -it ${CONTAINER_NAME} bash
 
@@ -109,7 +109,7 @@ pipeline {
                         def pauseMsg = """
                         Stage: Unit Tests - COMPLETE
 
-                        Container is running at: http://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net
+                        Container is running at: https://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net
 
                         Exec into the container: podman exec -it ${CONTAINER_NAME} bash
 
@@ -137,7 +137,7 @@ pipeline {
                         def pauseMsg = """
                         Stage: Integration Tests - COMPLETE
 
-                        Container is running at: http://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net
+                        Container is running at: https://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net
 
                         Exec into the container: podman exec -it ${CONTAINER_NAME} bash
 
@@ -179,7 +179,7 @@ pipeline {
                         def pauseMsg = """
                         Stage: Integration Tests (DLP Updates) - COMPLETE
 
-                        Container is running at: http://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net
+                        Container is running at: https://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net
 
                         Exec into the container: podman exec -it ${CONTAINER_NAME} bash
 
@@ -202,7 +202,7 @@ pipeline {
                     def baseJenkinsUrl = env.JENKINS_URL
                     def jobNamePath = env.JOB_NAME.replaceAll("/", "/job/")
                     def jobUrl = "${baseJenkinsUrl}job/${jobNamePath}/"
-                    def message = "Build requires manual review\n[Jenkins Job](${jobUrl})\n[Live Demo](http://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net)"
+                    def message = "Build requires manual review\n[Jenkins Job](${jobUrl})\n[Live Demo](https://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net)"
                     def chatId = "222789278"
                     withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN')]) {
                         sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${chatId} -d text='${message}' -d parse_mode=Markdown"
@@ -211,7 +211,7 @@ pipeline {
                     def pauseMsg = """
                     Stage: All Tests - COMPLETE
 
-                    Container is running at: http://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net
+                    Container is running at: https://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net
 
                     Exec into the container: podman exec -it ${CONTAINER_NAME} bash
 
