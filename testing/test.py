@@ -5,12 +5,14 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 import os
+import socket
 import requests
 import time
 import shutil
 import random
 import sys
 import argparse
+from urllib.parse import urlparse
 
 supported_formats = [".wav", ".webm", ".flac", ".opus", ".m4a", ".mp3"]
 
@@ -145,6 +147,16 @@ else:
 print(f"Using {homepage_url} as the homepage url")
 script_directory = os.path.dirname(os.path.abspath(__file__))
 print(f"Testing on: {homepage_url}")
+
+# Headless Chrome in containers cannot use Podman's internal network DNS.
+# Resolve the hostname to an IP using Python's OS resolver,
+# then inject it via --host-resolver-rules so Chrome can reach the container.
+if args.url:
+    hostname = urlparse(homepage_url).hostname
+    host_ip = socket.gethostbyname(hostname)
+    chrome_options.add_argument(f'--host-resolver-rules=MAP {hostname} {host_ip}')
+    print(f"Resolved {hostname} to {host_ip} for Chrome")
+
 #Initialize chrome webdriver
 web = webdriver.Chrome(options=chrome_options)
 # Get our main pages, ensure we can connect properly
