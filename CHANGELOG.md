@@ -1,3 +1,45 @@
+## 1.9.1 - 2026-02-17
+CI Optimizations - Concurrent Builds (#153)
+
+* ci: Enable concurrent builds
+
+- Use EXECUTOR_NUMBER for port allocation (4445-4449)
+- Sanitize BUILD_TAG for all resource names (images, containers, networks, volumes)
+- Create dedicated podman network and volume per build
+- Replace --network=host with inter-container hostname communication
+- Remove throttle property and tidy-up stage
+- Implement comprehensive post-block cleanup (retain last 5 images/volumes)
+
+* ci: enforce lowercase for all Podman resource names
+
+Image names must be lowercase for Podman compatibility.
+Adding .toLowerCase() to BUILD_TAG_CLEAN ensures all derived names
+(images, containers, networks, volumes) are automatically valid.
+
+* test: resolve Podman container hostname for Chrome
+
+Chrome in headless containers cannot use Podman's internal network DNS.
+Resolve hostname to IP using socket.gethostbyname() and inject via
+--host-resolver-rules so Chrome can reach the app container.
+
+* ci: Fix build cleanup logic
+
+Made cleanup process more readable.
+The old process was counting image tags and not unique images,
+causing a duplication error that inflated the list. This resulted
+in images being actively used getting deleted. Fixed by clearing
+duplicates in the output so the logic works correctly.
+
+* ci: Switch to executor-specific DNS for build URLs
+
+Move BUILD_PORT calculation to Initialization stage and route all build links through
+executor-specific DNS hostnames (jenkins-1.wronghood.net, etc.) instead of lan.wronghood.net
+with port numbers. The reverse proxy handles hostname-based routing.
+
+* ci: Use HTTPS in executor links
+
+Update links to use HTTPS since we support it.
+
 ## 1.9.0 - 2026-02-15
 feat: Cookie upload via admintools (#152)
 
