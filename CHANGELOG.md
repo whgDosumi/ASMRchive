@@ -1,3 +1,49 @@
+## 1.10.0 - 2026-02-21
+Column Rework (#154)
+
+* feat: Remove status column from index.php
+
+Here we add a new argument for display_row in channel "show_status"
+which when true, shows the status. I removed this from index.php
+but kept it in admintools since channel status is more of an admin thing
+
+* ci: Fix "label too long" error
+
+There was an error within the integration tests stage, where the network
+name of the containers grows too long with a long branch name. This
+caused the step to fail. This fixes that by defining a network alias
+for the container. This is fine since builds are isolated in podman
+networks, so we can just use the same name every time.
+
+* ci: Fix error in Integration Tests
+
+There was an error in Integration tests that our previous commit
+was causing. This is because the test expects the status to be on the
+homepage. Since we removed it, it caused issues. Using admintools
+from now on.
+
+* ci: Use beautifulsoup for parsing webpages
+
+Change from my string parsing method to using beautifulsoup.
+This is much cleaner, easier to read, and more resilient to changes
+in the HTML.
+
+* feat: Add client-side sorting to web interface
+
+- Implement pure JavaScript table sorting in `www/sort.js`
+- Enable sorting on Channel Index, Video Lists, and admintools
+- Update `library.php` to inject `data-sort-value` for accurate sorting of dates, times, and counts
+- Add CSS styles for sortable headers and direction indicators
+
+* feat: Add "Updated" column
+
+- Implement tracking for when an ASMR was last added to a channel.
+- Update .channel metadata format to include a timestamp on line 4.
+- Add auto-migration to backfill timestamps
+- Ensure manual uploads and new channel additions refresh the "Updated" timestamp.
+
+* fix: Fix a colspan issue in admintools
+
 ## 1.9.1 - 2026-02-17
 CI Optimizations - Concurrent Builds (#153)
 
