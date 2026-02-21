@@ -481,7 +481,7 @@
                 $zeros = [];
                 foreach ($chans as $chan) {
                     if ($chan->count > 0) {
-                        $chan->display_row($show_members = true);
+                        $chan->display_row($show_members = true, $show_status = true);
                     } else {
                         array_push($zeros, $chan);
                     }
@@ -490,7 +490,7 @@
                 <th colspan="5" class="splitter">No Entries &#128546;</th>
                 <?php
                 foreach ($zeros as $chan) {
-                    $chan->display_row($show_members = true);
+                    $chan->display_row($show_members = true, $show_status = true);
                 }
                 ?>
             </tbody>

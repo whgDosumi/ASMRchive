@@ -41,7 +41,6 @@
         <table <?php if(count($chans) <= 0) { echo "hidden"; } ?> >
             <thead>
                 <th colspan="2">Channel</th>
-                <th>Status</th>
                 <th>Count</th>
             </thead>
             <tbody>
