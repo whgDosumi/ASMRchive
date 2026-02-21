@@ -78,6 +78,7 @@ pipeline {
                     -p ${BUILD_PORT}:80 \
                     --name ${CONTAINER_NAME} \
                     --network ${NETWORK_NAME} \
+                    --network-alias asmrchive-app \
                     --volume ${VOLUME_NAME}:/var/ASMRchive \
                     --label project=asmrchive \
                     -e HOST_URL=http://localhost/ \
@@ -130,7 +131,7 @@ pipeline {
                 podman run --rm \
                     --network ${NETWORK_NAME} \
                     ${TEST_IMAGE} \
-                    --url http://${CONTAINER_NAME}:80
+                    --url http://asmrchive-app:80
                 """
                 script {
                     if (params.Pause) {
@@ -159,6 +160,7 @@ pipeline {
                     -p ${BUILD_PORT}:80 \
                     --name ${CONTAINER_NAME} \
                     --network ${NETWORK_NAME} \
+                    --network-alias asmrchive-app \
                     --volume ${VOLUME_NAME}:/var/ASMRchive \
                     --label project=asmrchive \
                     -e DLP_VER=2024.12.06 \
@@ -171,7 +173,7 @@ pipeline {
                 podman run --rm \
                     --network ${NETWORK_NAME} \
                     ${TEST_IMAGE} \
-                    --url http://${CONTAINER_NAME}:80 \
+                    --url http://asmrchive-app:80 \
                     --test dlponly
                 """
                 script {
