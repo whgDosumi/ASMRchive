@@ -491,7 +491,7 @@
                     }
                 }
                 ?>
-                <th colspan="5" class="splitter">No Entries &#128546;</th>
+                <th colspan="6" class="splitter">No Entries &#128546;</th>
                 <?php
                 foreach ($zeros as $chan) {
                     $chan->display_row($show_members = true, $show_status = true);
