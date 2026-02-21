@@ -32,6 +32,13 @@ body {
     border-left: 2px solid black;
 }
 
+.updated {
+    font-size: 45px;
+    font-weight: bold;
+    text-align: center;
+    border-left: 2px solid black;
+}
+
 .member_image {
     width: 90px;
     margin: auto;
@@ -277,4 +284,27 @@ tbody {
     margin: auto;
     margin-top: 10px;
     margin-bottom: 10px;
+}
+
+/* Sorting styles */
+th.sortable {
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+}
+
+th.sortable:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+th.sortable.asc::after {
+    content: " ▲";
+    padding-left: 5px;
+    font-size: 0.8em;
+}
+
+th.sortable.desc::after {
+    content: " ▼";
+    padding-left: 5px;
+    font-size: 0.8em;
 }

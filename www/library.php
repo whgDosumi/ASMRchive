@@ -94,6 +94,55 @@
         return($text);
     }
 
+    # Helper to parse HH:MM:SS or MM:SS to seconds
+    function parse_duration_to_seconds($str) {
+        $parts = explode(':', $str);
+        $seconds = 0;
+        if (count($parts) === 3) {
+            $seconds = ((int)$parts[0] * 3600) + ((int)$parts[1] * 60) + (int)$parts[2];
+        } elseif (count($parts) === 2) {
+            $seconds = ((int)$parts[0] * 60) + (int)$parts[1];
+        } else {
+            $seconds = (int)$str;
+        }
+        return $seconds;
+    }
+
+    # Returns a compact string representing the time since the given timestamp
+    function get_time_since_string($timestamp) {
+        if ($timestamp == 0) {
+            return "---";
+        }
+        $diff = time() - $timestamp;
+        if ($diff < 0) { $diff = 0; }
+
+        if ($diff < 60) {
+            return $diff . "s";
+        }
+        if ($diff < 3600) {
+            return floor($diff / 60) . "m" . ($diff % 60) . "s";
+        }
+        if ($diff < 86400) {
+            return floor($diff / 3600) . "h" . floor(($diff % 3600) / 60) . "m";
+        }
+        if ($diff < 604800) {
+            return floor($diff / 86400) . "D";
+        }
+        if ($diff < 2592000) { # 30 days
+            $weeks = floor($diff / 604800);
+            $days = floor(($diff % 604800) / 86400);
+            return $weeks . "W" . ($days > 0 ? $days . "D" : "");
+        }
+        if ($diff < 31536000) { # 365 days
+            $months = floor($diff / 2592000);
+            $weeks = floor(($diff % 2592000) / 604800);
+            return $months . "M" . ($weeks > 0 ? $weeks . "W" : "");
+        }
+        $years = floor($diff / 31536000);
+        $months = floor(($diff % 31536000) / 2592000);
+        return $years . "Y" . ($months > 0 ? $months . "M" : "");
+    }
+
     # Class for the channel object
     # These are representations of channels in the media dir
     class Channel {
@@ -106,6 +155,7 @@
         public $pretty_status;
         public $video_queue;
         public $channel_id;
+        public $last_updated;
 
         public function get_members_playlist() {
             return "https://www.youtube.com/playlist?list=UUMO" . substr($this->channel_id, 2);
@@ -123,8 +173,22 @@
             return explode("\n", $this->get_appdata())[2];
         }
 
+        public function get_last_updated() {
+            $lines = explode("\n", $this->get_appdata());
+            if (isset($lines[3]) && is_numeric($lines[3])) {
+                return (int)$lines[3];
+            } else {
+                return 0; // Graceful default for UI
+            }
+        }
+
         public function get_video_queue() {
-            return array_filter(array_slice(explode("\n", $this->get_appdata()), 3), function($value) {
+            $lines = explode("\n", $this->get_appdata());
+            $start_index = 3;
+            if (isset($lines[3]) && is_numeric($lines[3])) {
+                $start_index = 4;
+            }
+            return array_filter(array_slice($lines, $start_index), function($value) {
                 return trim($value) !== "";
             });
         }
@@ -139,7 +203,8 @@
             $new = [
                 $this->alias,
                 $this->channel_id,
-                $this->status
+                $this->status,
+                $this->last_updated
             ];
             $new = array_merge($new, $this->video_queue);
             file_put_contents('/var/ASMRchive/.appdata/channels/' . $this->dir_name . ".channel", implode(PHP_EOL, $new));
@@ -166,6 +231,7 @@
             }
             $this->count = $count;
             $this->channel_id = $this->get_channel_id();
+            $this->last_updated = $this->get_last_updated();
             $this->video_queue = $this->get_video_queue();
             // Translations for prettier names. Second value with show in web ui instead of first value.
             $status_translations = [
@@ -182,7 +248,7 @@
             }
         }
 
-        public function display_row($show_members = false)
+        public function display_row($show_members = false, $show_status = false)
         {
             if ($this->count == 0) {
                 echo '<tr style="cursor: not-allowed;"';
@@ -194,9 +260,12 @@
                 $status = "" . count($this->video_queue) . " Queued";
             }
             echo '><td><img class="pfp" src=' . $this->path . 'pfp.png></td>
-            <td class="channel">' . $this->alias . '</td>
-            <td class="status">' . $status . '</td>
-            <td class="count">' . $this->count . '</td>';
+            <td class="channel" data-sort-value="' . htmlspecialchars($this->alias) . '">' . $this->alias . '</td>';
+            if ($show_status) {
+                echo '<td class="status" data-sort-value="' . htmlspecialchars($status) . '">' . $status . '</td>';
+            }
+            echo '<td class="count" data-sort-value="' . $this->count . '">' . $this->count . '</td>';
+            echo '<td class="updated" data-sort-value="' . $this->last_updated . '">' . get_time_since_string($this->last_updated) . '</td>';
             if ($show_members) {
                 echo '<td class="member_table"><a href=' . $this->get_members_playlist() . '><img class="member_image" src=images/playlist-icon.png></a></td>';
             }
@@ -278,11 +347,12 @@
 
         # Used to display this video as a row in channel_index
         public function display_row() {
+            $runtime_sec = parse_duration_to_seconds($this->asmr_runtime);
             echo '<tr onclick="document.location = \'' . $this->path . '/player.php\';"><td><img class="thumb" alt="No Thumbnail :(" src=' . $this->thumbnail . '></td>
-            <td><p class="title">' . $this->title . '</td>
-            <td class="date">' . $this->pretty_date . '</td>
-            <td class="date">' . $this->asmr_runtime . '</td>
-            <td class="count">' . $this->comment_count . '</td>
+            <td><p class="title" data-sort-value="' . htmlspecialchars($this->title) . '">' . $this->title . '</td>
+            <td class="date" data-sort-value="' . $this->upload_date . '">' . $this->pretty_date . '</td>
+            <td class="date" data-sort-value="' . $runtime_sec . '">' . $this->asmr_runtime . '</td>
+            <td class="count" data-sort-value="' . $this->comment_count . '">' . $this->comment_count . '</td>
             </tr>';
         }
     }

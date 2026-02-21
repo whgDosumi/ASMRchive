@@ -11,6 +11,7 @@ import datetime
 import shutil
 import json
 import subprocess
+import time
 
 meta_dict = {}
 
@@ -195,11 +196,12 @@ class History_Entry_Channel():
             write_file.write(self.json_string + "\n" + current_history)
 
 class Channel():
-    def __init__(self, name: str, channel_id: str, status: str, output_directory: str, reqs=[]):
+    def __init__(self, name: str, channel_id: str, status: str, output_directory: str, last_updated=0, reqs=[]):
         self.name = name
         self.carried_reqs = []
         self.channel_id = channel_id
         self.status = status
+        self.last_updated = int(last_updated)
         self.path = os.path.join(output_directory, slugify(self.name))
         self.reqs = []
         for video in reqs:
@@ -232,7 +234,7 @@ class Channel():
         for video in self.carried_reqs:
             append = append + "\n" + video
         with open(os.path.join("/var/ASMRchive/.appdata", "channels", slugify(self.name) + ".channel"), "w") as outfile:
-            outfile.write(self.name + "\n" + self.channel_id + "\n" + self.status + append)
+            outfile.write(self.name + "\n" + self.channel_id + "\n" + self.status + "\n" + str(self.last_updated) + append)
             
     def get_rss(self): #returns channel's RSS feed as a list of entries
         return feedparser.parse(requests.get("https://www.youtube.com/feeds/videos.xml?channel_id=" + self.channel_id).text).entries
@@ -332,25 +334,47 @@ def load_channels(output_directory: str):
     for data_file in os.listdir(channel_dict):
         with open(os.path.join(channel_dict, data_file), "r") as file:
             lines = file.read().splitlines()
+            last_updated = 0
+            reqs_start = 3
+            
+            # Migration/Loading logic for line 4
             if len(lines) > 3:
-                reqs = lines[3:len(lines)]
-                temp = []
-                for req in reqs:
-                    if req.strip() != "":
-                        temp.append(req)
-                reqs = temp
-                new = []
-                for i in reqs:
-                    if (re.search(r"youtube\.com/watch", i) or re.search(r"youtube\.com/shorts", i)): #if it's a standard youtube url
-                        new.append(i[-11:])
-                    elif re.match(r"^.{11}$", i): #if the string is 11 characters long
-                        new.append(i)
-                reqs = new
-                chan = Channel(lines[0], lines[1], lines[2], output_directory, reqs=reqs)
-                channels.append(chan)
-                chan.save()
+                if lines[3].isdigit():
+                    last_updated = int(lines[3])
+                    reqs_start = 4
+                else:
+                    # Line 4 exists but is not a timestamp (likely a URL from old format)
+                    # We need to migrate.
+                    chan_path = os.path.join(output_directory, slugify(lines[0]))
+                    if os.path.exists(chan_path):
+                        vids = [os.path.join(chan_path, d) for d in os.listdir(chan_path) if os.path.isdir(os.path.join(chan_path, d)) and d != "comments"]
+                        if vids:
+                            last_updated = int(max(os.path.getmtime(v) for v in vids))
+                    reqs_start = 3
             else:
-                channels.append(Channel(lines[0], lines[1], lines[2], output_directory))
+                # File only has 3 lines, migrate.
+                chan_path = os.path.join(output_directory, slugify(lines[0]))
+                if os.path.exists(chan_path):
+                    vids = [os.path.join(chan_path, d) for d in os.listdir(chan_path) if os.path.isdir(os.path.join(chan_path, d)) and d != "comments"]
+                    if vids:
+                        last_updated = int(max(os.path.getmtime(v) for v in vids))
+            
+            reqs = lines[reqs_start:]
+            temp = []
+            for req in reqs:
+                if req.strip() != "":
+                    temp.append(req)
+            reqs = temp
+            new = []
+            for i in reqs:
+                if (re.search(r"youtube\.com/watch", i) or re.search(r"youtube\.com/shorts", i)): #if it's a standard youtube url
+                    new.append(i[-11:])
+                elif re.match(r"^.{11}$", i): #if the string is 11 characters long
+                    new.append(i)
+            reqs = new
+            chan = Channel(lines[0], lines[1], lines[2], output_directory, last_updated=last_updated, reqs=reqs)
+            channels.append(chan)
+            chan.save() # This triggers the migration rewrite
     return channels
 
 def load_keywords():
@@ -608,6 +632,8 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 downloaded = []
                 for success in download_results["successes"]:
                     downloaded.append(success)
+                if len(downloaded) > 0:
+                    chan.last_updated = int(time.time())
                 for id in download_results["bots"]:
                     chan.carried_reqs.append(id)
                 if not os.path.exists(os.path.join(output_directory, slugify(chan.name))):
@@ -664,6 +690,8 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 download_results = download_batch(to_download, ydl_opts, os.path.join(output_directory, slugify(chan.name)), max_retries=3, save_history=False)
                 for success in download_results["successes"]:
                     downloaded.append(success)
+                if len(downloaded) > 0:
+                    chan.last_updated = int(time.time())
                 for failure in download_results["failures"]:
                     log("Failure: " + str(failure))
             if not os.path.exists(os.path.join(output_directory, slugify(chan.name))):

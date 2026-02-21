@@ -26,6 +26,7 @@ $me = new Channel($alias, $name);
     <title>ASMRchive - <?php echo $me->alias?></title>
     <link rel="stylesheet" href="../../channel.css">
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <script src="../../sort.js"></script>
 </head>
 
 <body>
@@ -43,10 +44,10 @@ $me = new Channel($alias, $name);
         <table>
             <thead>
                 <th>Image</th>
-                <th>Title</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Com</th>
+                <th class="sortable" onclick="sortTable(this)">Title</th>
+                <th class="sortable" onclick="sortTable(this)">Date</th>
+                <th class="sortable" onclick="sortTable(this)">Time</th>
+                <th class="sortable" onclick="sortTable(this)">Com</th>
             </thead>
             <tbody>
                 <?php

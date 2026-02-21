@@ -6,6 +6,7 @@
     <title>ASMRchive - Administration Tools</title>
     <link rel="stylesheet" href="admintools.css">
     <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <script src="sort.js"></script>
 </head>
 
 <body>
@@ -64,7 +65,7 @@
         // New Channel
         if (isset($_POST['send']) and isset($_POST['channel_name']) and isset($_POST['channel_id'])) {
             if (strlen($_POST['channel_id']) == 24 and strlen($_POST['channel_name']) <= 24 and strlen($_POST['channel_name']) >= 1) { // check for expected string lengths
-                $filecontent = $_POST['channel_name'] . "\n" . $_POST['channel_id'] . "\nnew";
+                $filecontent = $_POST['channel_name'] . "\n" . $_POST['channel_id'] . "\nnew\n0";
                 $exists = false;
                 foreach($chans as $chan) {
                     if ($chan->channel_id == $_POST['channel_id']) {
@@ -251,6 +252,8 @@
 
                         // sneakily update the channel's count if everything succeeded
                         $targetChannel->count++;
+                        $targetChannel->last_updated = time();
+                        $targetChannel->save_appdata();
 
                     } else {
                         $error_message = "Error in move_uploaded_file()";
@@ -455,7 +458,7 @@
                         <td class="upload_table_cell"> <?php echo $dlp_info["latest_version"]; ?> </td>
                     </tr>
                     <tr>
-                    <td class="upload_table_cell\"><input type="submit" name="dlp_check" value="Check" id="dlp_check" class="submit_button"> </td>
+                    <td class="upload_table_cell"><input type="submit" name="dlp_check" value="Check" id="dlp_check" class="submit_button"> </td>
                     <?php
                         if (!$dlp_info["up_to_date"]) {
                             echo "<td class=\"upload_table_cell\"><input type=\"submit\" name=\"dlp_update\" value=\"Update\" id=\"dlp_update\" class=\"submit_button\"> </td>";
@@ -471,9 +474,10 @@
         <br>
         <table>
             <thead>
-                <th colspan="2">Channel</th>
-                <th>Status</th>
-                <th>Count</th>
+                <th colspan="2" class="sortable" onclick="sortTable(this)" data-sort-col="1">Channel</th>
+                <th class="sortable" onclick="sortTable(this)" data-sort-col="2">Status</th>
+                <th class="sortable" onclick="sortTable(this)" data-sort-col="3">Count</th>
+                <th class="sortable" onclick="sortTable(this)" data-sort-col="4">Updated</th>
                 <th>Members</th>
             </thead>
             <tbody>
@@ -481,16 +485,16 @@
                 $zeros = [];
                 foreach ($chans as $chan) {
                     if ($chan->count > 0) {
-                        $chan->display_row($show_members = true);
+                        $chan->display_row($show_members = true, $show_status = true);
                     } else {
                         array_push($zeros, $chan);
                     }
                 }
                 ?>
-                <th colspan="5" class="splitter">No Entries &#128546;</th>
+                <th colspan="6" class="splitter">No Entries &#128546;</th>
                 <?php
                 foreach ($zeros as $chan) {
-                    $chan->display_row($show_members = true);
+                    $chan->display_row($show_members = true, $show_status = true);
                 }
                 ?>
             </tbody>
