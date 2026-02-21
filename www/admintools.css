@@ -32,6 +32,13 @@ body {
     border-left: 2px solid black;
 }
 
+.updated {
+    font-size: 45px;
+    font-weight: bold;
+    text-align: center;
+    border-left: 2px solid black;
+}
+
 .member_image {
     width: 90px;
     margin: auto;

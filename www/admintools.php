@@ -65,7 +65,7 @@
         // New Channel
         if (isset($_POST['send']) and isset($_POST['channel_name']) and isset($_POST['channel_id'])) {
             if (strlen($_POST['channel_id']) == 24 and strlen($_POST['channel_name']) <= 24 and strlen($_POST['channel_name']) >= 1) { // check for expected string lengths
-                $filecontent = $_POST['channel_name'] . "\n" . $_POST['channel_id'] . "\nnew";
+                $filecontent = $_POST['channel_name'] . "\n" . $_POST['channel_id'] . "\nnew\n0";
                 $exists = false;
                 foreach($chans as $chan) {
                     if ($chan->channel_id == $_POST['channel_id']) {
@@ -252,6 +252,8 @@
 
                         // sneakily update the channel's count if everything succeeded
                         $targetChannel->count++;
+                        $targetChannel->last_updated = time();
+                        $targetChannel->save_appdata();
 
                     } else {
                         $error_message = "Error in move_uploaded_file()";
@@ -475,6 +477,7 @@
                 <th colspan="2" class="sortable" onclick="sortTable(this)" data-sort-col="1">Channel</th>
                 <th class="sortable" onclick="sortTable(this)" data-sort-col="2">Status</th>
                 <th class="sortable" onclick="sortTable(this)" data-sort-col="3">Count</th>
+                <th class="sortable" onclick="sortTable(this)" data-sort-col="4">Updated</th>
                 <th>Members</th>
             </thead>
             <tbody>

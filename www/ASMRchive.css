@@ -26,7 +26,13 @@ body {
 }
 
 .count {
-    font-size: 75px;
+    font-size: 65px;
+    text-align: center;
+    border-left: 2px solid black;
+}
+
+.updated {
+    font-size: 65px;
     padding-right: 5px;
     text-align: center;
     border-left: 2px solid black;
