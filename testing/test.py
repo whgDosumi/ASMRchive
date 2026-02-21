@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
+from bs4 import BeautifulSoup
 import os
 import socket
 import requests
@@ -59,62 +60,85 @@ class Channel():
         self.videos = self.load_videos()
     def load_videos(self):
         web.get(self.url)
-        webpage_text = web.page_source
+        soup = BeautifulSoup(web.page_source, 'html.parser')
         videos = []
-        start = webpage_text.find("<tbody>")
-        end = 0
-        while end != -1 and start != -1:
-            start = webpage_text.find("<tr onclick=\"document.location", start) + 34
-            end = webpage_text.find("\'", start)
-            url = self.url.replace("channel.php", webpage_text[start:end])
-            start = webpage_text.find("src=", start) + 5
-            end = webpage_text.find("\"", start)
-            thumbnail = webpage_text[start:end]
-            start = webpage_text.find("class=\"title\"", start) + 14
-            end = webpage_text.find("</p>", start)
-            title = webpage_text[start:end]
-            start = webpage_text.find("class=\"date\"", start) + 13
-            end = webpage_text.find("<", start)
-            upload_date = webpage_text[start:end]
-            start = webpage_text.find("class=\"date\"", start) + 13
-            end = webpage_text.find("<", start)
-            runtime = webpage_text[start:end]
-            start = webpage_text.find("class=\"count\"", start) + 14
-            end = webpage_text.find("<", start)
-            comments = webpage_text[start:end]
+        
+        rows = soup.select("tbody tr")
+        for row in rows:
+            onclick = row.get("onclick")
+            if not onclick:
+                continue
+            
+            # Extract path from onclick="document.location = '...'"
+            try:
+                # Split by single quotes to get the path
+                path = onclick.split("'")[1]
+                url = self.url.replace("channel.php", path)
+            except IndexError:
+                continue
+
+            # Extract Thumbnail
+            img = row.find("img", class_="thumb")
+            thumbnail = img['src'] if img else ""
+
+            # Extract Title
+            title_elem = row.find(class_="title")
+            title = title_elem.get_text(strip=True) if title_elem else ""
+
+            # Extract Dates (Upload Date and Runtime share the 'date' class)
+            dates = row.find_all("td", class_="date")
+            upload_date = dates[0].get_text(strip=True) if len(dates) > 0 else ""
+            runtime = dates[1].get_text(strip=True) if len(dates) > 1 else ""
+
+            # Extract Comments Count
+            count_elem = row.find("td", class_="count")
+            comments = count_elem.get_text(strip=True) if count_elem else ""
+
             videos.append(Video(url, thumbnail, title, upload_date, runtime, comments))
-            start = webpage_text.find("<tr onclick=\"document.location", start)
+            
         return videos
 
-def load_channels(): # creates channel objects by reading the homepage url
-    web.get(homepage_url)
-    webpage_text = web.page_source
+def load_channels(url=None): # creates channel objects by reading the provided url
+    target_url = url if url else homepage_url
+    web.get(target_url)
+    soup = BeautifulSoup(web.page_source, 'html.parser')
     channels = []
-    start = webpage_text.find("<tbody>")
-    end = 0
-    while end != -1:
-        start = webpage_text.find("<tr onclick=\"window.location=", start) + 30
-        end = webpage_text.find("\'\">", start)
-        url = homepage_url + "/" + webpage_text[start:end]
-        start = webpage_text.find("class=\"channel\"", start)
-        start = webpage_text.find(">", start) + 1
-        end = webpage_text.find("</", start)
-        name = webpage_text[start:end]
-        start = webpage_text.find("class=\"status\"", start)
-        start = webpage_text.find(">", start) + 1
-        end = webpage_text.find("</", start)
-        status = webpage_text[start:end]
-        start = webpage_text.find("class=\"count\"", start)
-        start = webpage_text.find(">", start) + 1
-        end = webpage_text.find("</", start)
-        count = webpage_text[start:end]
+    
+    # Find all table rows in the body
+    rows = soup.select("tbody tr")
+    
+    for row in rows:
+        # Check for onclick to get the URL
+        onclick = row.get("onclick")
+        if not onclick:
+            continue
+            
+        # Extract path from onclick="window.location='...'"
+        # Expected format: window.location='ASMR/Name/channel.php'
+        try:
+            path = onclick.split("'")[1]
+            channel_url = homepage_url + "/" + path
+        except IndexError:
+            continue
+
+        # Extract Name
+        name_cell = row.find("td", class_="channel")
+        name = name_cell.get_text(strip=True) if name_cell else "Unknown"
+
+        # Extract Status (might be missing on index.php)
+        status_cell = row.find("td", class_="status")
+        status = status_cell.get_text(strip=True) if status_cell else "Unknown"
+
+        # Extract Count
+        count_cell = row.find("td", class_="count")
+        count = count_cell.get_text(strip=True) if count_cell else "0"
+        
+        # If count is empty string, default to 0
         if count == "":
-            break
-        channels.append(Channel(name, status, count, url))
-        end = webpage_text.find("class=\"channel\"", start)
-        start = webpage_text.find("<tr onclick=\"window.location=", start)
-        if start == -1:
-            break
+            count = "0"
+
+        channels.append(Channel(name, status, count, channel_url))
+
     return channels
 
 # Allow a port override in case we're testing on a dev machine
@@ -240,8 +264,8 @@ tries = 0
 passed = False # To track wether the test passed or failed
 while tries < max_retries:
     tries += 1
-    web.get(admintools_url)
-    channels = load_channels()
+    # We need to check admintools because index.php no longer has status
+    channels = load_channels(admintools_url)
     test_channel = None
     for channel in channels:
         if channel.name == test_channel_name:
