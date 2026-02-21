@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="ASMRchive.css">
     <link rel="apple-touch-icon" href="/ASMRchive/apple_touch_icon.png">
     <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <script src="sort.js"></script>
 </head>
 
 <body>
@@ -40,8 +41,8 @@
         </a>
         <table <?php if(count($chans) <= 0) { echo "hidden"; } ?> >
             <thead>
-                <th colspan="2">Channel</th>
-                <th>Count</th>
+                <th colspan="2" class="sortable" onclick="sortTable(this)" data-sort-col="1">Channel</th>
+                <th class="sortable" onclick="sortTable(this)" data-sort-col="2">Count</th>
             </thead>
             <tbody>
                 <?php

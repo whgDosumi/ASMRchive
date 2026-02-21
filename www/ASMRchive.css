@@ -119,3 +119,26 @@ tbody {
     right: 0;
     border-bottom-left-radius: 15px;
 }
+
+/* Sorting styles */
+th.sortable {
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+}
+
+th.sortable:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+th.sortable.asc::after {
+    content: " ▲";
+    padding-left: 5px;
+    font-size: 0.8em;
+}
+
+th.sortable.desc::after {
+    content: " ▼";
+    padding-left: 5px;
+    font-size: 0.8em;
+}

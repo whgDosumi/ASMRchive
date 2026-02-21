@@ -6,6 +6,7 @@
     <title>ASMRchive - Administration Tools</title>
     <link rel="stylesheet" href="admintools.css">
     <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <script src="sort.js"></script>
 </head>
 
 <body>
@@ -455,7 +456,7 @@
                         <td class="upload_table_cell"> <?php echo $dlp_info["latest_version"]; ?> </td>
                     </tr>
                     <tr>
-                    <td class="upload_table_cell\"><input type="submit" name="dlp_check" value="Check" id="dlp_check" class="submit_button"> </td>
+                    <td class="upload_table_cell"><input type="submit" name="dlp_check" value="Check" id="dlp_check" class="submit_button"> </td>
                     <?php
                         if (!$dlp_info["up_to_date"]) {
                             echo "<td class=\"upload_table_cell\"><input type=\"submit\" name=\"dlp_update\" value=\"Update\" id=\"dlp_update\" class=\"submit_button\"> </td>";
@@ -471,9 +472,9 @@
         <br>
         <table>
             <thead>
-                <th colspan="2">Channel</th>
-                <th>Status</th>
-                <th>Count</th>
+                <th colspan="2" class="sortable" onclick="sortTable(this)" data-sort-col="1">Channel</th>
+                <th class="sortable" onclick="sortTable(this)" data-sort-col="2">Status</th>
+                <th class="sortable" onclick="sortTable(this)" data-sort-col="3">Count</th>
                 <th>Members</th>
             </thead>
             <tbody>

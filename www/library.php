@@ -94,6 +94,20 @@
         return($text);
     }
 
+    # Helper to parse HH:MM:SS or MM:SS to seconds
+    function parse_duration_to_seconds($str) {
+        $parts = explode(':', $str);
+        $seconds = 0;
+        if (count($parts) === 3) {
+            $seconds = ((int)$parts[0] * 3600) + ((int)$parts[1] * 60) + (int)$parts[2];
+        } elseif (count($parts) === 2) {
+            $seconds = ((int)$parts[0] * 60) + (int)$parts[1];
+        } else {
+            $seconds = (int)$str;
+        }
+        return $seconds;
+    }
+
     # Class for the channel object
     # These are representations of channels in the media dir
     class Channel {
@@ -194,11 +208,11 @@
                 $status = "" . count($this->video_queue) . " Queued";
             }
             echo '><td><img class="pfp" src=' . $this->path . 'pfp.png></td>
-            <td class="channel">' . $this->alias . '</td>';
+            <td class="channel" data-sort-value="' . htmlspecialchars($this->alias) . '">' . $this->alias . '</td>';
             if ($show_status) {
-                echo '<td class="status">' . $status . '</td>;';
+                echo '<td class="status" data-sort-value="' . htmlspecialchars($status) . '">' . $status . '</td>';
             }
-            echo '<td class="count">' . $this->count . '</td>';
+            echo '<td class="count" data-sort-value="' . $this->count . '">' . $this->count . '</td>';
             if ($show_members) {
                 echo '<td class="member_table"><a href=' . $this->get_members_playlist() . '><img class="member_image" src=images/playlist-icon.png></a></td>';
             }
@@ -280,11 +294,12 @@
 
         # Used to display this video as a row in channel_index
         public function display_row() {
+            $runtime_sec = parse_duration_to_seconds($this->asmr_runtime);
             echo '<tr onclick="document.location = \'' . $this->path . '/player.php\';"><td><img class="thumb" alt="No Thumbnail :(" src=' . $this->thumbnail . '></td>
-            <td><p class="title">' . $this->title . '</td>
-            <td class="date">' . $this->pretty_date . '</td>
-            <td class="date">' . $this->asmr_runtime . '</td>
-            <td class="count">' . $this->comment_count . '</td>
+            <td><p class="title" data-sort-value="' . htmlspecialchars($this->title) . '">' . $this->title . '</td>
+            <td class="date" data-sort-value="' . $this->upload_date . '">' . $this->pretty_date . '</td>
+            <td class="date" data-sort-value="' . $runtime_sec . '">' . $this->asmr_runtime . '</td>
+            <td class="count" data-sort-value="' . $this->comment_count . '">' . $this->comment_count . '</td>
             </tr>';
         }
     }
