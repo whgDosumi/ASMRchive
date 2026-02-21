@@ -240,7 +240,7 @@ tries = 0
 passed = False # To track wether the test passed or failed
 while tries < max_retries:
     tries += 1
-    web.get(homepage_url)
+    web.get(admintools_url)
     channels = load_channels()
     test_channel = None
     for channel in channels:
