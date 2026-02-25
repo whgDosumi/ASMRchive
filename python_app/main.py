@@ -215,7 +215,9 @@ class Channel():
     def setup(self):
         if not os.path.exists(self.path):
             os.makedirs(self.path)
-            os.chmod(self.path, 0o777)
+            # Set file permissions
+            os.chmod(self.path, 0o775)
+            os.chown(self.path, -1, 48) # Set group to Apache
         with open(os.path.join(self.path, "name.txt"), "w") as name_file:
             name_file.write(self.name)
         shutil.copy("/var/www/html/channel_index.php", os.path.join(self.path, "channel.php"))
@@ -485,10 +487,13 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
         for p in processes:
             for root, dirs, files in os.walk(p.path):
                 for dir in dirs:
-                    os.chmod(os.path.join(root, dir), 0o777)
+                    os.chmod(os.path.join(root, dir), 0o775)
+                    os.chown(os.path.join(root, dir), -1, 48)
                 for file in files:
-                    os.chmod(os.path.join(root, file), 0o666)
-            os.chmod(p.path, 0o777)
+                    os.chmod(os.path.join(root, file), 0o664)
+                    os.chown(os.path.join(root, file), -1, 48)
+            os.chmod(p.path, 0o775)
+            os.chown(p.path, -1, 48)
         returns = return_dict.values()
         index = -1
         sorted = []
@@ -636,8 +641,6 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                     chan.last_updated = int(time.time())
                 for id in download_results["bots"]:
                     chan.carried_reqs.append(id)
-                if not os.path.exists(os.path.join(output_directory, slugify(chan.name))):
-                    os.makedirs(os.path.join(output_directory, slugify(chan.name)))
                 with open(os.path.join(output_directory, slugify(chan.name), "saved_urls.txt"), "a") as saved_doc:
                     for item in downloaded:
                         saved_doc.write(item + "\n")
@@ -694,9 +697,6 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                     chan.last_updated = int(time.time())
                 for failure in download_results["failures"]:
                     log("Failure: " + str(failure))
-            if not os.path.exists(os.path.join(output_directory, slugify(chan.name))):
-                os.makedirs(os.path.join(output_directory, slugify(chan.name)))
-                os.chmod(os.path.join(output_directory, slugify(chan.name))) #0o777
             with open(os.path.join(output_directory, slugify(chan.name), "saved_urls.txt"), "a") as saved_doc:
                 for item in downloaded:
                     saved_doc.write(item + "\n")
