@@ -345,7 +345,7 @@
         </form>
 
 
-        <form action="<?php echo htmlspecialchars($_SERVER[$base_url]);?>" method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data">
             <table>
                 <thead>
                     <th colspan="2">Add Channel</th>
@@ -372,7 +372,7 @@
             </table>
         </form>
 
-        <form action="<?php echo htmlspecialchars($_SERVER[$base_url]);?>" method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data">
             <table>
                 <thead>
                     <th colspan="2">Request Video</th>
