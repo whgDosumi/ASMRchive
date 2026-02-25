@@ -1,3 +1,25 @@
+## 1.10.1 - 2026-02-25
+fix: Permissions overhaul and php error fixes
+
+* fix: Reduce filesystem permissions
+
+Reduces use of overly-passive 777 file permissions through ASMRchive
+Increases security
+
+* refactor: tighten file permissions on php files
+
+- Add `create_dir` and `write_file` helper functions to `library.php`.
+- Remove insecure `umask(0)` calls, eliminating 777 permissions.
+- Audit and refactor `admintools.php` to use new helpers for system flags, channel metadata, and ASMR assets.
+- Update `player.php` to use helpers for comment storage and directory management.
+- Ensure consistent permissions
+
+* fix: remove undefined $base_url from form actions
+
+The `$base_url` variable was undefined when used within admintools for forms.
+Because the default behavior already aligned with running the . page,
+no visible issue was happening, but it was generating error logs.
+
 ## 1.10.0 - 2026-02-21
 Column Rework (#154)
 
