@@ -45,7 +45,8 @@
 
         // force scan
         if (isset($_POST['force-scan'])) {
-            touch("/var/ASMRchive/.appdata/flags/scan_flag.txt");
+            $flag_file = "/var/ASMRchive/.appdata/flags/scan_flag.txt";
+            write_file($flag_file, null, 0664);
             echo "<script type='text/javascript'>alert('Forcing ASMR Scan.');</script>"; 
         }
         // Request Video
@@ -76,7 +77,7 @@
                 if (!$exists){
                     $filename = "/var/ASMRchive/.appdata/channels/" . slugify($_POST['channel_name']) . ".channel";
                     if (! file_exists($filename)){
-                        $result = file_put_contents($filename, $filecontent);
+                        $result = write_file($filename, $filecontent, 0644);
                         if ($result !== false) {
                             echo "<script type='text/javascript'>alert('Channel added, please wait a few minutes for the channel to download.');</script>"; 
                         } else {
@@ -100,12 +101,12 @@
         // Update yt-dlp
         if (isset($_POST["dlp_update"])) {
             // Flag for yt-dlp to be updated
-            touch("/var/ASMRchive/.appdata/flags/update_dlp_flag.txt");
+            write_file("/var/ASMRchive/.appdata/flags/update_dlp_flag.txt", null, 0664);
             echo "<script type='text/javascript'>alert('Container will update yt-dlp. Reload in a few minutes to verify the update was completed.');</script>";
         }
         // Check yt-dlp
         if (isset($_POST["dlp_check"])) {
-            touch("/var/ASMRchive/.appdata/flags/check_dlp_flag.txt");
+            write_file("/var/ASMRchive/.appdata/flags/check_dlp_flag.txt", null, 0664);
             echo "<script type='text/javascript'>alert('Will refresh yt-dlp info, please wait a moment and refresh to see the update.');</script>";
         }
 
@@ -218,36 +219,40 @@
                 $targetChannel = $chans[$_POST["upload_channel"]];
                 $asmrDirectory = $targetChannel->path . generateRandomString() . "/";
                 $asmrFile =  $asmrDirectory . "asmr." . $asmrFileType;
-                umask(0); # spicy
-                if (!is_dir($asmrDirectory)) {
-                    mkdir($asmrDirectory);
+                
+                if (create_dir($asmrDirectory, 0775)) {
                     if (move_uploaded_file($_FILES["upload_file"]["tmp_name"], $asmrFile)) {
+                        chmod($asmrFile, 0664);
                         // copy thumbnail if applicable
                         if ($thumbnailOk) {
-                            move_uploaded_file($_FILES["upload_thumbnail"]["tmp_name"], $asmrDirectory . "asmr." . $thubmnailFileType);
+                            $thumbDest = $asmrDirectory . "asmr." . $thubmnailFileType;
+                            move_uploaded_file($_FILES["upload_thumbnail"]["tmp_name"], $thumbDest);
+                            chmod($thumbDest, 0664);
                         }
 
                         // copy of player.php
-                        copy('/var/www/html/player.php', $asmrDirectory . "player.php");
+                        $playerDest = $asmrDirectory . "player.php";
+                        copy('/var/www/html/player.php', $playerDest);
+                        chmod($playerDest, 0664);
 
                         // Use provided title, else filename for asmr title
                         if (isset($_POST['upload_title'])) {
-                            file_put_contents($asmrDirectory . 'title.txt', $_POST['upload_title']);
+                            write_file($asmrDirectory . 'title.txt', $_POST['upload_title'], 0664);
                         } else {
-                            file_put_contents($asmrDirectory . 'title.txt', $_FILES["upload_file"]["name"]);
+                            write_file($asmrDirectory . 'title.txt', $_FILES["upload_file"]["name"], 0664);
                         }
                         
                         // use provided description if it exists
                         if (isset($_POST['upload_description'])) {
-                            file_put_contents($asmrDirectory . 'asmr.description', $_POST['upload_description']);
+                            write_file($asmrDirectory . 'asmr.description', $_POST['upload_description'], 0664);
                         }
                         
                         // Get duration from ffmpeg
                         $asmrDuration = system("ffmpeg -i '" . $asmrFile . "' 2>&1 | grep -Eo '[[:digit:]]{2}:[[:digit:]]{2}:[[:digit:]]{2}'");
-                        file_put_contents($asmrDirectory . 'runtime.txt', $asmrDuration);
+                        write_file($asmrDirectory . 'runtime.txt', $asmrDuration, 0664);
 
                         if (!empty($_POST['upload_date'])) {
-                            file_put_contents($asmrDirectory . 'upload_date.txt', str_replace('-', '', $_POST['upload_date']));
+                            write_file($asmrDirectory . 'upload_date.txt', str_replace('-', '', $_POST['upload_date']), 0664);
                         }
 
                         // sneakily update the channel's count if everything succeeded
@@ -266,7 +271,6 @@
                     echo "<script type='text/javascript'>alert('rand() disaster');</script>";
                 }
             }
-            umask();
         }
     }
 
@@ -341,7 +345,7 @@
         </form>
 
 
-        <form action="<?php echo htmlspecialchars($_SERVER[$base_url]);?>" method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data">
             <table>
                 <thead>
                     <th colspan="2">Add Channel</th>
@@ -368,7 +372,7 @@
             </table>
         </form>
 
-        <form action="<?php echo htmlspecialchars($_SERVER[$base_url]);?>" method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data">
             <table>
                 <thead>
                     <th colspan="2">Request Video</th>

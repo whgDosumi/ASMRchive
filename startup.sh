@@ -15,7 +15,7 @@ if [ ! -d "/var/ASMRchive/.appdata" ] # If appdata doesn't already exist, initia
 then
     mkdir "/var/ASMRchive/.appdata"
     mkdir /var/ASMRchive/.appdata/channels
-    mv /var/python_app/cookies /var/ASMRchive/.appdata/
+    mkdir /var/ASMRchive/.appdata/cookies
 
     # Set up log locations
     mkdir "/var/ASMRchive/.appdata/logs"
@@ -32,7 +32,8 @@ fi
 if [ ! -d "/var/ASMRchive/.appdata/flags" ]
 then
     mkdir "/var/ASMRchive/.appdata/flags"
-    chown apache /var/ASMRchive/.appdata/flags
+    chgrp apache /var/ASMRchive/.appdata/flags
+    chmod 770 /var/ASMRchive/.appdata/flags
 fi
 
 # Create relevant log locations in case we're updating from an older version of ASMRchive
@@ -48,18 +49,22 @@ if [ ! -L "/var/www/html/channels" ]
 then
 ln -s /var/ASMRchive/.appdata/channels /var/www/html/channels # Give webserver access to channels. 
 fi
+if [ ! -d "/var/ASMRchive/.appdata/cookies" ]
+then
+    mkdir "/var/ASMRchive/.appdata/cookies"
+fi
 
 # Set desired file permissions
 chgrp apache /var/ASMRchive/.appdata/cookies
 chmod 730 /var/ASMRchive/.appdata/cookies
-chmod o-r /var/ASMRchive/.appdata/logs 
-chmod o+w /var/ASMRchive/.appdata/channels
-# Give apache ownership of the channel files
-chown apache /var/ASMRchive/.appdata/channels/*
-chgrp apache /var/ASMRchive/.appdata/channels/*
+chmod 770 /var/ASMRchive/.appdata/logs 
+chmod 775 /var/ASMRchive/.appdata/channels
+chmod 770 /var/ASMRchive/.appdata/flags
+# Set apache group for necessary files.
+chgrp -R apache /var/ASMRchive/.appdata/channels
 
 python /var/python_app/check_dlp.py
 python /var/python_app/clear_downloads.py
 python /var/python_app/update_web.py
-python /var/python_app/main.py bypass_convert >> \"/var/ASMRchive/.appdata/logs/python/main-`date +\%Y-\%m-\%d`-asmr.log\" 2>&1
+python /var/python_app/main.py bypass_convert >> "/var/ASMRchive/.appdata/logs/python/main-$(date+%Y-%m-%d)-asmr.log" 2>&1
 /usr/sbin/httpd -D FOREGROUND
