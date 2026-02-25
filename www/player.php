@@ -31,13 +31,13 @@ class Comment
     public function save()
     {
         $arr = array("user_name" => $this->user_name, "text" => $this->text, "date" => $this->date);
-        file_put_contents($this->path, json_encode($arr));
+        write_file($this->path, json_encode($arr), 0664);
     }
 
     public function delete()
     {
         if (!is_dir("comments_bak")) {
-            mkdir("comments_bak");
+            create_dir("comments_bak", 0775);
         }
         rename($this->path, "comments_bak/" . slugify($this->date) . ".json");
     }
@@ -100,9 +100,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else if (isset($_POST['user_name']) and isset($_POST['text'])) {
         $user_name = test_input($_POST["user_name"]);
         $text = test_input($_POST["text"]);
-        umask(0);
+        
         if (!is_dir("comments")) {
-            mkdir("comments");
+            create_dir("comments", 0775);
         }
         $scan = scandir("./comments");
         $i = 1;
@@ -113,7 +113,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         $new_comment = new New_Comment($path, $user_name, $text);
         $new_comment->save();
-        umask();
+        
     }
     if (isset($_POST['timestamp'])) {
         $start_timestamp = $_POST['timestamp'];

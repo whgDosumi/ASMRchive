@@ -1,8 +1,4 @@
 <?php
-    # Resets umask to default
-    # Security feature
-    umask();
-
     # These are the supported audio formats
     # Check with Dominic before updating these, to ensure the conversion will work.
     # The order is the order of preference the client will use if all are present.
@@ -55,6 +51,34 @@
 
     function get_dlp_update() {
         return json_decode(file_get_contents('/var/ASMRchive/.appdata/yt_dlp_info.json'), true);
+    }
+
+    # Writes content to a file (or touches it) and sets permissions (octal)
+    function write_file($path, $content = null, $permissions = 0664) {
+        if ($content === null) {
+            $result = touch($path);
+        } else {
+            $result = file_put_contents($path, $content);
+        }
+        
+        if ($result !== false) {
+            chmod($path, $permissions);
+        }
+        return $result;
+    }
+
+    # Creates a directory with the specified permissions (octal)
+    function create_dir($path, $permissions = 0775) {
+        if (!is_dir($path)) {
+            if (mkdir($path, $permissions, true)) {
+                chmod($path, $permissions);
+                return true;
+            }
+            return false;
+        }
+        // Ensure permissions are correct even if it exists
+        chmod($path, $permissions);
+        return true;
     }
 
     #Generates a random string of length $length (defaults 20)
@@ -207,7 +231,7 @@
                 $this->last_updated
             ];
             $new = array_merge($new, $this->video_queue);
-            file_put_contents('/var/ASMRchive/.appdata/channels/' . $this->dir_name . ".channel", implode(PHP_EOL, $new));
+            write_file('/var/ASMRchive/.appdata/channels/' . $this->dir_name . ".channel", implode(PHP_EOL, $new), 0644);
         }
 
         # $alias is the channel name as read from channel_dir/name.txt
