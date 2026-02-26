@@ -81,6 +81,7 @@ pipeline {
                     --network-alias asmrchive-app \
                     --volume ${VOLUME_NAME}:/var/ASMRchive \
                     --label project=asmrchive \
+                    -e DLP_VER=2026.02.04 \
                     -e HOST_URL=http://localhost/ \
                     ${APP_IMAGE}
                 """
@@ -131,6 +132,7 @@ pipeline {
                 podman run --rm \
                     --network ${NETWORK_NAME} \
                     ${TEST_IMAGE} \
+                    --test dlp \
                     --url http://asmrchive-app:80
                 """
                 script {
@@ -143,49 +145,6 @@ pipeline {
                         Exec into the container: podman exec -it ${CONTAINER_NAME} bash
 
                         Click 'Proceed' when ready to continue to DLP Update tests.
-                        """
-                        input(message: pauseMsg)
-                    }
-                }
-            }
-        }
-        stage ("Integration Test (DLP Updates)") {
-            steps {
-                echo "Removing first container"
-                sh "podman container stop ${CONTAINER_NAME}"
-                sh "podman container rm ${CONTAINER_NAME}"
-                echo "Constructing container"
-                sh """
-                podman create \
-                    -p ${BUILD_PORT}:80 \
-                    --name ${CONTAINER_NAME} \
-                    --network ${NETWORK_NAME} \
-                    --network-alias asmrchive-app \
-                    --volume ${VOLUME_NAME}:/var/ASMRchive \
-                    --label project=asmrchive \
-                    -e DLP_VER=2024.12.06 \
-                    -e HOST_URL=http://localhost/Jenkins_ASMRchive/ \
-                    ${APP_IMAGE}
-                """
-                echo "Starting Container"
-                sh "podman container start ${CONTAINER_NAME}"
-                sh """
-                podman run --rm \
-                    --network ${NETWORK_NAME} \
-                    ${TEST_IMAGE} \
-                    --url http://asmrchive-app:80 \
-                    --test dlponly
-                """
-                script {
-                    if (params.Pause) {
-                        def pauseMsg = """
-                        Stage: Integration Tests (DLP Updates) - COMPLETE
-
-                        Container is running at: https://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net
-
-                        Exec into the container: podman exec -it ${CONTAINER_NAME} bash
-
-                        Click 'Proceed' when ready to continue to Manual Review.
                         """
                         input(message: pauseMsg)
                     }
