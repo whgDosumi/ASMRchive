@@ -1,3 +1,13 @@
+## 1.11.0 - 2026-02-26
+Automatically translate channel URL's to IDs  (#157)
+
+* feat: admintools accepts channel url's
+
+- Channels can now be added via channel id like before, or by URL
+- Sanitized input should only accept a youtube channel url as input
+
+* ci: Update reference id
+
 ## 1.10.1 - 2026-02-25
 fix: Permissions overhaul and php error fixes
 
