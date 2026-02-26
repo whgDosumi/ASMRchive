@@ -243,7 +243,7 @@ tbody {
     bottom: 10px;
 }
 
-#channel_id {
+#channel_input {
     font-size: 30px;
     max-width: 30ch;
     display: inline-block;

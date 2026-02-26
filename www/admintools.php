@@ -64,36 +64,65 @@
         }
 
         // New Channel
-        if (isset($_POST['send']) and isset($_POST['channel_name']) and isset($_POST['channel_id'])) {
-            if (strlen($_POST['channel_id']) == 24 and strlen($_POST['channel_name']) <= 24 and strlen($_POST['channel_name']) >= 1) { // check for expected string lengths
-                $filecontent = $_POST['channel_name'] . "\n" . $_POST['channel_id'] . "\nnew\n0";
-                $exists = false;
-                foreach($chans as $chan) {
-                    if ($chan->channel_id == $_POST['channel_id']) {
-                        $exists = true;
-                    }
-                }
-                $result = false;
-                if (!$exists){
-                    $filename = "/var/ASMRchive/.appdata/channels/" . slugify($_POST['channel_name']) . ".channel";
-                    if (! file_exists($filename)){
-                        $result = write_file($filename, $filecontent, 0644);
-                        if ($result !== false) {
-                            echo "<script type='text/javascript'>alert('Channel added, please wait a few minutes for the channel to download.');</script>"; 
+        if (isset($_POST['send']) and isset($_POST['channel_name']) and isset($_POST['channel_input'])) {
+            $channel_id_input = trim($_POST['channel_input']);
+            $channel_id = "";
+            $channel_name = trim($_POST['channel_name']);
+
+            // Validate channel ID or URL
+            if (preg_match('/^UC[\w-]{22}$/', $channel_id_input)) {
+                $channel_id = $channel_id_input;
+            } else {
+                // It's not a direct ID, validate as URL
+                if (filter_var($channel_id_input, FILTER_VALIDATE_URL)) {
+                    $parsed_url = parse_url($channel_id_input);
+                    $host = $parsed_url['host'] ?? '';
+                    if (preg_match('/^(www\.|m\.)?youtube\.com$/i', $host) || preg_match('/^youtu\.be$/i', $host)) {
+                        $fetched_id = getChannelId($channel_id_input);
+                        if ($fetched_id) {
+                            $channel_id = $fetched_id;
                         } else {
-                            echo "<script type='text/javascript'>alert('Something went wrong, contact a system administrator to review the logs.');</script>"; 
+                            echo "<script type='text/javascript'>alert('Could not find a Channel ID at the provided URL.');</script>";
                         }
                     } else {
-                        echo "<script type='text/javascript'>alert('A channel with that name already exists!');</script>";     
+                        echo "<script type='text/javascript'>alert('Invalid YouTube URL domain.');</script>";
                     }
                 } else {
-                    echo "<script type='text/javascript'>alert('A channel with that channel ID already exists!');</script>"; 
+                    echo "<script type='text/javascript'>alert('Invalid Channel ID or URL format.');</script>";
                 }
-            } else {
-                if ( ! (strlen($_POST['channel_id']) == 24) ) {
-                    echo "<script type='text/javascript'>alert('Channel ID should be 24 characters.');</script>";
+            }
+
+            if ($channel_id !== "") {
+                if (strlen($channel_id) == 24 and strlen($channel_name) <= 24 and strlen($channel_name) >= 1) { // check for expected string lengths
+                    $filecontent = $channel_name . "\n" . $channel_id . "\nnew\n0";
+                    $exists = false;
+                    foreach($chans as $chan) {
+                        if ($chan->channel_id == $channel_id) {
+                            $exists = true;
+                        }
+                    }
+                    $result = false;
+                    if (!$exists){
+                        $filename = "/var/ASMRchive/.appdata/channels/" . slugify($channel_name) . ".channel";
+                        if (! file_exists($filename)){
+                            $result = write_file($filename, $filecontent, 0644);
+                            if ($result !== false) {
+                                echo "<script type='text/javascript'>alert('Channel added, please wait a few minutes for the channel to download.');</script>"; 
+                            } else {
+                                echo "<script type='text/javascript'>alert('Something went wrong, contact a system administrator to review the logs.');</script>"; 
+                            }
+                        } else {
+                            echo "<script type='text/javascript'>alert('A channel with that name already exists!');</script>";     
+                        }
+                    } else {
+                        echo "<script type='text/javascript'>alert('A channel with that channel ID already exists!');</script>"; 
+                    }
                 } else {
-                    echo "<script type='text/javascript'>alert('Verify the channel name is between 1 and 24 characters.');</script>";
+                    if ( ! (strlen($channel_id) == 24) ) {
+                        echo "<script type='text/javascript'>alert('Channel ID should be 24 characters.');</script>";
+                    } else {
+                        echo "<script type='text/javascript'>alert('Verify the channel name is between 1 and 24 characters.');</script>";
+                    }
                 }
             }
         }
@@ -358,9 +387,9 @@
                         </td>
                     </tr>
                     <tr>
-                        <td class="upload_table_cell"> Channel ID<span style="color:red;">*</span> </td>
+                        <td class="upload_table_cell" title="Enter a 24-character YouTube Channel ID or a valid YouTube Channel URL (e.g., https://www.youtube.com/@username)"> Channel ID or URL<span style="color:red;">*</span> </td>
                         <td class="upload_table_cell">
-                            <input type="text" name="channel_id" id="channel_id">
+                            <input type="text" name="channel_input" id="channel_input" title="Enter a 24-character YouTube Channel ID or a valid YouTube Channel URL (e.g., https://www.youtube.com/@username)">
                         </td>
                     </tr>
                     <tr>
