@@ -27,6 +27,31 @@
         return false;
     }
 
+    # Retrieves the YouTube Channel ID from a channel URL
+    function getChannelId(string $channelUrl): ?string {
+        $ch = curl_init($channelUrl);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+            CURLOPT_FOLLOWLOCATION => true,
+        ]);
+        $html = curl_exec($ch);
+        curl_close($ch);
+
+        if ($html) {
+            # Try itemprop="identifier" first, as it is highly specific to the channel being viewed
+            if (preg_match('/itemprop="identifier" content="(UC[\w-]{22})"/', $html, $matches)) {
+                return $matches[1];
+            }
+            # Try externalId as a fallback
+            if (preg_match('/"externalId":"(UC[\w-]{22})"/', $html, $matches)) {
+                return $matches[1];
+            }
+        }
+
+        return null;
+    }
+
     # Removes any strange characters from $data
     # Used by player.php to sanitize comment inputs
     function test_input($data) {
