@@ -246,7 +246,7 @@ if args.test.lower() == "dlp" or args.test.lower() == "dlponly":
 # Add test channel
 web.get(admintools_url)
 web.find_element(By.ID, "channel_name").send_keys(test_channel_name)
-web.find_element(By.ID, "channel_id").send_keys(test_channel_id)
+web.find_element(By.ID, "channel_input").send_keys(test_channel_id)
 web.find_element(By.ID, "add_channel_button").click()
 alert = WebDriverWait(web, 10).until(EC.alert_is_present())
 assert "Channel added" in alert.text
