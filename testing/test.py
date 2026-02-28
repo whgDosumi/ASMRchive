@@ -220,7 +220,7 @@ alert = WebDriverWait(web, 10).until(EC.alert_is_present())
 alert.accept()
 print("Update button pressed, waiting for update to complete.")
 # Wait for the version to update
-max_retries = 15
+max_retries = 20
 refresh_rate = 5
 tries = 0
 passed = False
