@@ -1,3 +1,27 @@
+## 1.11.2 - 2026-02-28
+Ci/optimize dlp tests (#159)
+
+* ci: Remove dlp update integration test
+
+- Test functionality is now built in directly to the main test.
+- Unit tests no longer verify yt-dlp is up to date.
+
+* test: Increase max wait on dlp update test
+
+* test: Improve assertion messages.
+
+* test: Add verbose success messages for assertions
+
+* ci: Eliminate race condition
+
+There was a race condition resulting in a small percentage of builds
+failing. Because the container was re-installing yt-dlp at the start,
+it resulted in the unit tests failing by trying to import a package
+as it was being reinstalled. Waiting for the container to be up
+and online should completely fix the issue.
+
+* test: Add more tries to pfp unit tests
+
 ## 1.11.1 - 2026-02-28
 ci: Remove dlp update integration test (#158)
 
