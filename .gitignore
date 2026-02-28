@@ -1,4 +1,4 @@
-python_app/channels
+python/channels
 dev_tools
 testing/port_override.txt
 testing/reset_test.sh

@@ -18,10 +18,10 @@ RUN curl -fsSL https://deno.land/install.sh | sh -s -- -y \
 RUN ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 
 # Set up crontab to run the python app every 15 minutes.
-RUN (echo -e "*/15 * * * * /usr/bin/python3 /var/python_app/main.py >> \"/var/ASMRchive/.appdata/logs/python/main-\$(date +\%Y-\%m-\%d)-asmr.log\" 2>&1\n* * * * * /var/python_app/flag_check.sh >> \"/var/ASMRchive/.appdata/logs/flag_check.log\" 2>&1\n0 * * * * /usr/bin/python3 /var/python_app/check_dlp.py >> \"/var/ASMRchive/.appdata/logs/check_dlp.log\" 2>&1") | crontab -
+RUN (echo -e "*/15 * * * * /usr/bin/python3 /var/python/main.py >> \"/var/ASMRchive/.appdata/logs/python/main-\$(date +\%Y-\%m-\%d)-asmr.log\" 2>&1\n* * * * * /var/python/flag_check.sh >> \"/var/ASMRchive/.appdata/logs/flag_check.log\" 2>&1\n0 * * * * /usr/bin/python3 /var/python/check_dlp.py >> \"/var/ASMRchive/.appdata/logs/check_dlp.log\" 2>&1") | crontab -
 
 # install python requirements, ensure yt-dlp is up to date.
-COPY python_app/requirements.txt /var/python_requirements.txt
+COPY python/requirements.txt /var/python_requirements.txt
 RUN python -m pip install --upgrade pip \
     && python -m pip install -r /var/python_requirements.txt \
     && python3 -m pip install -U "yt-dlp[default]" \ 
@@ -51,10 +51,10 @@ RUN chmod 770 /var/startup.sh
 COPY www /var/www/html
 
 # Copy over python app.
-COPY python_app /var/python_app
+COPY python /var/python
 
 # Make force_scan.sh executable
-RUN chmod 770 /var/python_app/flag_check.sh
+RUN chmod 770 /var/python/flag_check.sh
 
 # Copy in version for webserver.
 COPY version.txt /var/www/html/version.txt
