@@ -125,6 +125,7 @@ pipeline {
             steps {
                 sh "podman exec -it ${CONTAINER_NAME} python -m pip uninstall -y yt-dlp"
                 sh "podman exec -it ${CONTAINER_NAME} python -m pip install -U yt-dlp==2026.02.04"
+                sh "podman exec -it ${CONTAINER_NAME} python /var/python_app/check_dlp.py"
             }
         }
         stage ("Integration Tests") {
