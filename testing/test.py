@@ -207,41 +207,41 @@ WebDriverWait(web, timeout).until(
 )
 print("Sites up!")
 
-# Do the DLP test if requested.
-if args.test.lower() == "dlp" or args.test.lower() == "dlponly":
-    print("Performing DLP Test...")
+# Test updating yt-dlp via the webui.
+
+print("Performing DLP Test...")
+web.get(admintools_url)
+# Verify the version is wrong
+assert "stable@2026.02.04" in web.page_source
+print("Current version is stable@2026.02.04, not up to date.")
+# Click the update button
+web.find_element(By.ID, "dlp_update").click()
+alert = WebDriverWait(web, 10).until(EC.alert_is_present())
+alert.accept()
+print("Update button pressed, waiting for update to complete.")
+# Wait for the version to update
+max_retries = 15
+refresh_rate = 5
+tries = 0
+passed = False
+while tries < max_retries:
+    tries += 1
     web.get(admintools_url)
-    # Verify the version is wrong
-    assert "stable@2024.12.06" in web.page_source
-    print("Current version is stable@2024.12.06, not up to date.")
-    # Click the update button
-    web.find_element(By.ID, "dlp_update").click()
+    web.find_element(By.ID, "dlp_check").click()
     alert = WebDriverWait(web, 10).until(EC.alert_is_present())
     alert.accept()
-    print("Update button pressed, waiting for update to complete.")
-    # Wait for the version to update
-    max_retries = 15
-    refresh_rate = 5
-    tries = 0
-    passed = False
-    while tries < max_retries:
-        tries += 1
+    try:
+        time.sleep(refresh_rate)
         web.get(admintools_url)
-        web.find_element(By.ID, "dlp_check").click()
-        alert = WebDriverWait(web, 10).until(EC.alert_is_present())
-        alert.accept()
-        try:
-            time.sleep(refresh_rate)
-            web.get(admintools_url)
-            web.find_element(By.ID, "dlp_update")
-        except:
-            print("Update button is gone! YT-DLP is up to date!")
-            passed = True
-            break
-    assert passed
-    if args.test.lower() == "dlponly":
-        print("dlponly specified, exiting.")
-        exit()
+        web.find_element(By.ID, "dlp_update")
+    except:
+        print("Update button is gone! YT-DLP is up to date!")
+        passed = True
+        break
+assert passed
+if "dlponly" in args.test.lower():
+    print("dlponly specified, exiting.")
+    exit()
 
 # Add test channel
 web.get(admintools_url)
