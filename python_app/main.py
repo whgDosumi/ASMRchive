@@ -525,6 +525,9 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
         sorted = None
         for p in processes:
             status = returns[p.id][1]
+            if status != "Finished":
+                if os.path.exists(p.path):
+                    shutil.rmtree(p.path)
             if status == "Finished":
                 purge[p.url] = "success"
                 if save_history:
