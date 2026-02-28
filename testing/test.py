@@ -238,7 +238,7 @@ while tries < max_retries:
         print("Update button is gone! YT-DLP is up to date!")
         passed = True
         break
-assert passed
+assert passed, f"YT-DLP Failed to update in {max_retries * refresh_rate} seconds."
 if "dlponly" in args.test.lower():
     print("dlponly specified, exiting.")
     exit()
@@ -249,12 +249,12 @@ web.find_element(By.ID, "channel_name").send_keys(test_channel_name)
 web.find_element(By.ID, "channel_input").send_keys(test_channel_id)
 web.find_element(By.ID, "add_channel_button").click()
 alert = WebDriverWait(web, 10).until(EC.alert_is_present())
-assert "Channel added" in alert.text
+assert "Channel added" in alert.text, f"Could not add chanel. Alert: {alert.text}"
 alert.accept()
 # Force a scan
 web.find_element(By.ID, "force-scan").click()
 alert = WebDriverWait(web, 10).until(EC.alert_is_present())
-assert "Forcing ASMR Scan." in alert.text
+assert "Forcing ASMR Scan." in alert.text, f"Force scan button raised unexpected alert: {alert.text}"
 alert.accept()
 
 # Wait for the new channel to appear, and for the video to download
@@ -275,7 +275,7 @@ while tries < max_retries:
             passed = True
             break
     time.sleep(refresh_rate)
-assert passed
+assert passed, f"New channel did not appear within {max_retries * refresh_rate} Seconds."
 
 # Test comments on the videos
 test_comment_name = "Dominic Toretto"
@@ -314,9 +314,9 @@ for channel in channels:
                     if success:
                         break
                 attempts += 1
-            assert success
+            assert success, "Download button failed to download the ASMR file."
             # Confirm yt button is working
-            assert web.find_element(By.ID, "ytlink").get_attribute("href") != ""
+            assert web.find_element(By.ID, "ytlink").get_attribute("href") != "", "YouTube link does not actually link to youtube video."
 
             # Add a comment
             web.implicitly_wait(5)
@@ -328,7 +328,7 @@ for channel in channels:
             web.find_element(By.CLASS_NAME, "delete_button")
             # Make sure the comment exists
             web.get(video.url)
-            assert (test_comment_name in web.page_source)
+            assert (test_comment_name in web.page_source), "Could not successfully comment on video."
 
             # Test the timestamp
             audio_element = web.find_element(By.ID, "asmr")
@@ -341,7 +341,7 @@ for channel in channels:
                     break
             stamp.click()
             current_time = web.execute_script("return arguments[0].currentTime;", audio_element)
-            assert current_time > 80 or int(current_time) == max_duration
+            assert current_time > 80 or int(current_time) == max_duration, "Timestamp in comment did not navigate to the correct time."
 
             # Determine the latest comment and delete it.
             comments = web.find_elements(By.CLASS_NAME, "delete_button")
@@ -351,7 +351,7 @@ for channel in channels:
                     latest_comment = comment
             latest_comment.click()
             alert = WebDriverWait(web, 10).until(EC.alert_is_present())
-            assert test_comment_name in alert.text
+            assert test_comment_name in alert.text, "Alert did not show test comment name."
             alert.accept()
             # Confirm the comment is deleted
             assertion_attempts = 0
@@ -371,7 +371,7 @@ for channel in channels:
                     time.sleep(1)
             passes += 1
 # Make sure we passed some tests, and also didn't have any failures other than for invalids. 
-assert (passes == tests_ran - invalids and passes > 0)
+assert (passes == tests_ran - invalids and passes > 0), "Some tests failed."
 web.quit()
 # Declare proudly that our testing has passed
 print("All automated tests have passed.")
