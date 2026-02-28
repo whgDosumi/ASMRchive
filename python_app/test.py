@@ -36,7 +36,9 @@ def can_get_pfp(channel_url, max_tries=5):
             return True, "Successfully found pfp for channel_url"
         except Exception as e:
             print(str(e))
-    return False
+            tries += 1
+            time.sleep(1)
+    return False, "Failed to get pfp after max tries"
 
 def print_results(results):
     print("\n\n-----\nTest Results:")
