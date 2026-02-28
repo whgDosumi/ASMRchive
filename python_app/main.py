@@ -453,17 +453,20 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
         return_dict = queue_manager.dict()
         processes = []
         bypass_slowness = False
+        purge = {}
         for video in queue:
+            ydl_opts["cookiefile"] = None
             if not is_live(get_meta(video[1])):
                 if video[1] in cookie_queue:
-                    for cookiefile in cookies:
+                    for cookiefile in (cookies or []):
                         if not cookiefile in cookie_queue[video[1]]:
                             cookie_queue[video[1]].append(cookiefile)
                             ydl_opts["cookiefile"] = cookiefile
                             break
                     if ydl_opts["cookiefile"] == None:
                         print("Cookies attempted but failed. len: " + str(len(cookie_queue[video[1]])))
-                        purge[p.url] = "failure"
+                        purge[video[1]] = "failure"
+                        continue
                 if video[1] in slow_queue:
                     if slow_queue[video[1]] > 5:
                         print("BYPASS SLOWNESS IS TRUE")
@@ -505,7 +508,6 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
                     break
         returns = sorted
         sorted = None
-        purge = {}
         for p in processes:
             status = returns[p.id][1]
             if status == "Finished":
@@ -521,9 +523,11 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
             elif status == "Cookie Please":
                 if cookies == None:
                     cookies = []
-                    for file in os.listdir(os.path.join("/var/ASMRchive/.appdata", "cookies")):
-                        if "cookie" in file.lower():
-                            cookies.append(os.path.join("/var/ASMRchive/.appdata", "cookies", file))
+                    cookie_dir = os.path.join("/var/ASMRchive/.appdata", "cookies")
+                    if os.path.exists(cookie_dir):
+                        for file in os.listdir(cookie_dir):
+                            if "cookie" in file.lower():
+                                cookies.append(os.path.join(cookie_dir, file))
                 if not p.url in cookie_queue:
                     cookie_queue[p.url] = []
             elif p.url in errored:
