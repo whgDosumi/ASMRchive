@@ -206,6 +206,9 @@ class Channel():
         self.failures = self.load_failures()
         self.reqs = []
         for video in reqs:
+            if video in self.failures:
+                del self.failures[video]
+                self.save_failures()
             if is_live(get_meta(video)):
                 self.carried_reqs.append(video)
             else:
@@ -384,10 +387,10 @@ def load_channels(output_directory: str):
             reqs = temp
             new = []
             for i in reqs:
-                if (re.search(r"youtube\.com/watch", i) or re.search(r"youtube\.com/shorts", i)): #if it's a standard youtube url
-                    new.append(i[-11:])
-                elif re.match(r"^.{11}$", i): #if the string is 11 characters long
-                    new.append(i)
+                # Match standard 11-character ID, or extract it from various youtube URL formats
+                match = re.search(r"(?:v=|\/|shorts\/|^)([0-9A-Za-z_-]{11})(?:\?|&|$)", i)
+                if match:
+                    new.append(match.group(1))
             reqs = new
             chan = Channel(lines[0], lines[1], lines[2], output_directory, last_updated=last_updated, reqs=reqs)
             channels.append(chan)
@@ -490,9 +493,30 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
                 path = os.path.join(channel_path, get_vid(video[1]))
                 if not os.path.exists(path):
                     os.makedirs(path)
-                else: #if it exists, and we need the video, we need to purge any 'bad data' here.
-                    shutil.rmtree(path)
-                    os.makedirs(path) #and then re-create the directory fresh and clean.
+                else:
+                    valid_audio_formats = ["webm", "opus", "flac", "aac", "wav", "mp3", "m4a", "ogg"]
+                    found_audio = []
+                    for fmt in valid_audio_formats:
+                        audio_file = f"asmr.{fmt}"
+                        if os.path.exists(os.path.join(path, audio_file)):
+                            found_audio.append(audio_file)
+                    
+                    if found_audio:
+                        backup_dir = os.path.join(path, "backups")
+                        if not os.path.exists(backup_dir):
+                            os.makedirs(backup_dir)
+                        backup_count = 1
+                        while True:
+                            if any(os.path.exists(os.path.join(backup_dir, f"backup-{backup_count}.{fmt}")) for fmt in valid_audio_formats):
+                                backup_count += 1
+                            else:
+                                break
+                        for audio_file in found_audio:
+                            ext = audio_file.split(".")[-1]
+                            shutil.move(os.path.join(path, audio_file), os.path.join(backup_dir, f"backup-{backup_count}.{ext}"))
+                    else:
+                        shutil.rmtree(path)
+                        os.makedirs(path)
                 ydl_opts['outtmpl'] = os.path.join(path, 'asmr.%(ext)s')
                 d = video_downloader(video[1], ydl_opts, path, id, return_dict, bypass_slowness)
                 d.start_download()
@@ -609,21 +633,32 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
             for video in chan.reqs:
                 if video in chan.failures and chan.failures[video].get("attempts", 0) >= 5:
                     continue
+                
+                # Reconstruct full URL so failures log correctly
+                full_url = f"https://www.youtube.com/watch?v={video}" if len(video) == 11 else video
+
                 meta = get_meta(video)
                 if not "Exception" in meta and not is_live(meta):
-                    to_download.append([meta["title"], video])
-                if "Exception" in meta:
+                    to_download.append([meta["title"], full_url])
+                elif "Exception" in meta:
                     cookie_exception_flags = ["inappropriate", "sign in", "age", "member"]
+                    handled = False
                     for flag in cookie_exception_flags:
                         if flag in meta and not "live event" in meta:
                             meta = get_meta_cookie(video)
                             if not "Exception" in meta:
-                                to_download.append([meta["title"], video])
+                                to_download.append([meta["title"], full_url])
+                                handled = True
+                            break
                     if "Exception: No cookies" in meta:
-                        continue # Might want to inform the user that their request failed here. 
-                    if "live event" in meta: # A live event, we want to start the recorder. 
-                        pass
+                        pass # Continue, let it fall through and be queued
+                    elif "live event" in meta: # A live event, we want to start the recorder. 
+                        handled = True
                         #run_shell(["python", os.path.join(os.path.dirname(os.path.realpath(__file__)), "live.py"), video, "record", "\"" + chan.name + "\""])
+                    
+                    if not handled:
+                        # Append anyway to guarantee folder cleanup/backup logic executes and failure is logged
+                        to_download.append(["Unknown Title", full_url])
                 elif is_live(meta):
                     pass
                     #run_shell(["python", os.path.join(os.path.dirname(os.path.realpath(__file__)), "live.py"), video, "record", "\"" + chan.name + "\""])
