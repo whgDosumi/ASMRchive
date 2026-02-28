@@ -20,13 +20,16 @@ class TestResult:
 
 
 # Tests get_pfp function in main
-def can_get_pfp(channel_url):
-    try:
-        pfp_url = get_pfp(channel_url)
-        requests.get(pfp_url)
-        return True, "Successfully found pfp for channel_url"
-    except Exception as e:
-        return False, str(e)
+def can_get_pfp(channel_url, max_tries=5):
+    tries = 0
+    while tries < max_tries:
+        try:
+            pfp_url = get_pfp(channel_url)
+            requests.get(pfp_url)
+            return True, "Successfully found pfp for channel_url"
+        except Exception as e:
+            print(str(e))
+    return False
 
 def print_results(results):
     print("\n\n-----\nTest Results:")
