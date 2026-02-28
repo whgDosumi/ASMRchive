@@ -81,7 +81,6 @@ pipeline {
                     --network-alias asmrchive-app \
                     --volume ${VOLUME_NAME}:/var/ASMRchive \
                     --label project=asmrchive \
-                    -e DLP_VER=2026.02.04 \
                     -e HOST_URL=http://localhost/ \
                     ${APP_IMAGE}
                 """
@@ -120,6 +119,12 @@ pipeline {
                         input(message: pauseMsg)
                     }
                 }
+            }
+        }
+        stage ("Downgrade YT-DLP") {
+            steps {
+                sh "podman exec -it ${CONTAINER_NAME} \"python -m pip uninstall -y yt-dlp\""
+                sh "podman exec -it ${CONTAINER_NAME} \"python -m pip install -U yt-dlp==2026.02.04\""
             }
         }
         stage ("Integration Tests") {
