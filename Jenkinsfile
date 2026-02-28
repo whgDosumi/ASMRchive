@@ -81,7 +81,6 @@ pipeline {
                     --network-alias asmrchive-app \
                     --volume ${VOLUME_NAME}:/var/ASMRchive \
                     --label project=asmrchive \
-                    -e DLP_VER=2026.02.04 \
                     -e HOST_URL=http://localhost/ \
                     ${APP_IMAGE}
                 """
@@ -105,16 +104,6 @@ pipeline {
         }
         stage ("Unit Tests") {
             steps {
-                sh """
-                echo "Waiting for container to finish startup..."
-                for i in {1..30}; do
-                    if curl -s http://localhost:${BUILD_PORT} > /dev/null; then
-                        echo "Container is up!"
-                        break
-                    fi
-                    sleep 2
-                done
-                """
                 sh "podman exec ${CONTAINER_NAME} python /var/python_app/test.py"
                 script {
                     if (params.Pause) {
@@ -130,6 +119,13 @@ pipeline {
                         input(message: pauseMsg)
                     }
                 }
+            }
+        }
+        stage ("Downgrade YT-DLP") {
+            steps {
+                sh "podman exec -it ${CONTAINER_NAME} python -m pip uninstall -y yt-dlp"
+                sh "podman exec -it ${CONTAINER_NAME} python -m pip install -U yt-dlp==2026.02.04"
+                sh "podman exec -it ${CONTAINER_NAME} python /var/python_app/check_dlp.py"
             }
         }
         stage ("Integration Tests") {

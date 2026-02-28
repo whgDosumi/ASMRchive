@@ -1,6 +1,6 @@
-from main import *
 import subprocess
-import time 
+import time
+import requests
 
 def print_green(text):
     green = "\033[92m"
@@ -18,9 +18,16 @@ class TestResult:
         self.passed = passed
         self.message = message
 
+def check_ytdlp():
+    result = subprocess.run(["yt-dlp", "-U"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result_text = result.stdout.strip()
+    if ("yt-dlp is up to date" in result_text.lower()):
+        return True, result_text
+    return False, result_text
 
 # Tests get_pfp function in main
 def can_get_pfp(channel_url, max_tries=5):
+    from main import get_pfp
     tries = 0
     while tries < max_tries:
         try:
@@ -29,7 +36,9 @@ def can_get_pfp(channel_url, max_tries=5):
             return True, "Successfully found pfp for channel_url"
         except Exception as e:
             print(str(e))
-    return False
+            tries += 1
+            time.sleep(1)
+    return False, "Failed to get pfp after max tries"
 
 def print_results(results):
     print("\n\n-----\nTest Results:")
@@ -75,10 +84,24 @@ def run_tests(tests):
         raise Exception("Some tests failed")
     
 
+def wait_for_webserver(url="http://127.0.0.1/", max_retries=30, delay=2):
+    print(f"Waiting for container to finish startup at {url}...")
+    for i in range(max_retries):
+        try:
+            requests.get(url, timeout=5)
+            print_green("Container is up!")
+            return
+        except requests.exceptions.RequestException:
+            time.sleep(delay)
+    raise Exception(f"Failed to connect to {url} after {max_retries} retries")
+
 if __name__ == "__main__":
+    wait_for_webserver()
+
     # Add your tests to this dict, function_name: (args,)
     tests = {
         can_get_pfp: ("https://www.youtube.com/channel/UC1kvM3pZGg3QaSQBS91Cwzg",),
+        check_ytdlp: (),
         can_get_apple_touch_icon: ("http://127.0.0.1/ASMRchive/apple_touch_icon.png",),
     }
 
