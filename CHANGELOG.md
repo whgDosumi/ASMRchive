@@ -1,3 +1,33 @@
+## 1.11.3 - 2026-02-28
+Fix messed up CI (#160)
+
+* fix: startup script ouputs to wrong log file.
+
+- Fixes an issue where the startup.sh script would push the logs to
+the incorrect location.
+
+* test: Update yt-dlp update testing logic
+
+- Mashes the update button instead of hitting it only once.
+- Adds more robust logging to check_dlp.py and flag_check.sh
+
+* ci: Move wait logic
+
+- Removes wait logic inside the Jenkins pipeline
+- Replaces it by adding it as a python step in the unit tests.
+
+* ci: reorganize tests
+
+- Removed the non-standard build of ASMRchive with wrong version of yt-dlp.
+- Re-added the unit test that verifies yt-dlp is up to date
+- Added step to pipeline to manually downgrade yt-dlp for integration tests.
+
+* ci: Fix broken stage formatting
+
+* ci: Tell webserver yt-dlp has been downgraded
+
+* fix: Fix potential infinite loop in unit tests.
+
 ## 1.11.2 - 2026-02-28
 Ci/optimize dlp tests (#159)
 
