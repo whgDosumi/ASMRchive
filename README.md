@@ -3,9 +3,9 @@ Python app that watches channels on youtube and selectively downloads the audio 
 
 ## Setup
 ```
-python -m pip install -r python_app/requirements.txt
-python python_app/setup.py
-python python_app/add_channels.py # add some channels
+python -m pip install -r python/requirements.txt
+python python/setup.py
+python python/add_channels.py # add some channels
 docker build -t asmrchive .
 ```
 

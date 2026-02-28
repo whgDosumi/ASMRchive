@@ -104,7 +104,7 @@ pipeline {
         }
         stage ("Unit Tests") {
             steps {
-                sh "podman exec ${CONTAINER_NAME} python /var/python_app/test.py"
+                sh "podman exec ${CONTAINER_NAME} python /var/python/test.py"
                 script {
                     if (params.Pause) {
                         def pauseMsg = """
@@ -125,7 +125,7 @@ pipeline {
             steps {
                 sh "podman exec -it ${CONTAINER_NAME} python -m pip uninstall -y yt-dlp"
                 sh "podman exec -it ${CONTAINER_NAME} python -m pip install -U yt-dlp==2026.02.04"
-                sh "podman exec -it ${CONTAINER_NAME} python /var/python_app/check_dlp.py"
+                sh "podman exec -it ${CONTAINER_NAME} python /var/python/check_dlp.py"
             }
         }
         stage ("Integration Tests") {
