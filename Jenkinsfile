@@ -123,8 +123,8 @@ pipeline {
         }
         stage ("Downgrade YT-DLP") {
             steps {
-                sh "podman exec -it ${CONTAINER_NAME} \"python -m pip uninstall -y yt-dlp\""
-                sh "podman exec -it ${CONTAINER_NAME} \"python -m pip install -U yt-dlp==2026.02.04\""
+                sh "podman exec -it ${CONTAINER_NAME} python -m pip uninstall -y yt-dlp"
+                sh "podman exec -it ${CONTAINER_NAME} python -m pip install -U yt-dlp==2026.02.04"
             }
         }
         stage ("Integration Tests") {
