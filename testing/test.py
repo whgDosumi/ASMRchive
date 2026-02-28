@@ -239,6 +239,7 @@ while tries < max_retries:
         passed = True
         break
 assert passed, f"YT-DLP Failed to update in {max_retries * refresh_rate} seconds."
+print("YT-DLP Successfully updates via the webui.")
 if "dlponly" in args.test.lower():
     print("dlponly specified, exiting.")
     exit()
@@ -276,6 +277,7 @@ while tries < max_retries:
             break
     time.sleep(refresh_rate)
 assert passed, f"New channel did not appear within {max_retries * refresh_rate} Seconds."
+print("Test channel appeared. Is now in Archived status.")
 
 # Test comments on the videos
 test_comment_name = "Dominic Toretto"
@@ -315,9 +317,10 @@ for channel in channels:
                         break
                 attempts += 1
             assert success, "Download button failed to download the ASMR file."
+            print("Can successfully download ASMR via the download button.")
             # Confirm yt button is working
             assert web.find_element(By.ID, "ytlink").get_attribute("href") != "", "YouTube link does not actually link to youtube video."
-
+            print("Youtube link appears at the top, points to correct URL.")
             # Add a comment
             web.implicitly_wait(5)
             web.find_element(By.ID, "name_box").send_keys(test_comment_name)
@@ -329,7 +332,7 @@ for channel in channels:
             # Make sure the comment exists
             web.get(video.url)
             assert (test_comment_name in web.page_source), "Could not successfully comment on video."
-
+            print("Was able to comment on the video.")
             # Test the timestamp
             audio_element = web.find_element(By.ID, "asmr")
             max_duration = web.execute_script("return arguments[0].duration;", audio_element)
@@ -342,7 +345,7 @@ for channel in channels:
             stamp.click()
             current_time = web.execute_script("return arguments[0].currentTime;", audio_element)
             assert current_time > 80 or int(current_time) == max_duration, "Timestamp in comment did not navigate to the correct time."
-
+            print("Timestamps in comments correctly change the time when clicked.")
             # Determine the latest comment and delete it.
             comments = web.find_elements(By.CLASS_NAME, "delete_button")
             latest_comment = comments[0]
@@ -360,6 +363,7 @@ for channel in channels:
                 try:
                     web.get(video.url)
                     assert (not test_comment_name in web.page_source)
+                    print("Was able to delete the comment.")
                     break
                 except Exception as e:
                     if assertion_attempts >= 5:
