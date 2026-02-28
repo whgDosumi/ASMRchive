@@ -1,3 +1,9 @@
+## 1.11.1 - 2026-02-28
+ci: Remove dlp update integration test (#158)
+
+- Test functionality is now built in directly to the main test.
+- Unit tests no longer verify yt-dlp is up to date.
+
 ## 1.11.0 - 2026-02-26
 Automatically translate channel URL's to IDs  (#157)
 
