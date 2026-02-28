@@ -1,6 +1,7 @@
 from main import *
 import subprocess
-import time 
+import time
+import requests
 
 def print_green(text):
     green = "\033[92m"
@@ -75,7 +76,20 @@ def run_tests(tests):
         raise Exception("Some tests failed")
     
 
+def wait_for_webserver(url="http://127.0.0.1/", max_retries=30, delay=2):
+    print(f"Waiting for container to finish startup at {url}...")
+    for i in range(max_retries):
+        try:
+            requests.get(url, timeout=5)
+            print_green("Container is up!")
+            return
+        except requests.exceptions.RequestException:
+            time.sleep(delay)
+    raise Exception(f"Failed to connect to {url} after {max_retries} retries")
+
 if __name__ == "__main__":
+    wait_for_webserver()
+
     # Add your tests to this dict, function_name: (args,)
     tests = {
         can_get_pfp: ("https://www.youtube.com/channel/UC1kvM3pZGg3QaSQBS91Cwzg",),

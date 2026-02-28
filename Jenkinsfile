@@ -105,16 +105,6 @@ pipeline {
         }
         stage ("Unit Tests") {
             steps {
-                sh """
-                echo "Waiting for container to finish startup..."
-                for i in {1..30}; do
-                    if curl -s http://localhost:${BUILD_PORT} > /dev/null; then
-                        echo "Container is up!"
-                        break
-                    fi
-                    sleep 2
-                done
-                """
                 sh "podman exec ${CONTAINER_NAME} python /var/python_app/test.py"
                 script {
                     if (params.Pause) {
