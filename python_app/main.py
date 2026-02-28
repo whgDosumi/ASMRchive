@@ -203,6 +203,7 @@ class Channel():
         self.status = status
         self.last_updated = int(last_updated)
         self.path = os.path.join(output_directory, slugify(self.name))
+        self.failures = self.load_failures()
         self.reqs = []
         for video in reqs:
             if is_live(get_meta(video)):
@@ -211,6 +212,20 @@ class Channel():
                 self.reqs.append(video)
         self.active_recordings = []
         self.url = f"https://www.youtube.com/channel/{self.channel_id}"
+    
+    def load_failures(self):
+        failures_path = os.path.join(self.path, "failures.json")
+        if os.path.exists(failures_path):
+            try:
+                return read_json(failures_path)
+            except:
+                pass
+        return {}
+
+    def save_failures(self):
+        failures_path = os.path.join(self.path, "failures.json")
+        with open(failures_path, "w") as write_file:
+            json.dump(self.failures, write_file, indent=4)
     
     def setup(self):
         if not os.path.exists(self.path):
@@ -440,7 +455,7 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
     error_count = {}
     function_output = {}
     function_output["successes"] = []
-    function_output["failures"] = []
+    function_output["failures"] = {}
     function_output["bots"] = []
     queue_manager = multiprocessing.Manager()
     ydl_opts["cookiefile"] = None
@@ -465,7 +480,7 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
                             break
                     if ydl_opts["cookiefile"] == None:
                         print("Cookies attempted but failed. len: " + str(len(cookie_queue[video[1]])))
-                        purge[video[1]] = "failure"
+                        purge[video[1]] = "Missing Cookies"
                         continue
                 if video[1] in slow_queue:
                     if slow_queue[video[1]] > 5:
@@ -537,13 +552,13 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
                     if "Sign in to confirm you’re not a bot. This helps protect our community." in returns[p.id][1]:
                         purge[p.url] = "Bot Error"
                     else:
-                        purge[p.url] = "failure"
+                        purge[p.url] = status
             else: #we got an error
                 errored[p.url] = status
                 if max_retries > 0:
                     error_count[p.url] = 1
                 else:
-                    purge[p.url] = "failure"
+                    purge[p.url] = status
         purge_urls = [i for i in purge]
         new = []
         for d in to_download:
@@ -557,7 +572,7 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
             elif purge[p] == "Bot Error":
                 function_output["bots"].append(p)
             else:
-                function_output["failures"].append(p)                
+                function_output["failures"][p] = purge[p]
     queue_manager.shutdown()
     return function_output
 
@@ -582,7 +597,6 @@ def get_meta_cookie(link, cookie_dir=(os.path.join("/var/ASMRchive/.appdata", "c
         except Exception as e:
             pass
     return "Exception: No cookies in cookie directory"
-
 def ASMRchive(channels: list, keywords: list, output_directory: str):
     for chan in channels:
         if chan.status == "archived": #we want to check the RSS for new ASMR streams
@@ -590,6 +604,8 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
             saved = chan.get_saved_videos(output_directory)
             to_download = []
             for video in chan.reqs:
+                if video in chan.failures and chan.failures[video].get("attempts", 0) >= 5:
+                    continue
                 meta = get_meta(video)
                 if not "Exception" in meta and not is_live(meta):
                     to_download.append([meta["title"], video])
@@ -610,6 +626,8 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                     #run_shell(["python", os.path.join(os.path.dirname(os.path.realpath(__file__)), "live.py"), video, "record", "\"" + chan.name + "\""])
             for video in rss:
                 if not video["link"] in saved:
+                    if video["link"] in chan.failures and chan.failures[video["link"]].get("attempts", 0) >= 5:
+                        continue
                     for word in keywords:
                         if word.lower() in video["title"].lower():
                             meta = get_meta(video["link"])
@@ -641,10 +659,20 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 downloaded = []
                 for success in download_results["successes"]:
                     downloaded.append(success)
+                    if success in chan.failures:
+                        del chan.failures[success]
                 if len(downloaded) > 0:
                     chan.last_updated = int(time.time())
                 for id in download_results["bots"]:
                     chan.carried_reqs.append(id)
+                for failure, error_msg in download_results["failures"].items():
+                    if failure in chan.failures:
+                        chan.failures[failure]["attempts"] += 1
+                        chan.failures[failure]["error"] = error_msg
+                        chan.failures[failure]["timestamp"] = int(time.time())
+                    else:
+                        chan.failures[failure] = {"attempts": 1, "error": error_msg, "timestamp": int(time.time())}
+                chan.save_failures()
                 with open(os.path.join(output_directory, slugify(chan.name), "saved_urls.txt"), "a") as saved_doc:
                     for item in downloaded:
                         saved_doc.write(item + "\n")
@@ -678,9 +706,12 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                             to_download.append(item)
                 else:
                     for word in keywords:
-                        if not ("https://www.youtube.com/watch?v=" + metadata["id"]) in to_download and not ("https://www.youtube.com/watch?v=" + metadata["id"]) in saved:
+                        vid_url = "https://www.youtube.com/watch?v=" + metadata["id"]
+                        if not vid_url in to_download and not vid_url in saved:
+                            if vid_url in chan.failures and chan.failures[vid_url].get("attempts", 0) >= 5:
+                                continue
                             if word.lower() in metadata["title"].lower():
-                                to_download.append([metadata["title"] ,"https://www.youtube.com/watch?v=" + metadata["id"]])
+                                to_download.append([metadata["title"] ,vid_url])
                                 break
                 return to_download
             if not meta == None:
@@ -697,10 +728,19 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                 download_results = download_batch(to_download, ydl_opts, os.path.join(output_directory, slugify(chan.name)), max_retries=3, save_history=False)
                 for success in download_results["successes"]:
                     downloaded.append(success)
+                    if success in chan.failures:
+                        del chan.failures[success]
                 if len(downloaded) > 0:
                     chan.last_updated = int(time.time())
-                for failure in download_results["failures"]:
-                    log("Failure: " + str(failure))
+                for failure, error_msg in download_results["failures"].items():
+                    log("Failure " + failure + ": " + str(error_msg))
+                    if failure in chan.failures:
+                        chan.failures[failure]["attempts"] += 1
+                        chan.failures[failure]["error"] = error_msg
+                        chan.failures[failure]["timestamp"] = int(time.time())
+                    else:
+                        chan.failures[failure] = {"attempts": 1, "error": error_msg, "timestamp": int(time.time())}
+                chan.save_failures()
             with open(os.path.join(output_directory, slugify(chan.name), "saved_urls.txt"), "a") as saved_doc:
                 for item in downloaded:
                     saved_doc.write(item + "\n")
