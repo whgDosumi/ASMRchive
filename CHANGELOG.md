@@ -1,3 +1,8 @@
+## 1.12.1 - 2026-02-28
+refactor: Rename python_app to python
+
+- Rename python_app folder to python.
+
 ## 1.12.0 - 2026-02-28
 fix: Handle failed downloads (#161)
 
