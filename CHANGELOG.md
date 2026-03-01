@@ -1,3 +1,105 @@
+## 1.13.0 - 2026-03-01
+feat: process explicit requests for inactive and new channels (#163)
+
+- Refactor ASMRchive loop to separate request processing from RSS checks.
+- Enable video requests (chan.reqs) for inactive and new channel statuses.
+- Ensure original channel status is restored after processing requests.
+- Prevent duplicate downloads by checking to_download before scraping new channels.
+
+diff --git a/python/main.py b/python/main.py
+index 405ae87..f116a70 100644
+--- a/python/main.py
++++ b/python/main.py
+@@ -626,10 +626,11 @@ def get_meta_cookie(link, cookie_dir=(os.path.join("/var/ASMRchive/.appdata", "c
+     return "Exception: No cookies in cookie directory"
+ def ASMRchive(channels: list, keywords: list, output_directory: str):
+     for chan in channels:
+-        if chan.status == "archived": #we want to check the RSS for new ASMR streams
+-            rss = chan.get_rss()
+-            saved = chan.get_saved_videos(output_directory)
+-            to_download = []
++        to_download = []
++        original_status = chan.status
++
++        # Process explicit requests for archived, inactive, and new channels
++        if chan.status in ["archived", "inactive", "new"]:
+             for video in chan.reqs:
+                 if video in chan.failures and chan.failures[video].get("attempts", 0) >= 5:
+                     continue
+@@ -662,6 +663,11 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
+                 elif is_live(meta):
+                     pass
+                     #run_shell(["python", os.path.join(os.path.dirname(os.path.realpath(__file__)), "live.py"), video, "record", "\"" + chan.name + "\""])
++
++        # Check RSS feed ONLY for archived channels
++        if chan.status == "archived":
++            rss = chan.get_rss()
++            saved = chan.get_saved_videos(output_directory)
+             for video in rss:
+                 if not video["link"] in saved:
+                     if video["link"] in chan.failures and chan.failures[video["link"]].get("attempts", 0) >= 5:
+@@ -683,6 +689,9 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
+                             else:
+                                 to_download.append([video["title"], video["link"]])
+                                 break
++
++        # Execute downloads if we found anything in reqs or RSS
++        if chan.status in ["archived", "inactive"]:
+             ydl_opts = {
+                 'nocheckcertificate': True,
+                 'writethumbnail': True,
+@@ -714,13 +723,12 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
+                 with open(os.path.join(output_directory, slugify(chan.name), "saved_urls.txt"), "a") as saved_doc:
+                     for item in downloaded:
+                         saved_doc.write(item + "\n")
+-            chan.status = "archived"
+-            chan.save()
++                chan.status = original_status # Ensure inactive channels get set back properly!
++                chan.save()
+         elif chan.status == "new": #we want to do a full archive of all videos
+             chan.status = "downloading"
+             chan.save()
+             saved = chan.get_saved_videos(output_directory)
+-            to_download = list()
+             downloaded = list()
+             chan.setup()
+             ydl_opts = {
+@@ -736,24 +744,28 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
+                 'extract_flat': True,
+             }
+             def search_channel(metadata): # Recursively checks through a channels videos for ASMR and queues them for download
+-                to_download = []
++                found_downloads = []
+                 if metadata["_type"] == "playlist":
+                     for entry in metadata["entries"]:
+                         data = (search_channel(entry))
+                         for item in data:
+-                            to_download.append(item)
++                            found_downloads.append(item)
+                 else:
+                     for word in keywords:
+                         vid_url = "https://www.youtube.com/watch?v=" + metadata["id"]
+-                        if not vid_url in to_download and not vid_url in saved:
++                        if not vid_url in [x[1] for x in found_downloads] and not vid_url in saved:
+                             if vid_url in chan.failures and chan.failures[vid_url].get("attempts", 0) >= 5:
+                                 continue
+                             if word.lower() in metadata["title"].lower():
+-                                to_download.append([metadata["title"] ,vid_url])
++                                found_downloads.append([metadata["title"] ,vid_url])
+                                 break
+-                return to_download
++                return found_downloads
+             if not meta == None:
+-                to_download = search_channel(meta)
++                found_videos = search_channel(meta)
++                existing_urls = [vid[1] for vid in to_download]
++                for item in found_videos:
++                    if item[1] not in existing_urls:
++                        to_download.append(item)
+             ydl_opts = {
+                 'nocheckcertificate': True,
+                 'writethumbnail': True,
+
 ## 1.12.1 - 2026-02-28
 refactor: Rename python_app to python
 
