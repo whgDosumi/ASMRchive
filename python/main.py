@@ -427,13 +427,10 @@ def get_video_info(url):
 def get_vid(url):
     if len(url) == 11:
         return url
-    index = url.find("?v=")
-    if index > 0:
-        return url[index + 3:]
-    index = url.find("/shorts/")
-    if index > 0:
-        return url[index + 8]
-    raise f"get_vid function failed, was passed an odd input of {url}"
+    match = re.search(r"(?:v=|\/|shorts\/|^)([0-9A-Za-z_-]{11})(?:\?|&|$)", url)
+    if match:
+        return match.group(1)
+    return url
 
 
 
