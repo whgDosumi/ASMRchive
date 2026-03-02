@@ -73,6 +73,7 @@ def get_meta(url):
         return meta_dict[url]
     try:
         ydl_opts = {
+            'source_address': '0.0.0.0',
             'nocheckcertificate': True,
             'quiet': True,
             'no_warnings': True,
@@ -416,6 +417,7 @@ def get_video(url, ydl_opts):
 def get_video_info(url):
     try:
         ydl_opts = {
+            'source_address': '0.0.0.0',
             'nocheckcertificate': True,
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl: #This one gets the playlists
@@ -611,6 +613,7 @@ def get_meta_cookie(link, cookie_dir=(os.path.join("/var/ASMRchive/.appdata", "c
     for cookie_file in os.listdir(cookie_dir):
         try:
             ydl_opts = {
+                'source_address': '0.0.0.0',
                 'nocheckcertificate': True,
                 'quiet': True,
                 'no_warnings': True,
@@ -693,6 +696,7 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
         # Execute downloads if we found anything in reqs or RSS
         if chan.status in ["archived", "inactive"]:
             ydl_opts = {
+                'source_address': '0.0.0.0',
                 'nocheckcertificate': True,
                 'writethumbnail': True,
                 'format': "bestaudio/best",
@@ -732,6 +736,7 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
             downloaded = list()
             chan.setup()
             ydl_opts = {
+                'source_address': '0.0.0.0',
                 'nocheckcertificate': True,
                 'ignoreerrors': True,
                 'extract_flat': "in_playlist",
@@ -739,6 +744,7 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
             with yt_dlp.YoutubeDL(ydl_opts) as ydl: #This one gets the playlists
                 meta = ydl.extract_info(chan.url, download=False)
             ydl_opts = {
+                'source_address': '0.0.0.0',
                 'nocheckcertificate': True,
                 'ignoreerrors': True,
                 'extract_flat': True,
@@ -767,6 +773,7 @@ def ASMRchive(channels: list, keywords: list, output_directory: str):
                     if item[1] not in existing_urls:
                         to_download.append(item)
             ydl_opts = {
+                'source_address': '0.0.0.0',
                 'nocheckcertificate': True,
                 'writethumbnail': True,
                 'format': "bestaudio/best",
