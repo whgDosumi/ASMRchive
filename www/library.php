@@ -87,7 +87,7 @@
         }
         
         if ($result !== false) {
-            chmod($path, $permissions);
+            @chmod($path, $permissions);
         }
         return $result;
     }
@@ -96,13 +96,13 @@
     function create_dir($path, $permissions = 0775) {
         if (!is_dir($path)) {
             if (mkdir($path, $permissions, true)) {
-                chmod($path, $permissions);
+                @chmod($path, $permissions);
                 return true;
             }
             return false;
         }
         // Ensure permissions are correct even if it exists
-        chmod($path, $permissions);
+        @chmod($path, $permissions);
         return true;
     }
 
@@ -256,7 +256,7 @@
                 $this->last_updated
             ];
             $new = array_merge($new, $this->video_queue);
-            write_file('/var/ASMRchive/.appdata/channels/' . $this->dir_name . ".channel", implode(PHP_EOL, $new), 0644);
+            write_file('/var/ASMRchive/.appdata/channels/' . $this->dir_name . ".channel", implode(PHP_EOL, $new), 0664);
         }
 
         # $alias is the channel name as read from channel_dir/name.txt
