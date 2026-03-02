@@ -40,6 +40,24 @@ def can_get_pfp(channel_url, max_tries=5):
             time.sleep(1)
     return False, "Failed to get pfp after max tries"
 
+def test_get_vid(): # Ensures get_vid returns the correct video id.
+    from main import get_vid
+    test_cases = [
+        ("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "dQw4w9WgXcQ"),
+        ("https://www.youtube.com/shorts/dQw4w9WgXcQ", "dQw4w9WgXcQ"),
+        ("https://www.youtube.com/shorts/dQw4w9WgXcQ?feature=share", "dQw4w9WgXcQ"),
+        ("https://youtu.be/dQw4w9WgXcQ", "dQw4w9WgXcQ"),
+        ("dQw4w9WgXcQ", "dQw4w9WgXcQ"),
+        ("https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10s", "dQw4w9WgXcQ"),
+    ]
+
+    for url, expected in test_cases:
+        actual = get_vid(url)
+        if actual != expected:
+            return False, f"Failed for {url}: Expected {expected}, got {actual}"
+    
+    return True, "All get_vid test cases passed"
+
 def print_results(results):
     print("\n\n-----\nTest Results:")
     for result in results:
@@ -103,6 +121,7 @@ if __name__ == "__main__":
         can_get_pfp: ("https://www.youtube.com/channel/UC1kvM3pZGg3QaSQBS91Cwzg",),
         check_ytdlp: (),
         can_get_apple_touch_icon: ("http://127.0.0.1/ASMRchive/apple_touch_icon.png",),
+        test_get_vid: (),
     }
 
     run_tests(tests)
