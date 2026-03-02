@@ -268,26 +268,14 @@ class Channel():
         return saved_videos
 
 class video_downloader():
-    def __init__(self, url, ydl_opts, path, id, return_dict, bypass_slowness) -> None:
+    def __init__(self, url, ydl_opts, path, id, return_dict) -> None:
         self.url = url
         self.ydl_opts = ydl_opts
-        #self.ydl_opts['progress_hooks'] = [self.my_hook,]
         self.error = None
         self.return_dict = return_dict
         self.id = id
         self.process = Process(target=self.downloader, args=(self.id, self.return_dict))
         self.path = path
-        self.bypass_slowness = bypass_slowness
-
-    def my_hook(self, d):
-        try:
-            if (d["speed"] <= 100000) and (int(d["elapsed"]) >= 5) and (int(d["eta"]) >= 80): 
-                if not self.bypass_slowness:
-                    raise NameError('slow af')
-        except Exception as e:
-            if "slow af" in str(e):
-                raise e
-            pass
 
     def downloader(self, id, return_dict):
         try:
@@ -317,9 +305,7 @@ class video_downloader():
                     return_dict[id] = [self.id, "Finished", history_entry]
         except Exception as e:
             cookie_exception_flags = ["inappropriate", "sign in", "age", "member"]
-            if "slow af" in str(e):
-                return_dict[id] = [self.id, "Ignore"]
-            elif "403: Forbidden" in str(e):
+            if "403: Forbidden" in str(e):
                 return_dict[id] = [self.id, str(e)]
             elif "unable to rename file" in str(e):
                 return_dict[id] = [self.id, str(e)]
@@ -461,13 +447,11 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
     ydl_opts["cookiefile"] = None
     cookies = None
     cookie_queue = {} #key is url and value is list of tried cookies.
-    slow_queue = {}
     while len(to_download) >= 1:
         queue = to_download[0:limit]
         id = -1
         return_dict = queue_manager.dict()
         processes = []
-        bypass_slowness = False
         purge = {}
         for video in queue:
             ydl_opts["cookiefile"] = None
@@ -482,10 +466,6 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
                         print("Cookies attempted but failed. len: " + str(len(cookie_queue[video[1]])))
                         purge[video[1]] = "Missing Cookies"
                         continue
-                if video[1] in slow_queue:
-                    if slow_queue[video[1]] > 5:
-                        print("BYPASS SLOWNESS IS TRUE")
-                        bypass_slowness = True
                 id = id + 1
                 path = os.path.join(channel_path, get_vid(video[1]))
                 if not os.path.exists(path):
@@ -515,7 +495,7 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
                         shutil.rmtree(path)
                         os.makedirs(path)
                 ydl_opts['outtmpl'] = os.path.join(path, 'asmr.%(ext)s')
-                d = video_downloader(video[1], ydl_opts, path, id, return_dict, bypass_slowness)
+                d = video_downloader(video[1], ydl_opts, path, id, return_dict)
                 d.start_download()
                 with open(os.path.join(path, "title.txt"), "w", encoding="UTF-8") as title:
                     title.write(video[0])
@@ -553,12 +533,6 @@ def download_batch(to_download, ydl_opts, channel_path, limit=10, max_retries=1,
                 purge[p.url] = "success"
                 if save_history:
                     returns[p.id][2].save(history_path) #saves history to history json. 
-            elif status == "Ignore":
-                if video[1] in slow_queue:
-                    slow_queue[video[1]] += 1
-                else:
-                    slow_queue[video[1]] = 1
-                pass #Doing nothing puts it in the next queue for re-download
             elif status == "Cookie Please":
                 if cookies == None:
                     cookies = []
