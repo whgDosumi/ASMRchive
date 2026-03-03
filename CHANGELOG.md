@@ -1,3 +1,9 @@
+## 1.13.3 - 2026-03-03
+ci: add step to update yt-dlp to pipeline (#166)
+
+Sometimes, due to layer caching yt-dlp is not updated during the build
+process. This adds a step to explicity update it before the unit tests.
+
 ## 1.13.2 - 2026-03-03
 fix: force IPv4 for yt-dlp to resolve container DNS errors (#165)
 
