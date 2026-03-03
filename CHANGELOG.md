@@ -1,3 +1,11 @@
+## 1.13.2 - 2026-03-03
+fix: force IPv4 for yt-dlp to resolve container DNS errors (#165)
+
+Added 'source_address': '0.0.0.0' to all ydl_opts definitions in main.py.
+This forces yt-dlp to bind to an IPv4 socket, preventing intermittent
+IPv6 resolution timeouts and routing hangs that were causing download
+failures during integration tests in the container environment.
+
 ## 1.13.1 - 2026-03-02
 fix: Permission and Download Logic Bug Fixes (#164)
 
