@@ -102,6 +102,12 @@ pipeline {
                 }
             }
         }
+        stage ("Update YT-DLP") {
+            steps {
+                echo "Ensure yt-dlp is up to date in the container (layer caching stops this sometimes.)"
+                sh "podman exec ${CONTAINER_NAME} python -m pip install -U yt-dlp[default]"
+            }
+        }
         stage ("Unit Tests") {
             steps {
                 sh "podman exec ${CONTAINER_NAME} python /var/python/test.py"
@@ -123,9 +129,9 @@ pipeline {
         }
         stage ("Downgrade YT-DLP") {
             steps {
-                sh "podman exec -it ${CONTAINER_NAME} python -m pip uninstall -y yt-dlp"
-                sh "podman exec -it ${CONTAINER_NAME} python -m pip install -U yt-dlp==2026.02.04"
-                sh "podman exec -it ${CONTAINER_NAME} python /var/python/check_dlp.py"
+                sh "podman exec ${CONTAINER_NAME} python -m pip uninstall -y yt-dlp"
+                sh "podman exec ${CONTAINER_NAME} python -m pip install -U yt-dlp==2026.02.04"
+                sh "podman exec ${CONTAINER_NAME} python /var/python/check_dlp.py"
             }
         }
         stage ("Integration Tests") {
