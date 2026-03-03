@@ -104,7 +104,8 @@ pipeline {
         }
         stage ("Update YT-DLP") {
             steps {
-                echo "Ensure yt-dlp is up to date in the container (layer caching stops this sometimes.)"
+                // This is necessary since layer caching sometimes prevents the latest version being present.
+                echo "Ensure yt-dlp is up to date in the container."
                 sh "podman exec ${CONTAINER_NAME} python -m pip install -U yt-dlp[default]"
             }
         }
@@ -129,6 +130,8 @@ pipeline {
         }
         stage ("Downgrade YT-DLP") {
             steps {
+                // Downgrade yt-dlp to an older version.
+                // This is so the integration tests can check the update button on the webpage, and make sure it works.
                 sh "podman exec ${CONTAINER_NAME} python -m pip uninstall -y yt-dlp"
                 sh "podman exec ${CONTAINER_NAME} python -m pip install -U yt-dlp==2026.02.04"
                 sh "podman exec ${CONTAINER_NAME} python /var/python/check_dlp.py"
@@ -137,6 +140,7 @@ pipeline {
         stage ("Integration Tests") {
             steps {
                 script {
+                    // Build test container (chrome webdriver and selenium)
                     def cacheFlag = env.use_cache_dynamic == "true" ? "" : "--no-cache --pull"
                     sh "podman --storage-opt ignore_chown_errors=true build ${cacheFlag} --label project=asmrchive --label image_type=test -t ${TEST_IMAGE} testing/"
                 }
@@ -176,9 +180,8 @@ pipeline {
                     def jobNamePath = env.JOB_NAME.replaceAll("/", "/job/")
                     def jobUrl = "${baseJenkinsUrl}job/${jobNamePath}/"
                     def message = "Build requires manual review\n[Jenkins Job](${jobUrl})\n[Live Demo](https://jenkins-${(env.EXECUTOR_NUMBER as Integer) + 1}.wronghood.net)"
-                    def chatId = "222789278"
-                    withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN')]) {
-                        sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${chatId} -d text='${message}' -d parse_mode=Markdown"
+                    withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN'), string(credentialsId: 'dosumi-chat-id', variable: 'CHAT_ID')]) {
+                        sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d text='${message}' -d parse_mode=Markdown"
                     }
                     // Prompt user to review the build.
                     def pauseMsg = """
@@ -258,9 +261,8 @@ pipeline {
                 if (!params.SUPPRESS_NOTIFS) {
                     if (!env.JOB_NAME.contains("Daily Master Build")) {
                         def message = "Build Successful: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
-                        def chatId = "222789278"
-                        withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN')]) {
-                            sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${chatId} -d text='${message}'"
+                        withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN'), string(credentialsId: 'dosumi-chat-id', variable: 'CHAT_ID')]) {
+                            sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d text='${message}'"
                         }
                     }
                 }
@@ -270,9 +272,8 @@ pipeline {
             script {
                 if (!params.SUPPRESS_NOTIFS) {
                     def message = "Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
-                    def chatId = "222789278"
-                    withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN')]) {
-                        sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${chatId} -d text='${message}'"
+                    withCredentials([string(credentialsId: 'onion-telegram-token', variable: 'TOKEN'), string(credentialsId: 'dosumi-chat-id', variable: 'CHAT_ID')]) {
+                        sh "curl -s -X POST https://api.telegram.org/bot${TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d text='${message}'"
                     }
                 }
             }
