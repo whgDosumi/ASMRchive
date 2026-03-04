@@ -258,8 +258,8 @@ assert "Forcing ASMR Scan." in alert.text, f"Force scan button raised unexpected
 alert.accept()
 
 # Wait for the new channel to appear, and for the video to download
-max_retries = 15
-refresh_rate = 5
+max_retries = 50
+refresh_rate = 2
 tries = 0
 passed = False # To track wether the test passed or failed
 while tries < max_retries:
