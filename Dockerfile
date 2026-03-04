@@ -5,7 +5,7 @@ RUN dnf install -y https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-rele
 
 # Install webserver, php, cron, python, and ffmpeg, findutils for perm mods later on.
 RUN dnf update -y && dnf -y install \
-    httpd php.x86_64 cronie python pip ffmpeg findutils unzip \
+    httpd php cronie python pip ffmpeg findutils unzip \
     && dnf clean all
 
 

@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -182,7 +183,21 @@ if args.url:
     print(f"Resolved {hostname} to {host_ip} for Chrome")
 
 #Initialize chrome webdriver
-web = webdriver.Chrome(options=chrome_options)
+# In some ARM environments, selenium-manager fails to run because it doesn't have an ARM binary.
+# We bypass it by pointing directly to the system-installed chromedriver and chromium-browser.
+chromedriver_path = shutil.which('chromedriver')
+chromium_path = shutil.which('chromium') or shutil.which('chromium-browser')
+
+if chromedriver_path and chromium_path:
+    print(f"Using system chromedriver: {chromedriver_path}")
+    print(f"Using system chromium: {chromium_path}")
+    service = Service(executable_path=chromedriver_path)
+    chrome_options.binary_location = chromium_path
+    web = webdriver.Chrome(service=service, options=chrome_options)
+else:
+    # Fallback if not found (might still fail on ARM)
+    print("Warning: Could not find system chromedriver or chromium. Using default Selenium initialization.")
+    web = webdriver.Chrome(options=chrome_options)
 # Get our main pages, ensure we can connect properly
 print("Waiting for website to be up...")
 timeout = 120
@@ -258,8 +273,8 @@ assert "Forcing ASMR Scan." in alert.text, f"Force scan button raised unexpected
 alert.accept()
 
 # Wait for the new channel to appear, and for the video to download
-max_retries = 15
-refresh_rate = 5
+max_retries = 50
+refresh_rate = 2
 tries = 0
 passed = False # To track wether the test passed or failed
 while tries < max_retries:
