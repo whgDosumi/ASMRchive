@@ -1,3 +1,31 @@
+## 1.13.4 - 2026-03-04
+ARM Support (#167)
+
+* ci: Fix hyphen inconsistency in pipeline
+
+* ci: Conceal chat id as secret.
+
+* fix: ARM support
+
+Remove x86_64 specification on php install. Should allow this to build
+on ARM.
+
+* test: increase timeout on integration tests
+
+While troubleshooting a failed build, I found that the test failed
+because it hadn't waited long enough, and by the end of the pipeline
+the condition was true. I suppose we needed a longer timeout. Increased
+to 100s.
+
+* test: Bypass selenium manager for chromedriver
+
+Due to selenium manager not supporting ARM, we directly tell the script
+where chromedriver and chromium are installed. This should bypass the
+need for selenium manager and allow the integration tests to be
+performed on ARM processors.
+
+* docs: Document how to test on ARM architecture
+
 ## 1.13.3 - 2026-03-03
 ci: add step to update yt-dlp to pipeline (#166)
 
