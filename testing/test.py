@@ -16,6 +16,12 @@ import sys
 import argparse
 from urllib.parse import urlparse
 
+# Environment variables for testing auth (supplied via Jenkins)
+OWNER_USERNAME = os.environ["OWNER_USERNAME"]
+OWNER_PASSWORD = os.environ["OWNER_PASSWORD"]
+ADMIN_USERNAME = os.environ["ADMIN_USERNAME"]
+ADMIN_PASSWORD = os.environ["ADMIN_PASSWORD"]
+
 supported_formats = [".wav", ".webm", ".flac", ".opus", ".m4a", ".mp3"]
 
 test_channel_name = "Dom"
@@ -221,6 +227,136 @@ WebDriverWait(web, timeout).until(
     EC.presence_of_element_located((By.ID, "main"))
 )
 print("Sites up!")
+
+print("Phase 1: Owner Testing (Setup & User Management)")
+# Wait for setup page to load (indicated by setup_username field)
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.NAME, "setup_username"))
+)
+assert "setup.php" in web.current_url, f"Expected to be redirected to setup.php, but on {web.current_url}"
+
+# Create Owner
+web.find_element(By.NAME, "setup_username").send_keys(OWNER_USERNAME)
+web.find_element(By.NAME, "setup_password").send_keys(OWNER_PASSWORD)
+web.find_element(By.NAME, "setup_password_confirm").send_keys(OWNER_PASSWORD)
+web.find_element(By.CLASS_NAME, "submit_button").click()
+
+# Should redirect to admintools
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "logout_form"))
+)
+assert "admintools.php" in web.current_url
+
+# Log Out
+web.find_element(By.NAME, "logout").click()
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.NAME, "login_username"))
+)
+assert "login.php" in web.current_url
+
+# Log In as Owner
+web.find_element(By.NAME, "login_username").send_keys(OWNER_USERNAME)
+web.find_element(By.NAME, "login_password").send_keys(OWNER_PASSWORD)
+web.find_element(By.CLASS_NAME, "submit_button").click()
+
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "logout_form"))
+)
+assert "admintools.php" in web.current_url
+
+# Create Admin User
+web.find_element(By.NAME, "new_username").send_keys(ADMIN_USERNAME)
+web.find_element(By.NAME, "new_password").send_keys(ADMIN_PASSWORD)
+web.find_element(By.NAME, "create_user").click()
+
+# Verify admin user in list
+WebDriverWait(web, timeout).until(
+    EC.text_to_be_present_in_element((By.TAG_NAME, "body"), ADMIN_USERNAME)
+)
+
+# Delete Admin User
+web.find_element(By.XPATH, f"//button[contains(@onclick, '{ADMIN_USERNAME}')]").click()
+WebDriverWait(web, timeout).until(
+    lambda d: ADMIN_USERNAME not in d.find_element(By.TAG_NAME, "body").text
+)
+
+# Re-create Admin User
+web.find_element(By.NAME, "new_username").send_keys(ADMIN_USERNAME)
+web.find_element(By.NAME, "new_password").send_keys(ADMIN_PASSWORD)
+web.find_element(By.NAME, "create_user").click()
+WebDriverWait(web, timeout).until(
+    EC.text_to_be_present_in_element((By.TAG_NAME, "body"), ADMIN_USERNAME)
+)
+
+# Change Password (Owner)
+web.find_element(By.XPATH, "//a[@href='change_password.php']").click()
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.NAME, "current_password"))
+)
+NEW_OWNER_PASSWORD = OWNER_PASSWORD + "_new"
+web.find_element(By.NAME, "current_password").send_keys(OWNER_PASSWORD)
+web.find_element(By.NAME, "new_password").send_keys(NEW_OWNER_PASSWORD)
+web.find_element(By.NAME, "confirm_password").send_keys(NEW_OWNER_PASSWORD)
+web.find_element(By.NAME, "send").click()
+WebDriverWait(web, timeout).until(
+    EC.text_to_be_present_in_element((By.TAG_NAME, "body"), "Password changed successfully")
+)
+
+# Go back to admintools and Log Out
+web.get(admintools_url)
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "logout_form"))
+)
+web.find_element(By.NAME, "logout").click()
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.NAME, "login_username"))
+)
+
+print("Phase 2: Admin Testing")
+# Admin Login
+web.find_element(By.NAME, "login_username").send_keys(ADMIN_USERNAME)
+web.find_element(By.NAME, "login_password").send_keys(ADMIN_PASSWORD)
+web.find_element(By.CLASS_NAME, "submit_button").click()
+
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "logout_form"))
+)
+assert "admintools.php" in web.current_url
+
+# Verify User Management is hidden
+assert "User Management" not in web.page_source
+
+# Change Password (Admin)
+web.find_element(By.XPATH, "//a[@href='change_password.php']").click()
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.NAME, "current_password"))
+)
+NEW_ADMIN_PASSWORD = ADMIN_PASSWORD + "_new"
+web.find_element(By.NAME, "current_password").send_keys(ADMIN_PASSWORD)
+web.find_element(By.NAME, "new_password").send_keys(NEW_ADMIN_PASSWORD)
+web.find_element(By.NAME, "confirm_password").send_keys(NEW_ADMIN_PASSWORD)
+web.find_element(By.NAME, "send").click()
+WebDriverWait(web, timeout).until(
+    EC.text_to_be_present_in_element((By.TAG_NAME, "body"), "Password changed successfully")
+)
+
+# Go back to admintools, Log Out and Log in with new password
+web.get(admintools_url)
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "logout_form"))
+)
+web.find_element(By.NAME, "logout").click()
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.NAME, "login_username"))
+)
+web.find_element(By.NAME, "login_username").send_keys(ADMIN_USERNAME)
+web.find_element(By.NAME, "login_password").send_keys(NEW_ADMIN_PASSWORD)
+web.find_element(By.CLASS_NAME, "submit_button").click()
+
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "logout_form"))
+)
+print("Admin logged in successfully with new password. Proceeding with existing tests.")
 
 # Test updating yt-dlp via the webui.
 

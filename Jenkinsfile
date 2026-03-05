@@ -144,13 +144,22 @@ pipeline {
                     def cacheFlag = env.use_cache_dynamic == "true" ? "" : "--no-cache --pull"
                     sh "podman --storage-opt ignore_chown_errors=true build ${cacheFlag} --label project=asmrchive --label image_type=test -t ${TEST_IMAGE} testing/"
                 }
-                sh """
-                podman run --rm \
-                    --network ${NETWORK_NAME} \
-                    ${TEST_IMAGE} \
-                    --test dlp \
-                    --url http://asmrchive-app:80
-                """
+                withCredentials([
+                    usernamePassword(credentialsId: 'asmrchive-owner-creds', passwordVariable: 'OWNER_PASSWORD', usernameVariable: 'OWNER_USERNAME'),
+                    usernamePassword(credentialsId: 'asmrchive-admin-creds', passwordVariable: 'ADMIN_PASSWORD', usernameVariable: 'ADMIN_USERNAME')
+                ]) {
+                    sh """
+                    podman run --rm \
+                        --network ${NETWORK_NAME} \
+                        -e OWNER_USERNAME="\${OWNER_USERNAME}" \
+                        -e OWNER_PASSWORD="\${OWNER_PASSWORD}" \
+                        -e ADMIN_USERNAME="\${ADMIN_USERNAME}" \
+                        -e ADMIN_PASSWORD="\${ADMIN_PASSWORD}" \
+                        ${TEST_IMAGE} \
+                        --test dlp \
+                        --url http://asmrchive-app:80
+                    """
+                }
                 script {
                     if (params.Pause) {
                         def pauseMsg = """
