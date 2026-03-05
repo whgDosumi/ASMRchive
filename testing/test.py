@@ -264,6 +264,9 @@ WebDriverWait(web, timeout).until(
 )
 assert "admintools.php" in web.current_url
 
+# Ensure the users.json isn't exposed on the front end
+assert requests.get(f"{homepage_url}/ASMR/.appdata/users.json").status_code != 200, "Can read users.json from the front end."
+
 # Create Admin User
 web.find_element(By.NAME, "new_username").send_keys(ADMIN_USERNAME)
 web.find_element(By.NAME, "new_password").send_keys(ADMIN_PASSWORD)
