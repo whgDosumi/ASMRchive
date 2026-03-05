@@ -53,36 +53,44 @@
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // User Management: Create User
         if (isset($_POST['create_user']) && isset($_POST['new_username']) && isset($_POST['new_password'])) {
-            $new_user = trim($_POST['new_username']);
-            $new_pass = $_POST['new_password'];
-            if (strlen($new_user) < 3 || strlen($new_pass) < 6) {
-                 $user_management_message = "Username > 2 chars, Password > 5 chars.";
-            } else {
-                if (create_user($new_user, $new_pass)) {
-                    $user_management_message = "User '{$new_user}' created successfully.";
+            if (is_owner()) {
+                $new_user = trim($_POST['new_username']);
+                $new_pass = $_POST['new_password'];
+                if (strlen($new_user) < 3 || strlen($new_pass) < 6) {
+                    $user_management_message = "Username > 2 chars, Password > 5 chars.";
                 } else {
-                    $user_management_message = "User '{$new_user}' already exists.";
+                    if (create_user($new_user, $new_pass)) {
+                        $user_management_message = "User '{$new_user}' created successfully.";
+                    } else {
+                        $user_management_message = "User '{$new_user}' already exists.";
+                    }
                 }
+            } else {
+                $user_management_message = "Permission denied.";
             }
         }
 
         // User Management: Delete User
         if (isset($_POST['delete_user']) && isset($_POST['target_user'])) {
-            $target = $_POST['target_user'];
-            $users = get_users();
-            // Prevent deleting the last user or the currently logged-in user
-            if (count($users) <= 1) {
-                 $user_management_message = "Cannot delete the last remaining user.";
-            } else if ($target === $_SESSION['username']) {
-                 $user_management_message = "Cannot delete your own account while logged in.";
-            } else if (isset($users[$target]['is_owner']) && $users[$target]['is_owner'] === true) {
-                 $user_management_message = "Cannot delete the owner account.";
+            if (is_owner()) {
+                $target = $_POST['target_user'];
+                $users = get_users();
+                // Prevent deleting the last user or the currently logged-in user
+                if (count($users) <= 1) {
+                    $user_management_message = "Cannot delete the last remaining user.";
+                } else if ($target === $_SESSION['username']) {
+                    $user_management_message = "Cannot delete your own account while logged in.";
+                } else if (isset($users[$target]['is_owner']) && $users[$target]['is_owner'] === true) {
+                    $user_management_message = "Cannot delete the owner account.";
+                } else {
+                    if (delete_user($target)) {
+                        $user_management_message = "User '{$target}' deleted.";
+                    } else {
+                        $user_management_message = "Failed to delete user.";
+                    }
+                }
             } else {
-                 if (delete_user($target)) {
-                     $user_management_message = "User '{$target}' deleted.";
-                 } else {
-                     $user_management_message = "Failed to delete user.";
-                 }
+                $user_management_message = "Permission denied.";
             }
         }
 
@@ -549,6 +557,7 @@
                 </tbody>
             </table>
         </form>
+        <?php if (is_owner()): ?>
         <form method="post" enctype="multipart/form-data">
             <table>
                 <thead>
@@ -598,6 +607,7 @@
                 </tbody>
             </table>
         </form>
+        <?php endif; ?>
 
         <form method="post" enctype="multipart/form-data">
             <input type="submit" name="force-scan" value="ASMR Scan Now" id="force-scan">

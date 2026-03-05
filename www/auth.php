@@ -60,6 +60,12 @@ function verify_user($username, $password) {
     return password_verify($password, $users[$username]['password_hash']);
 }
 
+// Check if a specific user is owner
+function is_user_owner($username) {
+    $users = get_users();
+    return isset($users[$username]['is_owner']) && $users[$username]['is_owner'] === true;
+}
+
 // Delete a user
 function delete_user($username) {
     $users = get_users();
@@ -97,5 +103,20 @@ function require_login() {
         header("Location: login.php");
         exit();
     }
+}
+
+// Check if current user is owner
+function is_owner() {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    if (isset($_SESSION['is_owner'])) {
+        return $_SESSION['is_owner'] === true;
+    }
+    if (isset($_SESSION['username'])) {
+        $_SESSION['is_owner'] = is_user_owner($_SESSION['username']);
+        return $_SESSION['is_owner'];
+    }
+    return false;
 }
 ?>

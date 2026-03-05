@@ -31,6 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Automatically log them in after setup
                 $_SESSION['admin_logged_in'] = true;
                 $_SESSION['username'] = $username;
+                $_SESSION['is_owner'] = true; // First user is always owner
                 header("Location: admintools.php");
                 exit();
             } else {

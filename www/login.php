@@ -29,6 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             session_regenerate_id(true); // Prevent session fixation
             $_SESSION['admin_logged_in'] = true;
             $_SESSION['username'] = $username;
+            $_SESSION['is_owner'] = is_user_owner($username);
             header("Location: admintools.php");
             exit();
         } else {
