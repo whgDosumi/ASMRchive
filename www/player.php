@@ -141,7 +141,7 @@ $me = new Video(".")
     <meta http-equiv="Expires" content="0" />
     <meta name="viewport" content="width=1000">
     <title>ASMRchive - Player</title>
-    <link rel="stylesheet" href="../../../player.css">
+    <link rel="stylesheet" href="../../../player.css?v=20260304">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="../../../favicon.ico">
 </head>
@@ -161,6 +161,7 @@ $me = new Video(".")
         }
         echo $me->thumbnail; ?>" id="thumbnail">
         <p class="title"><?php echo $me->title; ?></p>
+        <p class="upload_date">Uploaded: <?php echo $me->pretty_date; ?></p>
         <p class="description"><?php echo $me->description; ?></p>
         <div class="controls">
             <audio id="asmr" controls autoplay onplay="play_update()" onpause="pause_update()">
