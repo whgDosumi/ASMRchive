@@ -391,7 +391,7 @@
                                 <option value=""></option>
                                 <?php
                                 foreach($chans as $item){
-                                    echo "<option value='$item->dir_name'>$item->alias</option>";
+                                        echo "<option value='" . htmlspecialchars($item->dir_name, ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($item->alias, ENT_QUOTES, 'UTF-8') . "</option>";
                                 }
                                 ?>
                             </select>
@@ -477,7 +477,7 @@
                                 <option value=""></option>
                                 <?php
                                     foreach($chans as $item){
-                                        echo "<option value='$item->dir_name'>$item->alias</option>";
+                                            echo "<option value='" . htmlspecialchars($item->dir_name, ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($item->alias, ENT_QUOTES, 'UTF-8') . "</option>";
                                     }
                                 ?>
                             </select>
@@ -585,7 +585,7 @@
                     </tr>
                     <tr>
                         <td class="upload_table_error_cell">
-                            <?=$user_management_message?>
+                            <?=htmlspecialchars($user_management_message, ENT_QUOTES, 'UTF-8')?>
                         </td>
                         <td class="upload_table_cell"><input type="submit" name="create_user" value="Create User" class="submit_button"> </td>
                     </tr>
@@ -595,7 +595,7 @@
                             <?php
                             $all_users = get_users();
                             foreach ($all_users as $u => $data) {
-                                echo htmlspecialchars($u) . " ";
+                                echo htmlspecialchars($u, ENT_QUOTES, 'UTF-8') . " ";
                                 $is_owner = isset($data['is_owner']) && $data['is_owner'] === true;
                                 if ($is_owner) {
                                     echo "<span style='font-size: 15px; color: #003300; font-weight: bold;'>[owner]</span> ";

@@ -23,7 +23,7 @@ $me = new Channel($alias, $name);
 
 <head>
     <meta name="viewport" content="width=1000">
-    <title>ASMRchive - <?php echo $me->alias?></title>
+    <title>ASMRchive - <?php echo htmlspecialchars($me->alias, ENT_QUOTES, 'UTF-8')?></title>
     <link rel="stylesheet" href="../../channel.css">
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
     <script src="../../sort.js"></script>
@@ -38,7 +38,7 @@ $me = new Channel($alias, $name);
         <br>
         <div class="titlecard">
             <img src="./pfp.png" class="pfp">
-            <h1 class="cardtext"><?php echo $me->alias ?></h1>
+            <h1 class="cardtext"><?php echo htmlspecialchars($me->alias, ENT_QUOTES, 'UTF-8') ?></h1>
         </div>
         <br>
         <table>
