@@ -141,7 +141,7 @@ $me = new Video(".")
     <meta http-equiv="Expires" content="0" />
     <meta name="viewport" content="width=1000">
     <title>ASMRchive - Player</title>
-    <link rel="stylesheet" href="../../../player.css">
+    <link rel="stylesheet" href="../../../player.css?v=20260304">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="../../../favicon.ico">
 </head>
