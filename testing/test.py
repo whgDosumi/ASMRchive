@@ -381,24 +381,24 @@ web.execute_script("""
     form.submit();
 """)
 
-# Wait for the page to reload
-WebDriverWait(web, timeout).until(
-    EC.presence_of_element_located((By.ID, "main"))
-)
-
 # Ensure the server rejected it due to the missing token
 try:
     # If the exploit works, the server processes 'force-scan' and returns a javascript alert
+    # We must check for this FIRST before waiting for elements on the page
     WebDriverWait(web, 3).until(EC.alert_is_present())
     alert = web.switch_to.alert
     alert_text = alert.text
     alert.accept()
-    assert False, f"CSRF Exploit succeeded! Server executed the action and returned alert: {alert_text}"
+    assert False, f"CSRF Exploit succeeded! Server executed the action and returned alert: '{alert_text}'"
 except Exception as e:
     if "CSRF Exploit succeeded" in str(e):
         raise e
     # Timeout means no alert was presented, which means the server correctly blocked the action!
     pass
+
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "main"))
+)
 
 assert "CSRF validation failed." in web.page_source, "Expected CSRF validation failure message on the page."
 print("CSRF Exploit blocked successfully! The server correctly rejected the forged request.")
