@@ -239,7 +239,7 @@ assert "setup.php" in web.current_url, f"Expected to be redirected to setup.php,
 web.find_element(By.NAME, "setup_username").send_keys(OWNER_USERNAME)
 web.find_element(By.NAME, "setup_password").send_keys(OWNER_PASSWORD)
 web.find_element(By.NAME, "setup_password_confirm").send_keys(OWNER_PASSWORD)
-web.find_element(By.CLASS_NAME, "submit_button").click()
+web.find_element(By.NAME, "send").click()
 
 # Should redirect to admintools
 WebDriverWait(web, timeout).until(
