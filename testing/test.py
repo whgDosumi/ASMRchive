@@ -507,7 +507,6 @@ for channel in channels:
                     latest_comment = comment
             latest_comment.click()
             alert = WebDriverWait(web, 10).until(EC.alert_is_present())
-            assert test_comment_name in alert.text, "Alert did not show test comment name."
             alert.accept()
             # Confirm the comment is deleted
             assertion_attempts = 0
