@@ -277,7 +277,7 @@ WebDriverWait(web, timeout).until(
 # Delete Admin User
 web.find_element(By.XPATH, f"//button[contains(@onclick, '{ADMIN_USERNAME}')]").click()
 WebDriverWait(web, timeout).until(
-    lambda d: ADMIN_USERNAME not in d.find_element(By.TAG_NAME, "body").text
+    EC.text_to_be_present_in_element((By.TAG_NAME, "body"), f"User '{ADMIN_USERNAME}' deleted.")
 )
 
 # Re-create Admin User
