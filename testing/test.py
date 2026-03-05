@@ -16,6 +16,12 @@ import sys
 import argparse
 from urllib.parse import urlparse
 
+# Environment variables for testing auth (supplied via Jenkins)
+OWNER_USERNAME = os.environ["OWNER_USERNAME"]
+OWNER_PASSWORD = os.environ["OWNER_PASSWORD"]
+ADMIN_USERNAME = os.environ["ADMIN_USERNAME"]
+ADMIN_PASSWORD = os.environ["ADMIN_PASSWORD"]
+
 supported_formats = [".wav", ".webm", ".flac", ".opus", ".m4a", ".mp3"]
 
 test_channel_name = "Dom"
@@ -222,6 +228,181 @@ WebDriverWait(web, timeout).until(
 )
 print("Sites up!")
 
+print("Phase 1: Owner Testing (Setup & User Management)")
+# Wait for setup page to load (indicated by setup_username field)
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.NAME, "setup_username"))
+)
+assert "setup.php" in web.current_url, f"Expected to be redirected to setup.php, but on {web.current_url}"
+
+# Create Owner
+web.find_element(By.NAME, "setup_username").send_keys(OWNER_USERNAME)
+web.find_element(By.NAME, "setup_password").send_keys(OWNER_PASSWORD)
+web.find_element(By.NAME, "setup_password_confirm").send_keys(OWNER_PASSWORD)
+web.find_element(By.NAME, "send").click()
+
+# Should redirect to admintools
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "logout_form"))
+)
+assert "admintools.php" in web.current_url
+
+# Log Out
+web.find_element(By.NAME, "logout").click()
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.NAME, "login_username"))
+)
+assert "login.php" in web.current_url
+
+# Log In as Owner
+web.find_element(By.NAME, "login_username").send_keys(OWNER_USERNAME)
+web.find_element(By.NAME, "login_password").send_keys(OWNER_PASSWORD)
+web.find_element(By.CLASS_NAME, "submit_button").click()
+
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "logout_form"))
+)
+assert "admintools.php" in web.current_url
+
+# Ensure the users.json isn't exposed on the front end
+assert requests.get(f"{homepage_url}/ASMR/.appdata/users.json").status_code != 200, "Can read users.json from the front end."
+
+# Create Admin User
+web.find_element(By.NAME, "new_username").send_keys(ADMIN_USERNAME)
+web.find_element(By.NAME, "new_password").send_keys(ADMIN_PASSWORD)
+web.find_element(By.NAME, "create_user").click()
+
+# Verify admin user in list
+WebDriverWait(web, timeout).until(
+    EC.text_to_be_present_in_element((By.TAG_NAME, "body"), ADMIN_USERNAME)
+)
+
+# Delete Admin User
+web.find_element(By.XPATH, f"//button[contains(@onclick, '{ADMIN_USERNAME}')]").click()
+WebDriverWait(web, timeout).until(
+    EC.text_to_be_present_in_element((By.TAG_NAME, "body"), f"User '{ADMIN_USERNAME}' deleted.")
+)
+
+# Re-create Admin User
+web.find_element(By.NAME, "new_username").send_keys(ADMIN_USERNAME)
+web.find_element(By.NAME, "new_password").send_keys(ADMIN_PASSWORD)
+web.find_element(By.NAME, "create_user").click()
+WebDriverWait(web, timeout).until(
+    EC.text_to_be_present_in_element((By.TAG_NAME, "body"), ADMIN_USERNAME)
+)
+
+# Change Password (Owner)
+web.find_element(By.XPATH, "//a[@href='change_password.php']").click()
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.NAME, "current_password"))
+)
+NEW_OWNER_PASSWORD = OWNER_PASSWORD + "_new"
+web.find_element(By.NAME, "current_password").send_keys(OWNER_PASSWORD)
+web.find_element(By.NAME, "new_password").send_keys(NEW_OWNER_PASSWORD)
+web.find_element(By.NAME, "confirm_password").send_keys(NEW_OWNER_PASSWORD)
+web.find_element(By.NAME, "send").click()
+WebDriverWait(web, timeout).until(
+    EC.text_to_be_present_in_element((By.TAG_NAME, "body"), "Password changed successfully")
+)
+
+# Go back to admintools and Log Out
+web.get(admintools_url)
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "logout_form"))
+)
+web.find_element(By.NAME, "logout").click()
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.NAME, "login_username"))
+)
+
+print("Phase 2: Admin Testing")
+# Admin Login
+web.find_element(By.NAME, "login_username").send_keys(ADMIN_USERNAME)
+web.find_element(By.NAME, "login_password").send_keys(ADMIN_PASSWORD)
+web.find_element(By.CLASS_NAME, "submit_button").click()
+
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "logout_form"))
+)
+assert "admintools.php" in web.current_url
+
+# Verify User Management is hidden
+assert "User Management" not in web.page_source
+
+# Change Password (Admin)
+web.find_element(By.XPATH, "//a[@href='change_password.php']").click()
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.NAME, "current_password"))
+)
+NEW_ADMIN_PASSWORD = ADMIN_PASSWORD + "_new"
+web.find_element(By.NAME, "current_password").send_keys(ADMIN_PASSWORD)
+web.find_element(By.NAME, "new_password").send_keys(NEW_ADMIN_PASSWORD)
+web.find_element(By.NAME, "confirm_password").send_keys(NEW_ADMIN_PASSWORD)
+web.find_element(By.NAME, "send").click()
+WebDriverWait(web, timeout).until(
+    EC.text_to_be_present_in_element((By.TAG_NAME, "body"), "Password changed successfully")
+)
+
+# Go back to admintools, Log Out and Log in with new password
+web.get(admintools_url)
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "logout_form"))
+)
+web.find_element(By.NAME, "logout").click()
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.NAME, "login_username"))
+)
+web.find_element(By.NAME, "login_username").send_keys(ADMIN_USERNAME)
+web.find_element(By.NAME, "login_password").send_keys(NEW_ADMIN_PASSWORD)
+web.find_element(By.CLASS_NAME, "submit_button").click()
+
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "logout_form"))
+)
+print("Admin logged in successfully with new password. Proceeding with existing tests.")
+
+print("Phase 3: Security & CSRF Testing")
+# Simulate a CSRF exploit attempt by injecting and submitting a form without the CSRF token
+web.get(admintools_url)
+print("Injecting malicious CSRF form without a token...")
+web.execute_script("""
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'admintools.php';
+    form.id = 'evil_csrf_form';
+    
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'force-scan';
+    input.value = 'ASMR Scan Now';
+    
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+""")
+
+# Ensure the server rejected it due to the missing token
+try:
+    # If the exploit works, the server processes 'force-scan' and returns a javascript alert
+    # We must check for this FIRST before waiting for elements on the page
+    WebDriverWait(web, 3).until(EC.alert_is_present())
+    alert = web.switch_to.alert
+    alert_text = alert.text
+    alert.accept()
+    assert False, f"CSRF Exploit succeeded! Server executed the action and returned alert: '{alert_text}'"
+except Exception as e:
+    if "CSRF Exploit succeeded" in str(e):
+        raise e
+    # Timeout means no alert was presented, which means the server correctly blocked the action!
+    pass
+
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "main"))
+)
+
+assert "CSRF validation failed." in web.page_source, "Expected CSRF validation failure message on the page."
+print("CSRF Exploit blocked successfully! The server correctly rejected the forged request.")
+
 # Test updating yt-dlp via the webui.
 
 print("Performing DLP Test...")
@@ -368,7 +549,6 @@ for channel in channels:
                     latest_comment = comment
             latest_comment.click()
             alert = WebDriverWait(web, 10).until(EC.alert_is_present())
-            assert test_comment_name in alert.text, "Alert did not show test comment name."
             alert.accept()
             # Confirm the comment is deleted
             assertion_attempts = 0

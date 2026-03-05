@@ -55,6 +55,8 @@ then
 fi
 
 # Set desired file permissions
+chgrp apache /var/ASMRchive/.appdata
+chmod 775 /var/ASMRchive/.appdata
 chgrp apache /var/ASMRchive/.appdata/cookies
 chmod 730 /var/ASMRchive/.appdata/cookies
 chmod 770 /var/ASMRchive/.appdata/logs 

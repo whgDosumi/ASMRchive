@@ -47,11 +47,11 @@ class Comment
         echo '
         <div class="comment">
             <form method="post">
-                <input type="submit" value="Delete" class="delete_button" onclick="return confirm(\'Are you sure you want to delete comment by ' . $this->user_name . '?\');">
+                <input type="submit" value="Delete" class="delete_button" onclick="return confirm(\'Are you sure you want to delete this comment?\');">
                 <p class="comment_name">' . $this->user_name . '<span style="font-size: 15px;">&nbsp;&nbsp;at&nbsp;' . $this->date . '</span></p>
                 <p class="comment_text">' . nl2br($this->display_text) . '</p>
                 <input type="hidden" name="timestamp" class="timestamp">
-                <input type="hidden" name="delete" value=' . $this->path . '>
+                <input type="hidden" name="delete" value="' . htmlspecialchars($this->path, ENT_QUOTES, 'UTF-8') . '">
             </form>
         </div>';
     }
@@ -160,9 +160,9 @@ $me = new Video(".")
             echo "../";
         }
         echo $me->thumbnail; ?>" id="thumbnail">
-        <p class="title"><?php echo $me->title; ?></p>
+        <p class="title"><?php echo htmlspecialchars($me->title, ENT_QUOTES, 'UTF-8'); ?></p>
         <p class="upload_date">Uploaded: <?php echo $me->pretty_date; ?></p>
-        <p class="description"><?php echo $me->description; ?></p>
+        <p class="description"><?php echo nl2br(htmlspecialchars($me->description, ENT_QUOTES, 'UTF-8')); ?></p>
         <div class="controls">
             <audio id="asmr" controls autoplay onplay="play_update()" onpause="pause_update()">
                 <?php
@@ -331,8 +331,8 @@ $me = new Video(".")
         // Set thumbnail metadata
         if ("mediaSession" in navigator) {
             navigator.mediaSession.metadata = new MediaMetadata({
-                title: "<?php echo addslashes($me->title); ?>",
-                artist: "<?php echo addslashes($me->channel_name); ?>",
+                title: <?php echo json_encode($me->title); ?>,
+                artist: <?php echo json_encode($me->channel_name); ?>,
                 artwork: [
                     { src: "<?php echo $me->thumbnail; ?>", type: "<?php echo $me->thumbnail_type; ?>" }
                 ]
@@ -499,7 +499,7 @@ $me = new Video(".")
             if (source && source.src) {
                 source = source.src;
                 var ext = get_ext(source);
-                link.download = "<?php echo $me->download_name; ?>" + ext;
+                link.download = <?php echo json_encode($me->download_name); ?> + ext;
                 link.href = source;
                 document.body.appendChild(link);
                 link.click();

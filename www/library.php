@@ -57,7 +57,7 @@
     function test_input($data) {
         $data = trim($data);
         $data = stripslashes($data);
-        $data = htmlspecialchars($data);
+        $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
         return $data;
     }
 
@@ -309,9 +309,9 @@
                 $status = "" . count($this->video_queue) . " Queued";
             }
             echo '><td><img class="pfp" src=' . $this->path . 'pfp.png></td>
-            <td class="channel" data-sort-value="' . htmlspecialchars($this->alias) . '">' . $this->alias . '</td>';
+            <td class="channel" data-sort-value="' . htmlspecialchars($this->alias, ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($this->alias, ENT_QUOTES, 'UTF-8') . '</td>';
             if ($show_status) {
-                echo '<td class="status" data-sort-value="' . htmlspecialchars($status) . '">' . $status . '</td>';
+                echo '<td class="status" data-sort-value="' . htmlspecialchars($status, ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($status, ENT_QUOTES, 'UTF-8') . '</td>';
             }
             echo '<td class="count" data-sort-value="' . $this->count . '">' . $this->count . '</td>';
             echo '<td class="updated" data-sort-value="' . $this->last_updated . '">' . get_time_since_string($this->last_updated) . '</td>';
@@ -398,7 +398,7 @@
         public function display_row() {
             $runtime_sec = parse_duration_to_seconds($this->asmr_runtime);
             echo '<tr onclick="document.location = \'' . $this->path . '/player.php\';"><td><img class="thumb" alt="No Thumbnail :(" src=' . $this->thumbnail . '></td>
-            <td><p class="title" data-sort-value="' . htmlspecialchars($this->title) . '">' . $this->title . '</td>
+            <td><p class="title" data-sort-value="' . htmlspecialchars($this->title, ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($this->title, ENT_QUOTES, 'UTF-8') . '</td>
             <td class="date" data-sort-value="' . $this->upload_date . '">' . $this->pretty_date . '</td>
             <td class="date" data-sort-value="' . $runtime_sec . '">' . $this->asmr_runtime . '</td>
             <td class="count" data-sort-value="' . $this->comment_count . '">' . $this->comment_count . '</td>
