@@ -1,3 +1,10 @@
+## 1.14.0 - 2026-03-05
+feat: Add upload date to player.php (#168)
+
+* feat: Add upload date to player.php
+
+* fix: Bust cache
+
 ## 1.13.4 - 2026-03-04
 ARM Support (#167)
 
