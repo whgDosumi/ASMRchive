@@ -12,6 +12,15 @@
 <body>
     <?php
     include "/var/www/html/library.php";
+    include "/var/www/html/auth.php";
+    require_login();
+
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout'])) {
+        session_destroy();
+        header("Location: login.php");
+        exit();
+    }
+    
     // Get current version
     $asmrchive_version = "Unknown Version";
     if (file_exists("version.txt")) {
@@ -40,7 +49,43 @@
     }
 
     $error_message = "";
+    $user_management_message = "";
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        // User Management: Create User
+        if (isset($_POST['create_user']) && isset($_POST['new_username']) && isset($_POST['new_password'])) {
+            $new_user = trim($_POST['new_username']);
+            $new_pass = $_POST['new_password'];
+            if (strlen($new_user) < 3 || strlen($new_pass) < 6) {
+                 $user_management_message = "Username > 2 chars, Password > 5 chars.";
+            } else {
+                if (create_user($new_user, $new_pass)) {
+                    $user_management_message = "User '{$new_user}' created successfully.";
+                } else {
+                    $user_management_message = "User '{$new_user}' already exists.";
+                }
+            }
+        }
+
+        // User Management: Delete User
+        if (isset($_POST['delete_user']) && isset($_POST['target_user'])) {
+            $target = $_POST['target_user'];
+            $users = get_users();
+            // Prevent deleting the last user or the currently logged-in user
+            if (count($users) <= 1) {
+                 $user_management_message = "Cannot delete the last remaining user.";
+            } else if ($target === $_SESSION['username']) {
+                 $user_management_message = "Cannot delete your own account while logged in.";
+            } else if (isset($users[$target]['is_owner']) && $users[$target]['is_owner'] === true) {
+                 $user_management_message = "Cannot delete the owner account.";
+            } else {
+                 if (delete_user($target)) {
+                     $user_management_message = "User '{$target}' deleted.";
+                 } else {
+                     $user_management_message = "Failed to delete user.";
+                 }
+            }
+        }
+
         // leaving room here for other POST functions
 
         // force scan
@@ -311,6 +356,9 @@
     <a href="https://github.com/whgDosumi/ASMRchive">
         <p id="version"><?php echo $asmrchive_version; ?> <br> <span id="builddate"><?php echo $build_date; ?></span></p>
     </a>
+    <form method="post" id="logout_form" style="position: fixed; top: 50px; right: 0;">
+        <input type="submit" name="logout" value="Logout" style="background-color: darkseagreen; border: none; font-weight: bold; cursor: pointer; border-bottom-left-radius: 5px; padding: 5px;">
+    </form>
     <div id="main">
         <a href="index.php">
             <img src="images/ASMRchive.png" alt="logo" class="top_logo">
@@ -501,6 +549,56 @@
                 </tbody>
             </table>
         </form>
+        <form method="post" enctype="multipart/form-data">
+            <table>
+                <thead>
+                    <th colspan="2">User Management</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="upload_table_cell"> New Username </td>
+                        <td class="upload_table_cell">
+                            <input type="text" name="new_username" id="new_username" style="font-size: 30px; margin-left: 0px; position: relative; bottom: 10px;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="upload_table_cell"> New Password </td>
+                        <td class="upload_table_cell">
+                            <input type="password" name="new_password" id="new_password" style="font-size: 30px; margin-left: 0px; position: relative; bottom: 10px;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="upload_table_error_cell">
+                            <?=$user_management_message?>
+                        </td>
+                        <td class="upload_table_cell"><input type="submit" name="create_user" value="Create User" class="submit_button"> </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="upload_table_cell" style="text-align: center; border-bottom: none;">
+                            <strong>Current Users:</strong><br>
+                            <?php
+                            $all_users = get_users();
+                            foreach ($all_users as $u => $data) {
+                                echo htmlspecialchars($u) . " ";
+                                $is_owner = isset($data['is_owner']) && $data['is_owner'] === true;
+                                if ($is_owner) {
+                                    echo "<span style='font-size: 15px; color: #003300; font-weight: bold;'>[owner]</span> ";
+                                }
+                                if ($u !== $_SESSION['username'] && !$is_owner) {
+                                    echo "<button type='submit' name='delete_user' value='1' onclick=\"document.getElementById('target_user').value='$u';\" style='margin-left: 10px; cursor: pointer; color: red;'>Delete</button>";
+                                } else if ($u === $_SESSION['username']) {
+                                    echo "<span style='font-size: 15px; color: #444;'> (you)</span>";
+                                }
+                                echo "<br>";
+                            }
+                            ?>
+                            <input type="hidden" name="target_user" id="target_user" value="">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+
         <form method="post" enctype="multipart/form-data">
             <input type="submit" name="force-scan" value="ASMR Scan Now" id="force-scan">
         </form>

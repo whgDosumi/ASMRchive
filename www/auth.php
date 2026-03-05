@@ -40,9 +40,13 @@ function create_user($username, $password) {
     if (isset($users[$username])) {
         return false; // User already exists
     }
+    
+    $is_first_user = count($users) === 0;
+    
     $users[$username] = [
         'password_hash' => password_hash($password, PASSWORD_DEFAULT),
-        'created_at' => time()
+        'created_at' => time(),
+        'is_owner' => $is_first_user
     ];
     return save_users($users) !== false;
 }
