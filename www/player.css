@@ -321,6 +321,17 @@ body {
 	margin-top: 10px;
 }
 
+.upload_date {
+	font-size: 13px;
+	color: darkslategrey;
+	background-color: rgba(255,255,255,0.6);
+	padding: 4px 10px;
+	border-radius: 12px;
+	font-weight: bold;
+	width: max-content;
+	margin: 5px auto;
+}
+
 audio {
 	display: inline-block;
 	width: 90%;

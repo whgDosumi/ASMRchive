@@ -161,6 +161,7 @@ $me = new Video(".")
         }
         echo $me->thumbnail; ?>" id="thumbnail">
         <p class="title"><?php echo $me->title; ?></p>
+        <p class="upload_date">Uploaded: <?php echo $me->pretty_date; ?></p>
         <p class="description"><?php echo $me->description; ?></p>
         <div class="controls">
             <audio id="asmr" controls autoplay onplay="play_update()" onpause="pause_update()">
