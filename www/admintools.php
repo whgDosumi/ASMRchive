@@ -364,9 +364,16 @@
     <a href="https://github.com/whgDosumi/ASMRchive">
         <p id="version"><?php echo $asmrchive_version; ?> <br> <span id="builddate"><?php echo $build_date; ?></span></p>
     </a>
-    <form method="post" id="logout_form" style="position: fixed; top: 50px; right: 0;">
-        <input type="submit" name="logout" value="Logout" style="background-color: darkseagreen; border: none; font-weight: bold; cursor: pointer; border-bottom-left-radius: 5px; padding: 5px;">
-    </form>
+    <div style="position: fixed; top: 58px; right: 0; display: flex; flex-direction: column; align-items: flex-end;">
+        <form method="post" id="logout_form" style="margin-bottom: 8px;">
+            <input type="submit" name="logout" value="Logout" style="background-color: darkseagreen; border: none; font-weight: bold; cursor: pointer; border-top-left-radius: 5px; border-bottom-left-radius: 5px; padding: 15px 20px; font-size: 18px; width: 100%;">
+        </form>
+        <a href="change_password.php" style="text-decoration: none;">
+            <div style="background-color: darkseagreen; border: none; font-weight: bold; cursor: pointer; border-top-left-radius: 5px; border-bottom-left-radius: 5px; padding: 15px 20px; font-size: 18px; color: black; text-align: center;">
+                Change Password
+            </div>
+        </a>
+    </div>
     <div id="main">
         <a href="index.php">
             <img src="images/ASMRchive.png" alt="logo" class="top_logo">
