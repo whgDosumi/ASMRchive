@@ -8,7 +8,9 @@ $error_message = "";
 $success_message = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST['current_password']) && isset($_POST['new_password']) && isset($_POST['confirm_password'])) {
+    if (!isset($_POST['csrf_token']) || !verify_csrf_token($_POST['csrf_token'])) {
+        $error_message = "CSRF validation failed.";
+    } elseif (isset($_POST['current_password']) && isset($_POST['new_password']) && isset($_POST['confirm_password'])) {
         $username = $_SESSION['username'];
         $current = $_POST['current_password'];
         $new = $_POST['new_password'];
@@ -47,6 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <img src="images/ASMRchive.png" alt="logo" class="top_logo">
         </a>
         <form method="post">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
             <table>
                 <thead>
                     <th colspan="2">Change Password</th>

@@ -21,7 +21,9 @@ if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true
 $error_message = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST['login_username']) && isset($_POST['login_password'])) {
+    if (!isset($_POST['csrf_token']) || !verify_csrf_token($_POST['csrf_token'])) {
+        $error_message = "CSRF validation failed.";
+    } elseif (isset($_POST['login_username']) && isset($_POST['login_password'])) {
         $username = trim($_POST['login_username']);
         $password = $_POST['login_password'];
         
@@ -55,6 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <img src="images/ASMRchive.png" alt="logo" class="top_logo">
         </a>
         <form method="post">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
             <table>
                 <thead>
                     <th colspan="2">Admin Login</th>

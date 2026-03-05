@@ -15,7 +15,9 @@ if (has_users()) {
 $error_message = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST['setup_username']) && isset($_POST['setup_password']) && isset($_POST['setup_password_confirm'])) {
+    if (!isset($_POST['csrf_token']) || !verify_csrf_token($_POST['csrf_token'])) {
+        $error_message = "CSRF validation failed.";
+    } elseif (isset($_POST['setup_username']) && isset($_POST['setup_password']) && isset($_POST['setup_password_confirm'])) {
         $username = trim($_POST['setup_username']);
         $password = $_POST['setup_password'];
         $password_confirm = $_POST['setup_password_confirm'];
@@ -58,6 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <img src="images/ASMRchive.png" alt="logo" class="top_logo">
         </a>
         <form method="post">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
             <table>
                 <thead>
                     <th colspan="2">First Time Setup: Create Admin</th>

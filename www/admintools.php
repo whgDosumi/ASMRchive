@@ -16,6 +16,9 @@
     require_login();
 
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout'])) {
+        if (!isset($_POST['csrf_token']) || !verify_csrf_token($_POST['csrf_token'])) {
+            die("CSRF validation failed.");
+        }
         session_destroy();
         header("Location: login.php");
         exit();
@@ -51,6 +54,10 @@
     $error_message = "";
     $user_management_message = "";
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        if (!isset($_POST['csrf_token']) || !verify_csrf_token($_POST['csrf_token'])) {
+            $error_message = "CSRF validation failed.";
+            $user_management_message = "CSRF validation failed.";
+        } else {
         // User Management: Create User
         if (isset($_POST['create_user']) && isset($_POST['new_username']) && isset($_POST['new_password'])) {
             if (is_owner()) {
@@ -354,6 +361,7 @@
                 }
             }
         }
+        }
     }
 
 
@@ -366,6 +374,7 @@
     </a>
     <div style="position: fixed; top: 58px; right: 0; display: flex; flex-direction: column; align-items: flex-end;">
         <form method="post" id="logout_form" style="margin-bottom: 8px;">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
             <input type="submit" name="logout" value="Logout" style="background-color: darkseagreen; border: none; font-weight: bold; cursor: pointer; border-top-left-radius: 5px; border-bottom-left-radius: 5px; padding: 15px 20px; font-size: 18px; width: 100%;">
         </form>
         <a href="change_password.php" style="text-decoration: none;">
@@ -379,6 +388,7 @@
             <img src="images/ASMRchive.png" alt="logo" class="top_logo">
         </a>
         <form method="post" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
             <table>
                 <thead>
                     <th colspan="2">Upload ASMR</th>
@@ -438,6 +448,7 @@
 
 
         <form method="post" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
             <table>
                 <thead>
                     <th colspan="2">Add Channel</th>
@@ -465,6 +476,7 @@
         </form>
 
         <form method="post" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
             <table>
                 <thead>
                     <th colspan="2">Request Video</th>
@@ -500,6 +512,7 @@
             </table>
         </form>
         <form method="post">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
             <table>
                 <thead>
                     <th colspan="2">Upload Cookie</th>
@@ -532,6 +545,7 @@
             </table>
         </form>
         <form method="post" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
             <table>
                     <?php
                         $dlp_info = get_dlp_update();
@@ -566,6 +580,7 @@
         </form>
         <?php if (is_owner()): ?>
         <form method="post" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
             <table>
                 <thead>
                     <th colspan="2">User Management</th>
@@ -617,6 +632,7 @@
         <?php endif; ?>
 
         <form method="post" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generate_csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
             <input type="submit" name="force-scan" value="ASMR Scan Now" id="force-scan">
         </form>
         <br>
