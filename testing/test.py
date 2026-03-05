@@ -361,6 +361,48 @@ WebDriverWait(web, timeout).until(
 )
 print("Admin logged in successfully with new password. Proceeding with existing tests.")
 
+print("Phase 3: Security & CSRF Testing")
+# Simulate a CSRF exploit attempt by injecting and submitting a form without the CSRF token
+web.get(admintools_url)
+print("Injecting malicious CSRF form without a token...")
+web.execute_script("""
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'admintools.php';
+    form.id = 'evil_csrf_form';
+    
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'force-scan';
+    input.value = 'ASMR Scan Now';
+    
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+""")
+
+# Wait for the page to reload
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.ID, "main"))
+)
+
+# Ensure the server rejected it due to the missing token
+try:
+    # If the exploit works, the server processes 'force-scan' and returns a javascript alert
+    WebDriverWait(web, 3).until(EC.alert_is_present())
+    alert = web.switch_to.alert
+    alert_text = alert.text
+    alert.accept()
+    assert False, f"CSRF Exploit succeeded! Server executed the action and returned alert: {alert_text}"
+except Exception as e:
+    if "CSRF Exploit succeeded" in str(e):
+        raise e
+    # Timeout means no alert was presented, which means the server correctly blocked the action!
+    pass
+
+assert "CSRF validation failed." in web.page_source, "Expected CSRF validation failure message on the page."
+print("CSRF Exploit blocked successfully! The server correctly rejected the forged request.")
+
 # Test updating yt-dlp via the webui.
 
 print("Performing DLP Test...")
