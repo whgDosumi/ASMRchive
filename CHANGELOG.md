@@ -1,3 +1,78 @@
+## 1.15.0 - 2026-03-05
+feat: Admin Login (#169)
+
+* feat: add auth.php
+
+- Created `auth.php` to handle reading/writing a JSON-based user database (`/var/ASMRchive/.appdata/users.json`).
+- Implemented functions for checking existing users, verifying passwords, and managing (create, update, delete) users.
+- Added `require_login()` function to enforce session authentication and redirect to setup or login flows if necessary.
+- Designed to handle fresh installations seamlessly by checking if the user database is populated.
+
+* feat: Add user authentication to ASMRchive.
+
+* feat: limit user management to owner in admintools
+
+- Add owner-check functions to auth.php
+- Update session handling in login and setup to track owner status
+- Restrict user management logic and UI in admintools.php to owners only
+
+* feat: Add change password button
+
+* test: implement auth integration tests
+
+- Adds integration tests for our new authentication system
+- Checked to ensure all features of the auth system are functioning
+- Resumes all remaining existing tests as an administrator.
+
+* test: Change button reference
+
+* fix: Fix permissions issue users.json
+
+* testing: Fix hanging test
+
+Test hung because the success message continued to show the username.
+We not just wait for the success message instead of waiting for the
+name to disappear.
+
+* test: Ensure users.json is not exposed.
+
+* fix: Conceal users.conf
+
+* fix: Fix typo in httpd configuration
+
+* fix: mitigate stored XSS vulnerability in comments
+
+- Updated test_input in library.php to use ENT_QUOTES and UTF-8 for proper escaping.
+- Removed unescaped username from delete confirmation dialog in player.php.
+- Added proper HTML escaping to the hidden delete input field in player.php.
+
+* test: Remove unnecessary assertion
+
+Removes assertion to confirm alert shows test comment name. This has
+been removed to prevent XSS attacks, so there's no need to assert This
+anymore.
+
+* fix: mitigate numerous XSS vulnerabilities
+
+- Escaped user inputs and file metadata (titles, channel names, descriptions) using htmlspecialchars to prevent XSS.
+- Switched to json_encode for safer Javascript string injection in the player.
+- Fixed unescaped variables within admintools
+
+* test: CSRF exploit testing
+
+* test: Polish CSRF error message
+
+* fix: implement CSRF protection across all forms
+
+- Add csrf helper functions
+- Inject hidden CSRF token fields into all admintools form elements.
+- Enforce token validation on POST requests in admintools.
+- Verify tokens in login.php to protect authentication.
+- Secure initial installation by adding token checks to setup.php.
+- Require valid tokens for password updates in change_password.php.
+
+* fix: Remove web access to .appdata folder entirely
+
 ## 1.14.0 - 2026-03-05
 feat: Add upload date to player.php (#168)
 
