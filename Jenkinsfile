@@ -106,7 +106,7 @@ pipeline {
             steps {
                 // This is necessary since layer caching sometimes prevents the latest version being present.
                 echo "Ensure yt-dlp is up to date in the container."
-                sh "podman exec ${CONTAINER_NAME} cd /var/python && uv sync --upgrade-package yt_dlp"
+                sh "podman exec ${CONTAINER_NAME} cd /var/python && uv sync --upgrade-package yt-dlp"
             }
         }
         stage ("Unit Tests") {
