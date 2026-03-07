@@ -9,12 +9,14 @@ check() {
     fi
     if [ -f "/var/ASMRchive/.appdata/flags/update_dlp_flag.txt" ]; then
         rm -f "/var/ASMRchive/.appdata/flags/update_dlp_flag.txt"
-        python3 -m pip install -U "yt-dlp[default]"
-        python /var/python/check_dlp.py
+        cd /var/python
+        uv sync --upgrade-package yt-dlp
+        uv run check_dlp.py
     fi
     if [ -f "/var/ASMRchive/.appdata/flags/check_dlp_flag.txt" ]; then
         rm -f "/var/ASMRchive/.appdata/flags/check_dlp_flag.txt"
-        python /var/python/check_dlp.py
+        cd /var/python
+        uv run check_dlp.py
     fi
 
     # Clean up expired cookie files

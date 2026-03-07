@@ -133,6 +133,7 @@ pipeline {
                 // Downgrade yt-dlp to an older version.
                 // This is so the integration tests can check the update button on the webpage, and make sure it works.
                 sh "podman exec -w /var/python ${CONTAINER_NAME} uv add yt-dlp==2026.02.04"
+                sh "podman exec -w /var/python ${CONTAINER_NAME} uv run check_dlp.py"
             }
         }
         stage ("Integration Tests") {
