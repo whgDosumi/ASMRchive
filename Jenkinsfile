@@ -106,12 +106,12 @@ pipeline {
             steps {
                 // This is necessary since layer caching sometimes prevents the latest version being present.
                 echo "Ensure yt-dlp is up to date in the container."
-                sh "podman exec ${CONTAINER_NAME} cd /var/python && uv sync --upgrade-package yt-dlp"
+                sh "podman exec -w /var/python ${CONTAINER_NAME} uv sync --upgrade-package yt-dlp"
             }
         }
         stage ("Unit Tests") {
             steps {
-                sh "podman exec ${CONTAINER_NAME} cd /var/python && uv run test.py"
+                sh "podman exec -w /var/python ${CONTAINER_NAME} uv run test.py"
                 script {
                     if (params.Pause) {
                         def pauseMsg = """
@@ -132,7 +132,7 @@ pipeline {
             steps {
                 // Downgrade yt-dlp to an older version.
                 // This is so the integration tests can check the update button on the webpage, and make sure it works.
-                sh "cd /var/python && uv add yt-dlp==2026.02.04"
+                sh "podman exec -w /var/python ${CONTAINER_NAME} uv add yt-dlp==2026.02.04"
             }
         }
         stage ("Integration Tests") {
