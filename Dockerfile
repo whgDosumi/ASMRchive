@@ -9,8 +9,7 @@ RUN dnf update -y && dnf -y install \
     && dnf clean all
 
 # Install uv
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
-    && source $HOME/.local/bin/env
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
 # Install DENO for yt-dlp js challenges
 RUN curl -fsSL https://deno.land/install.sh | sh -s -- -y \
