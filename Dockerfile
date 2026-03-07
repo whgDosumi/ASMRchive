@@ -10,6 +10,7 @@ RUN dnf update -y && dnf -y install \
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+ENV UV_PROJECT_DIR=/var/python
 
 # Install DENO for yt-dlp js challenges
 RUN curl -fsSL https://deno.land/install.sh | sh -s -- -y \
@@ -52,7 +53,7 @@ COPY www /var/www/html
 COPY python /var/python
 
 # Setup python env
-RUN uv -C /var/python sync --upgrade-package yt_dlp
+RUN uv sync --upgrade-package yt-dlp
 
 # Make force_scan.sh executable
 RUN chmod 770 /var/python/flag_check.sh
