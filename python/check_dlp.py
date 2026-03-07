@@ -5,7 +5,7 @@ import json
 
 # Returns a dict with bool up_to_date and the two version strings.
 def check_version():
-    p = subprocess.run(["/usr/local/bin/yt-dlp", "-U"], capture_output = True, text = True)
+    p = subprocess.run(["uv", "-C", "/var/python", "run", "yt-dlp", "-U"], capture_output = True, text = True)
     stdout = p.stdout.splitlines()
     if "yt-dlp is up to date" in p.stdout:
         up_to_date = True

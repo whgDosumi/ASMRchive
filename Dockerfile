@@ -52,8 +52,7 @@ COPY www /var/www/html
 COPY python /var/python
 
 # Setup python env
-WORKDIR /var/python
-RUN uv sync --upgrade-package yt_dlp
+RUN uv -C /var/python sync --upgrade-package yt_dlp
 
 # Make force_scan.sh executable
 RUN chmod 770 /var/python/flag_check.sh
