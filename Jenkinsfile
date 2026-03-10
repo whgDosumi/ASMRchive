@@ -150,10 +150,10 @@ pipeline {
                     sh """
                     podman run --rm \
                         --network ${NETWORK_NAME} \
-                        -e OWNER_USERNAME="\${OWNER_USERNAME}" \
-                        -e OWNER_PASSWORD="\${OWNER_PASSWORD}" \
-                        -e ADMIN_USERNAME="\${ADMIN_USERNAME}" \
-                        -e ADMIN_PASSWORD="\${ADMIN_PASSWORD}" \
+                        -e OWNER_USERNAME \
+                        -e OWNER_PASSWORD \
+                        -e ADMIN_USERNAME \
+                        -e ADMIN_PASSWORD \
                         ${TEST_IMAGE} \
                         --test dlp \
                         --url http://asmrchive-app:80
