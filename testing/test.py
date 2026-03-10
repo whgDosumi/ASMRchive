@@ -305,6 +305,20 @@ WebDriverWait(web, timeout).until(
     EC.text_to_be_present_in_element((By.TAG_NAME, "body"), "Password changed successfully")
 )
 
+# REVERT Owner Password
+web.get(admintools_url)
+web.find_element(By.XPATH, "//a[@href='change_password.php']").click()
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.NAME, "current_password"))
+)
+web.find_element(By.NAME, "current_password").send_keys(NEW_OWNER_PASSWORD)
+web.find_element(By.NAME, "new_password").send_keys(OWNER_PASSWORD)
+web.find_element(By.NAME, "confirm_password").send_keys(OWNER_PASSWORD)
+web.find_element(By.NAME, "send").click()
+WebDriverWait(web, timeout).until(
+    EC.text_to_be_present_in_element((By.TAG_NAME, "body"), "Password changed successfully")
+)
+
 # Go back to admintools and Log Out
 web.get(admintools_url)
 WebDriverWait(web, timeout).until(
@@ -343,7 +357,21 @@ WebDriverWait(web, timeout).until(
     EC.text_to_be_present_in_element((By.TAG_NAME, "body"), "Password changed successfully")
 )
 
-# Go back to admintools, Log Out and Log in with new password
+# REVERT Admin Password
+web.get(admintools_url)
+web.find_element(By.XPATH, "//a[@href='change_password.php']").click()
+WebDriverWait(web, timeout).until(
+    EC.presence_of_element_located((By.NAME, "current_password"))
+)
+web.find_element(By.NAME, "current_password").send_keys(NEW_ADMIN_PASSWORD)
+web.find_element(By.NAME, "new_password").send_keys(ADMIN_PASSWORD)
+web.find_element(By.NAME, "confirm_password").send_keys(ADMIN_PASSWORD)
+web.find_element(By.NAME, "send").click()
+WebDriverWait(web, timeout).until(
+    EC.text_to_be_present_in_element((By.TAG_NAME, "body"), "Password changed successfully")
+)
+
+# Go back to admintools, Log Out and Log in with original password (to verify revert)
 web.get(admintools_url)
 WebDriverWait(web, timeout).until(
     EC.presence_of_element_located((By.ID, "logout_form"))
@@ -353,13 +381,13 @@ WebDriverWait(web, timeout).until(
     EC.presence_of_element_located((By.NAME, "login_username"))
 )
 web.find_element(By.NAME, "login_username").send_keys(ADMIN_USERNAME)
-web.find_element(By.NAME, "login_password").send_keys(NEW_ADMIN_PASSWORD)
+web.find_element(By.NAME, "login_password").send_keys(ADMIN_PASSWORD)
 web.find_element(By.CLASS_NAME, "submit_button").click()
 
 WebDriverWait(web, timeout).until(
     EC.presence_of_element_located((By.ID, "logout_form"))
 )
-print("Admin logged in successfully with new password. Proceeding with existing tests.")
+print("Admin logged in successfully with original password. Proceeding with existing tests.")
 
 print("Phase 3: Security & CSRF Testing")
 # Simulate a CSRF exploit attempt by injecting and submitting a form without the CSRF token
