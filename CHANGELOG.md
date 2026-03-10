@@ -1,3 +1,10 @@
+## 1.15.2 - 2026-03-10
+ci: Change default cache behavior
+
+- Defaults to using cache for builds
+- Still forces no cache on PR builds
+- Will manually adjust the Daily Master Build
+
 ## 1.15.1 - 2026-03-10
 Refactor: Implement UV
 
