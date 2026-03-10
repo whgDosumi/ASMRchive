@@ -1,20 +1,26 @@
 #!/bin/bash
 
+export PATH="/usr/local/bin:$PATH"
+
 # Runs twice, because this is being ran every 1m by crontab and I wanted to run it every 30s
 
 check() {
     if [ -f "/var/ASMRchive/.appdata/flags/scan_flag.txt" ]; then
-        rm -f /var/ASMRchive/.appdata/flags/scan_flag.txt
-        python /var/python/main.py >> "/var/ASMRchive/.appdata/logs/python/main-$(date +\%Y-\%m-\%d)-asmr.log" 2>&1
+        rm -f "/var/ASMRchive/.appdata/flags/scan_flag.txt"
+        cd /var/python && uv run main.py >> "/var/ASMRchive/.appdata/logs/python/main-$(date +\%Y-\%m-\%d)-asmr.log" 2>&1
     fi
     if [ -f "/var/ASMRchive/.appdata/flags/update_dlp_flag.txt" ]; then
         rm -f "/var/ASMRchive/.appdata/flags/update_dlp_flag.txt"
-        python3 -m pip install -U "yt-dlp[default]"
-        python /var/python/check_dlp.py
+        cd /var/python
+        uv remove yt-dlp # Requried to remove hard-coded version in case this happens in the pipeline
+        uv add yt-dlp 
+        uv sync --upgrade-package yt-dlp
+        uv run check_dlp.py
     fi
     if [ -f "/var/ASMRchive/.appdata/flags/check_dlp_flag.txt" ]; then
         rm -f "/var/ASMRchive/.appdata/flags/check_dlp_flag.txt"
-        python /var/python/check_dlp.py
+        cd /var/python
+        uv run check_dlp.py
     fi
 
     # Clean up expired cookie files
