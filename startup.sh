@@ -7,8 +7,9 @@ php-fpm
 if [ -z "${DLP_VER+x}" ]; then
     echo "DLP-VER not overridden."
 else
-    python -m pip uninstall -y yt-dlp
-    python -m pip install -U yt-dlp==$DLP_VER
+    cd /var/python
+    uv remove yt-dlp
+    uv add yt-dlp==$DLP_VER
 fi
 
 if [ ! -d "/var/ASMRchive/.appdata" ] # If appdata doesn't already exist, initialize it
@@ -65,8 +66,9 @@ chmod 770 /var/ASMRchive/.appdata/flags
 # Set apache group for necessary files.
 chgrp -R apache /var/ASMRchive/.appdata/channels
 
-python /var/python/check_dlp.py
-python /var/python/clear_downloads.py
-python /var/python/update_web.py
-python /var/python/main.py bypass_convert >> "/var/ASMRchive/.appdata/logs/python/main-$(date +%Y-%m-%d)-asmr.log" 2>&1
+cd /var/python
+uv run check_dlp.py
+uv run clear_downloads.py
+uv run update_web.py
+uv run main.py bypass_convert >> "/var/ASMRchive/.appdata/logs/python/main-$(date +%Y-%m-%d)-asmr.log" 2>&1
 /usr/sbin/httpd -D FOREGROUND
