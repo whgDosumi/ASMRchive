@@ -1,3 +1,11 @@
+## 1.15.1 - 2026-03-10
+Refactor: Implement UV
+
+- Replaces pip with uv for python dependencies.
+- Heavily reduces build time and reliability.
+- Reorganized the crontab creation so each step is on a separate line.
+- Ensure integration tests revert passwords
+
 ## 1.15.0 - 2026-03-05
 feat: Admin Login (#169)
 
