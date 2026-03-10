@@ -12,7 +12,7 @@ pipeline {
     parameters {
         // Determines whether we should skip the manual review step
         booleanParam(defaultValue: true, description: "Skip manual review?", name: "SKIP_REVIEW")
-        booleanParam(defaultValue: false, description: "Use Image Cache?", name: "USE_CACHE")
+        booleanParam(defaultValue: true, description: "Use Image Cache?", name: "USE_CACHE")
         booleanParam(defaultValue: false, description: "Suppress Telegram Notifications", name: "SUPPRESS_NOTIFS")
         booleanParam(defaultValue: false, description: "Pause Between Steps", name: "Pause")
     }
@@ -31,10 +31,7 @@ pipeline {
                     if (env.JOB_NAME.contains("PR Builder")) {
                         skip_manual = false
                         use_cache = false
-                        echo "PR Build - Forcing manual review and fresh build."
-                    } else if (env.JOB_NAME.contains("Branch Builder")) {
-                        use_cache = true
-                        echo "Branch Build - Using cache for speed."
+                        echo "PR Build - Forcing manual review and no cache."
                     }
                     env.skip_manual_dynamic = skip_manual.toString()
                     env.use_cache_dynamic = use_cache.toString()
