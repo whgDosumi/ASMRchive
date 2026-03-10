@@ -12,7 +12,7 @@ pipeline {
     parameters {
         // Determines whether we should skip the manual review step
         booleanParam(defaultValue: true, description: "Skip manual review?", name: "SKIP_REVIEW")
-        booleanParam(defaultValue: false, description: "Use Image Cache?", name: "USE_CACHE")
+        booleanParam(defaultValue: true, description: "Use Image Cache?", name: "USE_CACHE")
         booleanParam(defaultValue: false, description: "Suppress Telegram Notifications", name: "SUPPRESS_NOTIFS")
         booleanParam(defaultValue: false, description: "Pause Between Steps", name: "Pause")
     }
@@ -27,17 +27,12 @@ pipeline {
                     // jenkins-${env.EXECUTOR_NUMBER + 1}.wronghood.net
                     env.BUILD_PORT = "${4445 + ((env.EXECUTOR_NUMBER ?: '0') as Integer)}"
                     def skip_manual = params.SKIP_REVIEW
-                    def use_cache = params.USE_CACHE
                     if (env.JOB_NAME.contains("PR Builder")) {
                         skip_manual = false
-                        use_cache = false
-                        echo "PR Build - Forcing manual review and fresh build."
-                    } else if (env.JOB_NAME.contains("Branch Builder")) {
-                        use_cache = true
-                        echo "Branch Build - Using cache for speed."
+                        echo "PR Build - Forcing manual review."
                     }
                     env.skip_manual_dynamic = skip_manual.toString()
-                    env.use_cache_dynamic = use_cache.toString()
+                    env.use_cache_dynamic = params.USE_CACHE.toString()
 
                     // Derive unique resource names for this build from BUILD_TAG_CLEAN.
                     // All names are prefixed with 'asmrchive' and use a two-letter
