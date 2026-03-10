@@ -10,7 +10,8 @@ check() {
     if [ -f "/var/ASMRchive/.appdata/flags/update_dlp_flag.txt" ]; then
         rm -f "/var/ASMRchive/.appdata/flags/update_dlp_flag.txt"
         cd /var/python
-        uv add yt-dlp # Requried to remove hard-coded version in case this happens in the pipeline
+        uv remove yt-dlp # Requried to remove hard-coded version in case this happens in the pipeline
+        uv add yt-dlp 
         uv sync --upgrade-package yt-dlp
         uv run check_dlp.py
     fi
