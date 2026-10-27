@@ -1,6 +1,7 @@
 import subprocess
 import time
 import requests
+import subprocess
 
 def print_green(text):
     green = "\033[92m"
@@ -17,6 +18,12 @@ class TestResult:
         self.name = name
         self.passed = passed
         self.message = message
+
+def php_version_check(req="8.4.27"):
+    php_ver = subprocess.run(["php", "-r", "echo phpversion();"], capture_output=True, text=True, check=True).stdout
+    if php_ver >= req:
+        return True, php_ver
+    return False, f"PHP {php_ver} < {req}"
 
 def check_ytdlp():
     result = subprocess.run(["yt-dlp", "-U"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -122,6 +129,7 @@ if __name__ == "__main__":
         check_ytdlp: (),
         can_get_apple_touch_icon: ("http://127.0.0.1/ASMRchive/apple_touch_icon.png",),
         test_get_vid: (),
+        php_version_check: ("8.4.27",)
     }
 
     run_tests(tests)
