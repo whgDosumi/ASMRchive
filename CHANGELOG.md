@@ -1,3 +1,10 @@
+## 1.15.3 - 2026-10-27
+Test/fix php2shell (#172)
+
+* test: Add unit test to verify php is patched
+
+* chore: Update Fedora ver in container
+
 ## 1.15.2 - 2026-03-10
 ci: Change default cache behavior
 
